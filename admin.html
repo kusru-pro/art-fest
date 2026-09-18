@@ -114,6 +114,43 @@
             text-align: center;
             font-size: 1.1rem;
         }
+        /* Accordion */
+        .accordion-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .accordion-header {
+            background: #f8fafc;
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid transparent;
+            transition: background 0.2s ease;
+        }
+        .accordion-header:hover {
+            background: #f1f5f9;
+        }
+        .accordion-header.expanded {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            color: #64748b;
+        }
+        .accordion-header.expanded .accordion-icon {
+            transform: rotate(180deg);
+        }
 
         /* Main Content Area */
         .main-content {
@@ -1162,45 +1199,53 @@
                         : `<button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>`;
 
                     htmlContent += `
-                    <div class="card" style="margin-bottom: 2rem;">
-                        <div class="card-header" style="background: #f8fafc; margin: -2rem -2rem 1.5rem -2rem; padding: 1.5rem 2rem; border-radius: 16px 16px 0 0; border-bottom: 1px solid #e2e8f0;">
-                            <div class="card-title">
+                    <div class="accordion-card">
+                        <div class="accordion-header" id="acc-header-${eventCode}" onclick="toggleAccordion('${eventCode}')">
+                            <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                                 <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
-                                ${eventInfo.eventName} <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 8px;">(${eventInfo.category})</span>
+                                <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
+                                <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(${eventInfo.category})</span>
                             </div>
-                            ${badgeHtml}
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                ${badgeHtml}
+                                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                            </div>
                         </div>
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Position</th>
-                                        <th>Chest No</th>
-                                        <th>Participant</th>
-                                        <th>Team</th>
-                                        <th>Marks</th>
-                                        <th>Grade</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${results.map(res => {
-                                        const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
-                                        return `
+                        <div class="accordion-content" id="acc-content-${eventCode}">
+                            <div style="padding: 1.5rem 2rem;">
+                                <div class="table-responsive">
+                                    <table class="data-table">
+                                        <thead>
                                             <tr>
-                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
-                                                <td><strong>${res.chestNo}</strong></td>
-                                                <td>${participant.name}</td>
-                                                <td>${participant.team}</td>
-                                                <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark || '-'}</strong></td>
-                                                <td><strong style="font-size: 1.1rem;">${res.grade || '-'}</strong></td>
+                                                <th>Position</th>
+                                                <th>Chest No</th>
+                                                <th>Participant</th>
+                                                <th>Team</th>
+                                                <th>Marks</th>
+                                                <th>Grade</th>
                                             </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
-                            ${buttonHtml}
+                                        </thead>
+                                        <tbody>
+                                            ${results.map(res => {
+                                                const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
+                                                return `
+                                                    <tr>
+                                                        <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
+                                                        <td><strong>${res.chestNo}</strong></td>
+                                                        <td>${participant.name}</td>
+                                                        <td>${participant.team}</td>
+                                                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark || '-'}</strong></td>
+                                                        <td><strong style="font-size: 1.1rem;">${res.grade || '-'}</strong></td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                                    ${buttonHtml}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     `;
@@ -1256,48 +1301,56 @@
             const container = document.getElementById('verify-cards-container');
             if (container) {
                 container.innerHTML = `
-                <div class="card" style="margin-bottom: 2rem;">
-                    <div class="card-header" style="background: #f8fafc; margin: -2rem -2rem 1.5rem -2rem; padding: 1.5rem 2rem; border-radius: 16px 16px 0 0; border-bottom: 1px solid #e2e8f0;">
-                        <div class="card-title">
+                <div class="accordion-card">
+                    <div class="accordion-header" id="acc-header-mock" onclick="toggleAccordion('mock')">
+                        <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
-                            Tech Hackathon <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 8px;">(General Open)</span>
+                            <span style="font-weight: 700; color: #0f172a;">EV-101 - Tech Hackathon</span>
+                            <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(General Open)</span>
                         </div>
-                        <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
+                            <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Position</th>
-                                    <th>Chest No</th>
-                                    <th>Participant</th>
-                                    <th>Team</th>
-                                    <th>Marks</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#1</span></td>
-                                    <td><strong>104</strong></td>
-                                    <td>Rashid K</td>
-                                    <td>Al-Huda Unit</td>
-                                    <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
-                                    <td><strong style="font-size: 1.1rem;">A</strong></td>
-                                </tr>
-                                <tr>
-                                    <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#2</span></td>
-                                    <td><strong>109</strong></td>
-                                    <td>Sameer H</td>
-                                    <td>Uhud Warriors</td>
-                                    <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
-                                    <td><strong style="font-size: 1.1rem;">B</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
-                        <button class="btn" id="btn-pub-mock" onclick="publishEventResults('mock')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>
+                    <div class="accordion-content" id="acc-content-mock">
+                        <div style="padding: 1.5rem 2rem;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Position</th>
+                                            <th>Chest No</th>
+                                            <th>Participant</th>
+                                            <th>Team</th>
+                                            <th>Marks</th>
+                                            <th>Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#1</span></td>
+                                            <td><strong>104</strong></td>
+                                            <td>Rashid K</td>
+                                            <td>Al-Huda Unit</td>
+                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
+                                            <td><strong style="font-size: 1.1rem;">A</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#2</span></td>
+                                            <td><strong>109</strong></td>
+                                            <td>Sameer H</td>
+                                            <td>Uhud Warriors</td>
+                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
+                                            <td><strong style="font-size: 1.1rem;">B</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                                <button class="btn" id="btn-pub-mock" onclick="publishEventResults('mock')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 `;
@@ -1306,6 +1359,18 @@
         window.fetchPendingResults = () => {
             if (isConfigured) initResultsListener();
             else fetchPendingResultsFallback();
+        };
+
+        window.toggleAccordion = function(id) {
+            const header = document.getElementById('acc-header-' + id);
+            const content = document.getElementById('acc-content-' + id);
+            if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                content.style.maxHeight = '0px';
+                header.classList.remove('expanded');
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                header.classList.add('expanded');
+            }
         };
 
         // =========================================================================
