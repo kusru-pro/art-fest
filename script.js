@@ -503,32 +503,54 @@ function initLeaderboardVisibilityListener() {
     
     const docRef = doc(db, 'settings', 'leaderboard');
     onSnapshot(docRef, (docSnap) => {
-        const miniLb = document.querySelector('.mini-leaderboard-section');
-        const mainLb = document.querySelector('#team-points');
+        const miniLb = document.getElementById('home-mini-leaderboard') || document.querySelector('.mini-leaderboard-section');
+        const mainLb = document.getElementById('team-points');
+        const navLb = document.getElementById('nav-team-points');
         
         // Find existing banner or create it
         let mainLbBanner = document.getElementById('lb-hidden-banner');
+        const isVisible = docSnap.exists() && docSnap.data().isVisible === true;
         
-        if (docSnap.exists() && docSnap.data().isVisible === true) {
-            if (miniLb) miniLb.style.display = 'block';
+        if (isVisible) {
+            if (miniLb) {
+                miniLb.classList.remove('hidden-section');
+                miniLb.style.display = '';
+            }
+            if (navLb) {
+                navLb.classList.remove('hidden-section');
+                navLb.style.display = '';
+            }
             if (mainLb) {
-                mainLb.style.display = 'block';
+                mainLb.classList.remove('hidden-section');
+                mainLb.style.display = '';
                 if (mainLbBanner) mainLbBanner.style.display = 'none';
             }
         } else {
-            if (miniLb) miniLb.style.display = 'none';
+            if (miniLb) {
+                miniLb.classList.add('hidden-section');
+                miniLb.style.display = 'none';
+            }
+            if (navLb) {
+                navLb.classList.add('hidden-section');
+                navLb.style.display = 'none';
+            }
             if (mainLb) {
+                mainLb.classList.add('hidden-section');
                 mainLb.style.display = 'none';
                 
-                // Show a nice placeholder message if the user navigates to the leaderboard page directly
+                // Show placeholder banner if the user was currently on the team-points tab
                 if (!mainLbBanner) {
                     mainLbBanner = document.createElement('section');
                     mainLbBanner.id = 'lb-hidden-banner';
-                    mainLbBanner.className = 'tab-section active';
-                    mainLbBanner.innerHTML = <div class="card" style="text-align: center; padding: 4rem 2rem;"><i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i><h2 style="color: #475569; font-family: var(--font-heading);">Leaderboard is Currently Hidden</h2><p style="color: #94a3b8; margin-top: 0.5rem;">The project council is still processing results. The leaderboard will be published shortly.</p></div>;
+                    mainLbBanner.className = 'tab-section';
+                    mainLbBanner.innerHTML = `<div class="card" style="text-align: center; padding: 4rem 2rem;"><i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i><h2 style="color: #475569; font-family: var(--font-heading);">Leaderboard is Currently Hidden</h2><p style="color: #94a3b8; margin-top: 0.5rem;">The festival committee is processing evaluations. The official leaderboard will be published shortly.</p></div>`;
                     mainLb.parentNode.insertBefore(mainLbBanner, mainLb);
                 }
-                mainLbBanner.style.display = 'block';
+                if (mainLb.classList.contains('active')) {
+                    mainLbBanner.style.display = 'block';
+                } else {
+                    mainLbBanner.style.display = 'none';
+                }
             }
         }
     }, (err) => {
@@ -566,9 +588,12 @@ function renderLiveResults(resultsList) {
         grouped[r.eventCode].push(r);
     });
 
-    // Sort scores within each event descending to determine ranks
+    // Sort scores within each event: priority by explicit position ranking, else totalMark descending
     Object.keys(grouped).forEach(evCode => {
-        grouped[evCode].sort((a, b) => b.totalMark - a.totalMark);
+        grouped[evCode].sort((a, b) => {
+            if (a.position && b.position) return a.position - b.position;
+            return b.totalMark - a.totalMark;
+        });
     });
 
     container.innerHTML = Object.keys(grouped).map(evCode => {
@@ -603,7 +628,7 @@ function renderLiveResults(resultsList) {
                             <tbody>
                                 ${eventResults.map((r, idx) => {
                                     const p = participantsCache[r.chestNo] || { name: 'Contestant ' + r.chestNo, team: 'Festival Unit' };
-                                    const rank = idx + 1;
+                                    const rank = r.position || (idx + 1);
                                     return `
                                         <tr>
                                             <td>${rank === 1 ? '<i class="fa-solid fa-trophy trophy-gold"></i> 1' : rank}</td>
@@ -631,92 +656,101 @@ function calculateAndRenderLeaderboard(resultsList) {
 
     resultsList.forEach(r => {
         const p = participantsCache[r.chestNo];
-        const team = p ? p.team : 'Independent';
+        const team = (p && p.team) ? p.team : (r.team || 'Independent');
 
         if (!teamScores[team]) teamScores[team] = 0;
 
-        // Points calculation based on marks and grade
-        let points = 0;
-        if (r.position === 1) points += 5;
-        else if (r.position === 2) points += 3;
-        else if (r.position === 3) points += 1;
-
-        teamScores[team] += points;
+        // Points calculation based on position ranking: 1st = 5, 2nd = 3, 3rd = 1
+        const pos = Number(r.position);
+        if (pos === 1) teamScores[team] += 5;
+        else if (pos === 2) teamScores[team] += 3;
+        else if (pos === 3) teamScores[team] += 1;
     });
 
     const sortedTeams = Object.entries(teamScores)
         .map(([team, pts]) => ({ teamName: team, totalPoints: pts }))
         .sort((a, b) => b.totalPoints - a.totalPoints);
 
-    if (sortedTeams.length === 0) return;
+    const miniPodium = document.getElementById('public-mini-podium');
+    const mainPodium = document.getElementById('public-main-podium');
+    const listContainer = document.getElementById('public-leaderboard-list') || document.querySelector('.leaderboard-list');
 
-    // 1. Update Home Mini Podium
+    if (sortedTeams.length === 0) {
+        if (miniPodium) miniPodium.innerHTML = `<div style="text-align: center; width: 100%; color: #666; padding: 2rem;">No published standings available yet.</div>`;
+        if (mainPodium) mainPodium.innerHTML = `<div style="text-align: center; width: 100%; color: #666; padding: 2rem;">No published standings available yet.</div>`;
+        if (listContainer) listContainer.innerHTML = '';
+        return;
+    }
+
     const miniR1 = sortedTeams[0];
     const miniR2 = sortedTeams[1];
     const miniR3 = sortedTeams[2];
 
-    if (miniR1) {
-        const c = document.querySelector('.mini-podium-card.rank-1');
-        if (c) {
-            c.querySelector('.mini-team-name').textContent = miniR1.teamName;
-            c.querySelector('.mini-team-points strong').textContent = miniR1.totalPoints;
-        }
-    }
-    if (miniR2) {
-        const c = document.querySelector('.mini-podium-card.rank-2');
-        if (c) {
-            c.querySelector('.mini-team-name').textContent = miniR2.teamName;
-            c.querySelector('.mini-team-points strong').textContent = miniR2.totalPoints;
-        }
-    }
-    if (miniR3) {
-        const c = document.querySelector('.mini-podium-card.rank-3');
-        if (c) {
-            c.querySelector('.mini-team-name').textContent = miniR3.teamName;
-            c.querySelector('.mini-team-points strong').textContent = miniR3.totalPoints;
-        }
-    }
-
-    // 2. Update Main Leaderboard Page Podium
-    if (miniR1) {
-        const c = document.querySelector('#team-points .podium-card.rank-1');
-        if (c) {
-            c.querySelector('.podium-team').textContent = miniR1.teamName;
-            const counter = c.querySelector('.counter-value');
-            if (counter) counter.setAttribute('data-target', miniR1.totalPoints);
-        }
-    }
-    if (miniR2) {
-        const c = document.querySelector('#team-points .podium-card.rank-2');
-        if (c) {
-            c.querySelector('.podium-team').textContent = miniR2.teamName;
-            const counter = c.querySelector('.counter-value');
-            if (counter) counter.setAttribute('data-target', miniR2.totalPoints);
-        }
-    }
-    if (miniR3) {
-        const c = document.querySelector('#team-points .podium-card.rank-3');
-        if (c) {
-            c.querySelector('.podium-team').textContent = miniR3.teamName;
-            const counter = c.querySelector('.counter-value');
-            if (counter) counter.setAttribute('data-target', miniR3.totalPoints);
-        }
+    // 1. Render Home Mini Podium (Rank 2, Rank 1 center, Rank 3)
+    if (miniPodium) {
+        miniPodium.innerHTML = `
+            ${miniR2 ? `
+            <div class="mini-podium-card rank-2">
+                <div class="podium-crown"><i class="fa-solid fa-medal"></i> 2nd Place</div>
+                <div class="mini-team-name">${miniR2.teamName}</div>
+                <div class="mini-team-points"><strong>${miniR2.totalPoints}</strong> <span>pts</span></div>
+            </div>` : ''}
+            ${miniR1 ? `
+            <div class="mini-podium-card rank-1">
+                <div class="podium-crown gold-crown"><i class="fa-solid fa-crown"></i> 1st Place</div>
+                <div class="mini-team-name">${miniR1.teamName}</div>
+                <div class="mini-team-points"><strong>${miniR1.totalPoints}</strong> <span>pts</span></div>
+            </div>` : ''}
+            ${miniR3 ? `
+            <div class="mini-podium-card rank-3">
+                <div class="podium-crown"><i class="fa-solid fa-award"></i> 3rd Place</div>
+                <div class="mini-team-name">${miniR3.teamName}</div>
+                <div class="mini-team-points"><strong>${miniR3.totalPoints}</strong> <span>pts</span></div>
+            </div>` : ''}
+        `;
     }
 
-    // 3. Update Remaining Teams List
-    const listContainer = document.querySelector('.leaderboard-list');
-    if (listContainer && sortedTeams.length > 3) {
-        listContainer.innerHTML = sortedTeams.slice(3).map((item, index) => {
-            const rank = index + 4;
-            const rankClass = rank <= 6 ? 'box-rank' : 'list-rank';
-            return `
-                <div class="leaderboard-row ${rankClass}">
-                    <div class="lb-rank">${rank}</div>
-                    <div class="lb-team">${item.teamName}</div>
-                    <div class="lb-points"><span class="counter-value" data-target="${item.totalPoints}">${item.totalPoints}</span> pts</div>
-                </div>
-            `;
-        }).join('');
+    // 2. Render Main Podium
+    if (mainPodium) {
+        mainPodium.innerHTML = `
+            ${miniR2 ? `
+            <div class="podium-card rank-2">
+                <div class="podium-number">2</div>
+                <div class="podium-team">${miniR2.teamName}</div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR2.totalPoints}">${miniR2.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+            </div>` : ''}
+            ${miniR1 ? `
+            <div class="podium-card rank-1">
+                <div class="podium-number">1</div>
+                <div class="podium-team">${miniR1.teamName}</div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR1.totalPoints}">${miniR1.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+            </div>` : ''}
+            ${miniR3 ? `
+            <div class="podium-card rank-3">
+                <div class="podium-number">3</div>
+                <div class="podium-team">${miniR3.teamName}</div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR3.totalPoints}">${miniR3.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+            </div>` : ''}
+        `;
+    }
+
+    // 3. Render Remaining Teams List (Rank 4+)
+    if (listContainer) {
+        if (sortedTeams.length > 3) {
+            listContainer.innerHTML = sortedTeams.slice(3).map((item, index) => {
+                const rank = index + 4;
+                const rankClass = rank <= 6 ? 'box-rank' : 'list-rank';
+                return `
+                    <div class="leaderboard-row ${rankClass}">
+                        <div class="lb-rank">${rank}</div>
+                        <div class="lb-team">${item.teamName}</div>
+                        <div class="lb-points"><span class="counter-value" data-target="${item.totalPoints}">${item.totalPoints}</span> pts</div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            listContainer.innerHTML = '';
+        }
     }
 
     animateCounters();
