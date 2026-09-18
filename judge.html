@@ -168,12 +168,6 @@
             letter-spacing: 0.8px;
         }
 
-        .participant-count {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: rgba(44, 36, 27, 0.8);
-        }
-
         /* === Participants Mark Entry Cards === */
         .entry-list {
             display: flex;
@@ -215,21 +209,6 @@
             font-weight: 800;
             color: #000000;
             letter-spacing: -0.2px;
-        }
-
-        .chest-tag {
-            background: #f1f5f9;
-            color: #334155;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 8px;
-        }
-
-        .order-indicator {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #888888;
         }
 
         /* === Inputs Grid === */
@@ -367,11 +346,6 @@
             transform: translateY(-1px);
         }
 
-        .btn-submit:active {
-            transform: translateY(1px);
-            box-shadow: 0 3px 12px rgba(46, 125, 50, 0.3);
-        }
-
         .warning-notice {
             display: flex;
             align-items: flex-start;
@@ -387,10 +361,8 @@
             color: #8c2d19;
             font-size: 0.85rem;
             margin-top: 0.15rem;
-            flex-shrink: 0;
         }
 
-        /* === Small Mobile Tweaks === */
         @media (max-width: 380px) {
             .inputs-grid {
                 grid-template-columns: 1fr;
@@ -444,6 +416,7 @@
         <!-- Participant List Subheading -->
         <div class="section-lead">
             <span class="section-lead-title">Ranked Results</span>
+            <!-- PLUS BUTTON -->
             <button type="button" onclick="window.addPositionCard()" style="background: none; border: none; color: #2e7d32; font-weight: 700; cursor: pointer; font-size: 0.9rem; padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <i class="fa-solid fa-plus"></i> Add Position
             </button>
@@ -483,18 +456,16 @@
             where 
         } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-        // =========================================================================
-        // 1. FIREBASE CONFIGURATION (Replace with your actual Firebase Project Keys)
-        // =========================================================================
+        // 1. FIREBASE CONFIGURATION
         const firebaseConfig = {
-  apiKey: "AIzaSyDFYLTpVbWLzZBTBDKMGe2F9QedxmP6zVI",
-  authDomain: "artfest-27.firebaseapp.com",
-  projectId: "artfest-27",
-  storageBucket: "artfest-27.firebasestorage.app",
-  messagingSenderId: "532303413059",
-  appId: "1:532303413059:web:6dca20cc6d8c3184a479f6",
-  measurementId: "G-M4PB0RE16T"
-};
+            apiKey: "AIzaSyDFYLTpVbWLzZBTBDKMGe2F9QedxmP6zVI",
+            authDomain: "artfest-27.firebaseapp.com",
+            projectId: "artfest-27",
+            storageBucket: "artfest-27.firebasestorage.app",
+            messagingSenderId: "532303413059",
+            appId: "1:532303413059:web:6dca20cc6d8c3184a479f6",
+            measurementId: "G-M4PB0RE16T"
+        };
 
         const isConfigured = Boolean(
             firebaseConfig.apiKey && 
@@ -516,6 +487,7 @@
         let currentParticipants = [];
         let positionCount = 0;
 
+        // DYNAMIC POSITION CARD ADDER (Fixed String Literals)
         window.addPositionCard = function(posNumber = null) {
             if (!posNumber) {
                 positionCount++;
@@ -527,23 +499,23 @@
             const container = document.getElementById('judge-participants-list');
             
             const options = currentParticipants.map(p => 
-                <option value=" + p.chestNo + "> + p.chestNo +  -  + (p.name || p.team) + </option>
+                `<option value="${p.chestNo}">${p.chestNo} - ${p.name || p.team}</option>`
             ).join('');
 
-            const html = 
-                <article class="participant-card" id="pos-card- + posNumber + ">
+            const html = `
+                <article class="participant-card" id="pos-card-${posNumber}">
                     <div class="card-top">
                         <div class="chest-badge">
-                            <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #b58500; margin-right: 0.5rem; font-size: 1rem;"></i>Position  + posNumber + </span>
+                            <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #b58500; margin-right: 0.5rem; font-size: 1rem;"></i>Position ${posNumber}</span>
                         </div>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
-                        <label class="input-label" style="margin-bottom: 0.35rem;" for="participant-pos- + posNumber + ">Select Participant</label>
+                        <label class="input-label" style="margin-bottom: 0.35rem;" for="participant-pos-${posNumber}">Select Participant</label>
                         <div class="select-wrapper">
-                            <select id="participant-pos- + posNumber + " class="grade-select" style="height: 48px; font-size: 0.95rem; padding-left: 1rem;">
-                                <option value="" selected disabled>Select Participant for Position  + posNumber + </option>
-                                 + options + 
+                            <select id="participant-pos-${posNumber}" class="grade-select" style="height: 48px; font-size: 0.95rem; padding-left: 1rem;">
+                                <option value="" selected disabled>Select Participant for Position ${posNumber}</option>
+                                ${options}
                             </select>
                             <i class="fa-solid fa-chevron-down select-chevron"></i>
                         </div>
@@ -551,12 +523,12 @@
 
                     <div class="inputs-grid">
                         <div class="input-group">
-                            <label class="input-label" for="mark-pos- + posNumber + ">
+                            <label class="input-label" for="mark-pos-${posNumber}">
                                 <i class="fa-solid fa-calculator"></i> Total Mark
                             </label>
                             <input 
                                 type="number" 
-                                id="mark-pos- + posNumber + " 
+                                id="mark-pos-${posNumber}" 
                                 class="mark-input" 
                                 placeholder="0 - 100" 
                                 min="0" 
@@ -566,11 +538,11 @@
                         </div>
 
                         <div class="input-group">
-                            <label class="input-label" for="grade-pos- + posNumber + ">
+                            <label class="input-label" for="grade-pos-${posNumber}">
                                 <i class="fa-solid fa-award"></i> Grade
                             </label>
                             <div class="select-wrapper">
-                                <select id="grade-pos- + posNumber + " class="grade-select">
+                                <select id="grade-pos-${posNumber}" class="grade-select">
                                     <option value="" selected disabled>Select</option>
                                     <option value="A">Grade A</option>
                                     <option value="B">Grade B</option>
@@ -582,7 +554,7 @@
                         </div>
                     </div>
                 </article>
-            ;
+            `;
             
             container.insertAdjacentHTML('beforeend', html);
         }
@@ -592,10 +564,7 @@
             const selectEl = document.getElementById('judge-event-select');
             if (!selectEl) return;
 
-            if (!isConfigured) {
-                // Fallback default events
-                return;
-            }
+            if (!isConfigured) return;
 
             try {
                 const snapshot = await getDocs(collection(db, 'events'));
@@ -616,7 +585,7 @@
             }
         }
 
-        // 2. Load Participants for selected Event from Firestore
+        // 2. Load Participants for selected Event
         async function loadParticipantsForEvent(eventCode) {
             const container = document.getElementById('judge-participants-list');
             if (!container) return;
@@ -639,7 +608,6 @@
             }
 
             try {
-                // Query participants who have this eventCode in their events array
                 const q = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
                 const snapshot = await getDocs(q);
 
@@ -648,7 +616,6 @@
                     currentParticipants.push(docSnap.data());
                 });
 
-                // Fallback if no specific array match, load all participants
                 if (currentParticipants.length === 0) {
                     const allSnap = await getDocs(collection(db, 'participants'));
                     allSnap.forEach(docSnap => {
@@ -656,7 +623,7 @@
                     });
                 }
                 
-                // Add top 3 initially
+                // Add Top 3 initially
                 window.addPositionCard(1);
                 window.addPositionCard(2);
                 window.addPositionCard(3);
@@ -692,7 +659,7 @@
                 const markInput = document.getElementById('mark-pos-' + i);
                 const gradeSelect = document.getElementById('grade-pos-' + i);
                 
-                if (!pSelect || !pSelect.value) continue; // skip if no participant selected for this position
+                if (!pSelect || !pSelect.value) continue;
                 
                 const chestNo = pSelect.value;
                 
@@ -735,7 +702,6 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting to Council...';
 
             if (!isConfigured) {
-                // Local preview fallback
                 setTimeout(() => {
                     feedback.style.display = 'block';
                     feedback.style.background = '#dcfce7';
@@ -748,7 +714,6 @@
             }
 
             try {
-                // Write each result document to Firestore
                 for (const item of scores) {
                     const docId = item.eventCode + '_' + item.chestNo;
                     await setDoc(doc(db, 'results', docId), item);
@@ -784,5 +749,3 @@
     </script>
 </body>
 </html>
-
-
