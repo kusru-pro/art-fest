@@ -497,6 +497,45 @@ function initMetadataListeners() {
     });
 }
 
+// C. Leaderboard Visibility Listener
+function initLeaderboardVisibilityListener() {
+    if (!isConfigured) return;
+    
+    const docRef = doc(db, 'settings', 'leaderboard');
+    onSnapshot(docRef, (docSnap) => {
+        const miniLb = document.querySelector('.mini-leaderboard-section');
+        const mainLb = document.querySelector('#team-points');
+        
+        // Find existing banner or create it
+        let mainLbBanner = document.getElementById('lb-hidden-banner');
+        
+        if (docSnap.exists() && docSnap.data().isVisible === true) {
+            if (miniLb) miniLb.style.display = 'block';
+            if (mainLb) {
+                mainLb.style.display = 'block';
+                if (mainLbBanner) mainLbBanner.style.display = 'none';
+            }
+        } else {
+            if (miniLb) miniLb.style.display = 'none';
+            if (mainLb) {
+                mainLb.style.display = 'none';
+                
+                // Show a nice placeholder message if the user navigates to the leaderboard page directly
+                if (!mainLbBanner) {
+                    mainLbBanner = document.createElement('section');
+                    mainLbBanner.id = 'lb-hidden-banner';
+                    mainLbBanner.className = 'tab-section active';
+                    mainLbBanner.innerHTML = <div class="card" style="text-align: center; padding: 4rem 2rem;"><i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i><h2 style="color: #475569; font-family: var(--font-heading);">Leaderboard is Currently Hidden</h2><p style="color: #94a3b8; margin-top: 0.5rem;">The project council is still processing results. The leaderboard will be published shortly.</p></div>;
+                    mainLb.parentNode.insertBefore(mainLbBanner, mainLb);
+                }
+                mainLbBanner.style.display = 'block';
+            }
+        }
+    }, (err) => {
+        console.error("Settings listener error:", err);
+    });
+}
+
 // B. Real-time Results & Leaderboard Listener
 function initResultsRealtimeListener() {
     if (!isConfigured) return;
@@ -598,10 +637,9 @@ function calculateAndRenderLeaderboard(resultsList) {
 
         // Points calculation based on marks and grade
         let points = 0;
-        if (r.grade === 'A') points += 10;
-        else if (r.grade === 'B') points += 6;
-        else if (r.grade === 'C') points += 3;
-        points += Math.round((r.totalMark || 0) / 10);
+        if (r.position === 1) points += 5;
+        else if (r.position === 2) points += 3;
+        else if (r.position === 3) points += 1;
 
         teamScores[team] += points;
     });
@@ -830,9 +868,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isConfigured) {
         initMetadataListeners();
         initResultsRealtimeListener();
+        initLeaderboardVisibilityListener();
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");
     }
 });
+
+

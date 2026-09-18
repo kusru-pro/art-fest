@@ -505,6 +505,9 @@
                 <div class="nav-item" data-tab="tab-verify">
                     <i class="fa-solid fa-clipboard-check"></i> Result Verification
                 </div>
+                <div class="nav-item" data-tab="tab-leaderboard">
+                    <i class="fa-solid fa-trophy"></i> Leaderboard Mgmt
+                </div>
                 <div class="nav-item" data-tab="tab-gallery">
                     <i class="fa-solid fa-images"></i> Manage Gallery
                 </div>
@@ -736,6 +739,38 @@
                     <div class="card"><p style="text-align:center;">Loading evaluations...</p></div>
                 </div>
 
+            </section>
+
+                        <!-- Tab: Leaderboard Management -->
+            <section id="tab-leaderboard" class="tab-section">
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Leaderboard Controls</h2>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span id="lb-status-text" style="font-weight: 600; color: #64748b;">Loading status...</span>
+                            <button id="btn-toggle-lb" class="btn" style="background: var(--accent-council); border-color: var(--accent-council);" onclick="toggleLeaderboardVisibility()">
+                                <i class="fa-solid fa-eye"></i> Toggle Visibility
+                            </button>
+                        </div>
+                    </div>
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">The public website will only display the Leaderboard if visibility is enabled here. Points are auto-calculated from Published results (1st = 5, 2nd = 3, 3rd = 1).</p>
+                    
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Team Name</th>
+                                    <th style="text-align: right;">Total Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lb-admin-tbody">
+                                <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading leaderboard...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <!-- Tab 5: Manage Gallery -->
@@ -1374,6 +1409,94 @@
         };
 
         // =========================================================================
+                // =========================================================================
+        // LEADERBOARD MANAGEMENT
+        // =========================================================================
+        let lbIsVisible = false;
+
+        function initLeaderboardAdmin() {
+            if (!isConfigured) return;
+            
+            // 1. Listen to settings
+            const docRef = doc(db, 'settings', 'leaderboard');
+            onSnapshot(docRef, (docSnap) => {
+                const statusText = document.getElementById('lb-status-text');
+                const toggleBtn = document.getElementById('btn-toggle-lb');
+                
+                if (docSnap.exists() && docSnap.data().isVisible) {
+                    lbIsVisible = true;
+                    if (statusText) {
+                        statusText.textContent = 'Visible to Public';
+                        statusText.style.color = '#16a34a';
+                    }
+                    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Hide from Public';
+                } else {
+                    lbIsVisible = false;
+                    if (statusText) {
+                        statusText.textContent = 'Hidden from Public';
+                        statusText.style.color = '#dc2626';
+                    }
+                    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Publish to Main Website';
+                }
+            });
+
+            // 2. Listen to published results to calculate points
+            const q = query(collection(db, 'results'), where('status', '==', 'published'));
+            onSnapshot(q, (snapshot) => {
+                const teamScores = {};
+                
+                snapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    const participant = participantsCache[r.chestNo];
+                    const team = participant ? participant.team : 'Unknown Team';
+                    
+                    if (!teamScores[team]) teamScores[team] = 0;
+                    
+                    let points = 0;
+                    if (r.position === 1) points += 5;
+                    else if (r.position === 2) points += 3;
+                    else if (r.position === 3) points += 1;
+                    
+                    teamScores[team] += points;
+                });
+                
+                const sortedTeams = Object.entries(teamScores)
+                    .map(([team, pts]) => ({ teamName: team, totalPoints: pts }))
+                    .sort((a, b) => b.totalPoints - a.totalPoints);
+                
+                const tbody = document.getElementById('lb-admin-tbody');
+                if (tbody) {
+                    if (sortedTeams.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">No published results yet.</td></tr>';
+                    } else {
+                        tbody.innerHTML = sortedTeams.map((item, index) => {
+                            const rank = index + 1;
+                            const medal = rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : rank;
+                            return 
+                            <tr>
+                                <td style="font-weight: bold; font-size: 1.1rem;"> + medal + </td>
+                                <td> + item.teamName + </td>
+                                <td style="text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--accent-council);"> + item.totalPoints +  pts</td>
+                            </tr>
+                            ;
+                        }).join('');
+                    }
+                }
+            });
+        }
+
+        window.toggleLeaderboardVisibility = async function() {
+            if (!isConfigured) return;
+            try {
+                const docRef = doc(db, 'settings', 'leaderboard');
+                await setDoc(docRef, { isVisible: !lbIsVisible }, { merge: true });
+                showFeedback(lbIsVisible ? 'Leaderboard hidden from public' : 'Leaderboard published successfully!');
+            } catch (error) {
+                console.error("Error toggling leaderboard:", error);
+                showFeedback('Error updating visibility', true);
+            }
+        };
+
         // 6. GALLERY & NEWS MANAGEMENT (Using External Links)
         // =========================================================================
         async function handleGalleryLinkUpload(event) {
@@ -1488,9 +1611,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             initEventsListener();
             initParticipantsListener();
+                initLeaderboardAdmin();
             initGalleryListener();
             initResultsListener();
         });
     </script>
 </body>
 </html>
+
+
+
