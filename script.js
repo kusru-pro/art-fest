@@ -490,6 +490,13 @@ function renderStudentPortal(profile) {
     if (categoryEl) categoryEl.textContent = profile.category || '-';
     if (teamEl) teamEl.textContent = profile.team || '-';
 
+    // Generate Dynamic QR Code for Chest Number
+    const qrImg = document.getElementById('portal-qr-img');
+    if (qrImg && profile.chestNo) {
+        const encodedData = encodeURIComponent(String(profile.chestNo).trim());
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodedData}&margin=4`;
+    }
+
     const events = profile.events || [];
     if (countEl) countEl.textContent = `${events.length} Program${events.length === 1 ? '' : 's'}`;
 

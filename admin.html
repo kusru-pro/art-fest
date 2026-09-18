@@ -13,6 +13,9 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- html2canvas for ID Card Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         :root {
             --bg-outer: #a3987c;
@@ -481,6 +484,226 @@
         }
         .feedback-success { background: #dcfce7; color: #166534; display: block; }
         .feedback-error { background: #fee2e2; color: #991b1b; display: block; }
+
+        /* Admin QR ID Card Modal Styles */
+        .admin-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .admin-modal-overlay.active {
+            display: flex;
+        }
+        .admin-modal-box {
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .admin-modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .admin-modal-close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* ID Card Box Design */
+        .participant-id-card {
+            background: #ffffff;
+            border: 2px solid #1e3a8a;
+            border-radius: 16px;
+            padding: 2rem 1.5rem 1.8rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.08);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .id-card-header {
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+        .id-card-event-name {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .id-card-sub {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .id-card-qr-wrap {
+            width: 190px;
+            height: 190px;
+            margin: 0 auto 1.2rem;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .id-card-qr-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .id-card-name {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+            line-height: 1.2;
+        }
+        .id-card-chest {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 0.35rem 1rem;
+            border-radius: 9999px;
+            border: 1px solid #fde68a;
+            margin-bottom: 0.5rem;
+        }
+        .id-card-team {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .id-card-team i {
+            color: #7e22ce;
+        }
+
+        .id-card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-print-card {
+            flex: 1;
+            background: #1e3a8a;
+            color: #ffffff;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-print-card:hover {
+            background: #1e40af;
+        }
+        .btn-download-card {
+            flex: 1;
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-download-card:hover {
+            background: #334155;
+        }
+
+        /* @media print logic: Isolate only the ID Card Box */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            #admin-qr-modal,
+            #admin-qr-modal * {
+                visibility: visible !important;
+            }
+            #admin-qr-modal {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: none !important;
+                display: block !important;
+                padding: 0 !important;
+            }
+            .admin-modal-box {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+            }
+            .admin-modal-close,
+            .id-card-actions {
+                display: none !important;
+            }
+            .participant-id-card {
+                width: 320px !important;
+                margin: 20px auto !important;
+                box-shadow: none !important;
+                border: 2px solid #000000 !important;
+                page-break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body>
@@ -983,6 +1206,44 @@
         </main>
     </div>
 
+    <!-- Admin Participant QR ID Card Modal -->
+    <div id="admin-qr-modal" class="admin-modal-overlay" onclick="if(event.target===this) closeAdminQRModal()">
+        <div class="admin-modal-box">
+            <button class="admin-modal-close" onclick="closeAdminQRModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <!-- Bordered ID Card Box (Capturable & Printable) -->
+            <div id="printable-id-card" class="participant-id-card">
+                <div class="id-card-header">
+                    <div class="id-card-event-name" id="card-fest-title">SAHITYOTSAV 2026</div>
+                    <div class="id-card-sub">Official Participant ID Pass</div>
+                </div>
+
+                <div class="id-card-qr-wrap">
+                    <img id="card-qr-img" src="" alt="Chest Number QR Code" />
+                </div>
+
+                <h3 class="id-card-name" id="card-student-name">Student Name</h3>
+                <div>
+                    <span class="id-card-chest" id="card-chest-no">CHEST NO: -</span>
+                </div>
+                <div class="id-card-team">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span id="card-team-name">Team Name</span> &bull; <span id="card-category">Category</span>
+                </div>
+            </div>
+
+            <!-- Print & Download Action Buttons -->
+            <div class="id-card-actions">
+                <button class="btn-print-card" onclick="printQRCard()">
+                    <i class="fa-solid fa-print"></i> Print QR Card
+                </button>
+                <button class="btn-download-card" id="btn-download-qr" onclick="downloadQRCard()">
+                    <i class="fa-solid fa-download"></i> Download Image
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase Modular SDK Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -1358,6 +1619,9 @@
                     <td>${p.team}</td>
                     <td>
                         <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" style="color: #1e3a8a; border-color: #93c5fd; background: #eff6ff; font-weight: 700;" onclick="openAdminQRModal('${p.chestNo}')" title="Generate ID Card & QR Code">
+                                <i class="fa-solid fa-qrcode"></i> QR
+                            </button>
                             <button class="btn btn-sm btn-outline" onclick="editParticipant('${p.chestNo}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn btn-sm btn-danger" onclick="deleteParticipant('${p.chestNo}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
@@ -1365,6 +1629,88 @@
                 </tr>
             `).join('');
         }
+
+        let currentQRParticipant = null;
+
+        function openAdminQRModal(chestNo) {
+            const p = participantsCache[chestNo] || { chestNo: chestNo, name: 'Participant ' + chestNo, team: 'Independent', category: 'General' };
+            currentQRParticipant = p;
+
+            const modal = document.getElementById('admin-qr-modal');
+            const nameEl = document.getElementById('card-student-name');
+            const chestEl = document.getElementById('card-chest-no');
+            const teamEl = document.getElementById('card-team-name');
+            const catEl = document.getElementById('card-category');
+            const qrImg = document.getElementById('card-qr-img');
+
+            if (nameEl) nameEl.textContent = p.name || 'Participant';
+            if (chestEl) chestEl.textContent = `CHEST NO: ${p.chestNo}`;
+            if (teamEl) teamEl.textContent = p.team || 'Independent';
+            if (catEl) catEl.textContent = p.category || 'General';
+
+            if (qrImg) {
+                const encodedData = encodeURIComponent(String(p.chestNo).trim());
+                qrImg.crossOrigin = "anonymous";
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedData}&margin=4`;
+            }
+
+            if (modal) modal.classList.add('active');
+        }
+        window.openAdminQRModal = openAdminQRModal;
+
+        function closeAdminQRModal() {
+            const modal = document.getElementById('admin-qr-modal');
+            if (modal) modal.classList.remove('active');
+        }
+        window.closeAdminQRModal = closeAdminQRModal;
+
+        function printQRCard() {
+            window.print();
+        }
+        window.printQRCard = printQRCard;
+
+        async function downloadQRCard() {
+            const cardEl = document.getElementById('printable-id-card');
+            const btn = document.getElementById('btn-download-qr');
+            if (!cardEl) return;
+
+            if (typeof html2canvas === 'undefined') {
+                alert('html2canvas library is still loading. Please try again in a moment.');
+                return;
+            }
+
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            }
+
+            try {
+                // Ensure images are fully rendered
+                const canvas = await html2canvas(cardEl, {
+                    scale: 3,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const link = document.createElement('a');
+                const chest = currentQRParticipant && currentQRParticipant.chestNo ? currentQRParticipant.chestNo : 'ID';
+                const name = currentQRParticipant && currentQRParticipant.name ? currentQRParticipant.name.replace(/\s+/g, '_') : 'Student';
+                link.download = `Participant_Card_${chest}_${name}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error("Error downloading QR card:", err);
+                alert("Failed to download image: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        }
+        window.downloadQRCard = downloadQRCard;
 
         // =========================================================================
         // 4. EVENTS MANAGEMENT

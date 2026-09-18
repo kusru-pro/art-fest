@@ -1398,6 +1398,51 @@ h2.section-title {
     margin: 0;
 }
 
+/* Student Portal QR Code Section */
+.portal-qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0.6rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.portal-qr-frame {
+    width: 100px;
+    height: 100px;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #cbd5e1;
+}
+
+.portal-qr-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.portal-qr-caption {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* 3. Events List Card */
 .portal-events-card {
     background: #ffffff;
@@ -1716,6 +1761,7 @@ h2.section-title {
     .portal-title { font-size: 2rem; }
     .portal-profile-card { flex-direction: column; text-align: center; }
     .portal-profile-meta { justify-content: center; }
+    .portal-qr-box { margin-top: 0.5rem; }
     .portal-footer-card { flex-direction: column; align-items: stretch; text-align: center; }
     .portal-points-summary { flex-direction: column; text-align: center; }
     .points-number-wrap { justify-content: center; }
