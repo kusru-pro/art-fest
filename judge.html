@@ -395,14 +395,29 @@
                 <span>Stage 1</span>
             </div>
 
-            <!-- Event Selector Dropdown -->
-            <div style="margin-top: 0.9rem;">
-                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.3rem;">Evaluating Program:</label>
-                <select id="judge-event-select" style="width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; font-weight: 600; background: #fff;">
-                    <option value="EV-101" selected>Tech Hackathon (General Open)</option>
-                    <option value="EL-ENG">English Elocution (Senior)</option>
-                    <option value="QIR-01">Qira'at (General Open)</option>
-                </select>
+            <!-- Two side-by-side select boxes: Select Category & Select Program -->
+            <div style="margin-top: 0.9rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div>
+                    <label for="judge-category-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Category</label>
+                    <div class="select-wrapper">
+                        <select id="judge-category-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
+                            <option value="Sub Junior">Sub Junior</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Senior">Senior</option>
+                            <option value="General Open" selected>General Open</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-chevron" style="right: 0.65rem; font-size: 0.75rem;"></i>
+                    </div>
+                </div>
+                <div>
+                    <label for="judge-event-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Program</label>
+                    <div class="select-wrapper">
+                        <select id="judge-event-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
+                            <option value="EV-101" selected>EV-101 - Tech Hackathon</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down select-chevron" style="right: 0.65rem; font-size: 0.75rem;"></i>
+                    </div>
+                </div>
             </div>
 
             <div class="judge-info-bar">
@@ -559,31 +574,112 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
+        let allEvents = [];
+
+        function updateHeaderDetails(eventData) {
+            const titleEl = document.getElementById('judge-event-title');
+            const metaEl = document.getElementById('judge-event-meta');
+
+            if (!eventData) {
+                if (titleEl) titleEl.textContent = 'Select Program';
+                if (metaEl) metaEl.innerHTML = '<span>No program selected</span>';
+                return;
+            }
+
+            // Update main H1 heading
+            if (titleEl) {
+                titleEl.textContent = eventData.eventName || eventData.eventCode;
+            }
+
+            // Update subtitle (Category • Type)
+            if (metaEl) {
+                const category = eventData.category || 'General';
+                const type = eventData.type ? `${eventData.type} Event` : 'Single Event';
+                metaEl.innerHTML = `
+                    <span>${category}</span>
+                    <span class="event-category-dot"></span>
+                    <span>${type}</span>
+                `;
+            }
+        }
+        window.updateHeaderDetails = updateHeaderDetails;
+
         // 1. Load Events from Firestore
         async function loadEvents() {
-            const selectEl = document.getElementById('judge-event-select');
-            if (!selectEl) return;
-
-            if (!isConfigured) return;
+            if (!isConfigured) {
+                allEvents = [
+                    { eventCode: "EV-101", eventName: "Tech Hackathon", category: "General Open", type: "Group" },
+                    { eventCode: "QIR-01", eventName: "Qira'at", category: "General Open", type: "Single" },
+                    { eventCode: "EL-ENG", eventName: "English Elocution", category: "Senior", type: "Single" },
+                    { eventCode: "DRA-01", eventName: "Arabic Drama", category: "Junior", type: "Group" },
+                    { eventCode: "ENG-01", eventName: "Pencil Drawing", category: "Sub Junior", type: "Single" }
+                ];
+                onCategoryChanged();
+                return;
+            }
 
             try {
                 const snapshot = await getDocs(collection(db, 'events'));
-                if (!snapshot.empty) {
-                    selectEl.innerHTML = '';
-                    snapshot.forEach(docSnap => {
-                        const ev = docSnap.data();
-                        const opt = document.createElement('option');
-                        opt.value = ev.eventCode;
-                        opt.textContent = ev.eventName + ' (' + ev.category + ')';
-                        selectEl.appendChild(opt);
-                    });
-                    currentEventCode = selectEl.value;
-                    onEventChanged();
-                }
+                allEvents = [];
+                snapshot.forEach(docSnap => {
+                    allEvents.push(docSnap.data());
+                });
+
+                onCategoryChanged();
             } catch (err) {
                 console.error("Error loading events for judge:", err);
             }
         }
+        window.loadEvents = loadEvents;
+
+        function onCategoryChanged() {
+            const catSelect = document.getElementById('judge-category-select');
+            const progSelect = document.getElementById('judge-event-select');
+            if (!progSelect) return;
+
+            const selectedCategory = catSelect ? catSelect.value.trim() : '';
+            progSelect.innerHTML = '';
+
+            const filteredEvents = selectedCategory
+                ? allEvents.filter(ev => (ev.category || '').trim().toLowerCase() === selectedCategory.toLowerCase())
+                : allEvents;
+
+            if (filteredEvents.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = selectedCategory ? `No programs in ${selectedCategory}` : 'No programs available';
+                opt.disabled = true;
+                opt.selected = true;
+                progSelect.appendChild(opt);
+                currentEventCode = '';
+                updateHeaderDetails(null);
+                const container = document.getElementById('judge-participants-list');
+                if (container) container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">No programs found for this category.</p>';
+                return;
+            }
+
+            filteredEvents.forEach((ev, idx) => {
+                const opt = document.createElement('option');
+                opt.value = ev.eventCode;
+                opt.textContent = `${ev.eventCode} - ${ev.eventName}`;
+                if (idx === 0) opt.selected = true;
+                progSelect.appendChild(opt);
+            });
+
+            onProgramChanged();
+        }
+        window.onCategoryChanged = onCategoryChanged;
+
+        function onProgramChanged() {
+            const progSelect = document.getElementById('judge-event-select');
+            if (!progSelect || !progSelect.value) return;
+
+            currentEventCode = progSelect.value;
+            const chosenEvent = allEvents.find(ev => ev.eventCode === currentEventCode);
+            updateHeaderDetails(chosenEvent);
+            loadParticipantsForEvent(currentEventCode);
+        }
+        window.onProgramChanged = onProgramChanged;
 
         // 2. Load Participants for selected Event
         async function loadParticipantsForEvent(eventCode) {
@@ -593,8 +689,10 @@
             positionCount = 0;
             container.innerHTML = '';
 
+            if (!eventCode) return;
+
             if (!isConfigured) {
-                // Keep the initial static cards for preview
+                // Keep initial static cards for preview
                 currentParticipants = [
                     { chestNo: '104', name: 'Rashid K', team: 'Al-Huda Unit' },
                     { chestNo: '122', name: 'Aman M', team: 'Badr Squad' },
@@ -631,18 +729,6 @@
             } catch (err) {
                 console.error("Error loading participants:", err);
                 container.innerHTML = '<p style="color: #b91c1c; text-align: center; padding: 2rem;">Failed to load participants: ' + err.message + '</p>';
-            }
-        }
-
-        function onEventChanged() {
-            const selectEl = document.getElementById('judge-event-select');
-            if (selectEl) {
-                currentEventCode = selectEl.value;
-                const titleEl = document.getElementById('judge-event-title');
-                if (titleEl) {
-                    titleEl.textContent = selectEl.options[selectEl.selectedIndex].text.split('(')[0].trim();
-                }
-                loadParticipantsForEvent(currentEventCode);
             }
         }
 
@@ -742,12 +828,17 @@
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
-            const selectEl = document.getElementById('judge-event-select');
-            if (selectEl) {
-                selectEl.addEventListener('change', onEventChanged);
+            const catSelect = document.getElementById('judge-category-select');
+            if (catSelect) {
+                catSelect.addEventListener('change', onCategoryChanged);
             }
+
+            const progSelect = document.getElementById('judge-event-select');
+            if (progSelect) {
+                progSelect.addEventListener('change', onProgramChanged);
+            }
+
             loadEvents();
-            loadParticipantsForEvent(currentEventCode);
         });
     </script>
 </body>
