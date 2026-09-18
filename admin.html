@@ -114,6 +114,7 @@
             text-align: center;
             font-size: 1.1rem;
         }
+
         /* Accordion */
         .accordion-card {
             background: #ffffff;
@@ -718,7 +719,7 @@
                 </div>
             </section>
 
-            <!-- Tab 4: Result Verification (NEW DESIGN) -->
+            <!-- Tab 4: Result Verification (Accordion Style) -->
             <section id="tab-verify" class="tab-section">
                 
                 <div class="content-header" style="margin-bottom: 1rem; border:none; padding:0;">
@@ -732,16 +733,15 @@
                         <i class="fa-solid fa-rotate"></i> Refresh
                     </button>
                 </div>
-                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Review evaluations submitted by judges. Publish an event to make its results live on the public leaderboard.</p>
+                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Click on an event to view full results and publish them to the leaderboard.</p>
 
                 <div id="verify-cards-container">
-                    <!-- Dynamic Event Cards will be injected here -->
                     <div class="card"><p style="text-align:center;">Loading evaluations...</p></div>
                 </div>
 
             </section>
 
-                        <!-- Tab: Leaderboard Management -->
+            <!-- Tab 5: Leaderboard Management -->
             <section id="tab-leaderboard" class="tab-section">
                 <div class="card" style="margin-bottom: 2rem;">
                     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -773,7 +773,7 @@
                 </div>
             </section>
 
-            <!-- Tab 5: Manage Gallery -->
+            <!-- Tab 6: Manage Gallery -->
             <section id="tab-gallery" class="tab-section">
                 <div class="card">
                     <div class="card-header">
@@ -800,7 +800,7 @@
                 </div>
             </section>
 
-            <!-- Tab 6: Manage News -->
+            <!-- Tab 7: Manage News -->
             <section id="tab-news" class="tab-section">
                 <div class="card">
                     <div class="card-header">
@@ -957,7 +957,7 @@
         window.handleCSVUpload = handleCSVUpload;
 
         // =========================================================================
-        // 3. PARTICIPANTS MANAGEMENT (Manual)
+        // 3. PARTICIPANTS MANAGEMENT
         // =========================================================================
         async function handleParticipantSubmit(event) {
             event.preventDefault();
@@ -1171,7 +1171,7 @@
         }
 
         // =========================================================================
-        // 5. RESULT VERIFICATION (NEW DESIGN)
+        // 5. RESULT VERIFICATION (Accordion Style)
         // =========================================================================
         function initResultsListener() {
             if (!isConfigured) {
@@ -1409,7 +1409,6 @@
         };
 
         // =========================================================================
-                // =========================================================================
         // LEADERBOARD MANAGEMENT
         // =========================================================================
         let lbIsVisible = false;
@@ -1417,7 +1416,6 @@
         function initLeaderboardAdmin() {
             if (!isConfigured) return;
             
-            // 1. Listen to settings
             const docRef = doc(db, 'settings', 'leaderboard');
             onSnapshot(docRef, (docSnap) => {
                 const statusText = document.getElementById('lb-status-text');
@@ -1440,7 +1438,6 @@
                 }
             });
 
-            // 2. Listen to published results to calculate points
             const q = query(collection(db, 'results'), where('status', '==', 'published'));
             onSnapshot(q, (snapshot) => {
                 const teamScores = {};
@@ -1471,14 +1468,15 @@
                     } else {
                         tbody.innerHTML = sortedTeams.map((item, index) => {
                             const rank = index + 1;
-                            const medal = rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : rank;
-                            return 
+                            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                            
+                            return `
                             <tr>
-                                <td style="font-weight: bold; font-size: 1.1rem;"> + medal + </td>
-                                <td> + item.teamName + </td>
-                                <td style="text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--accent-council);"> + item.totalPoints +  pts</td>
+                                <td style="font-weight: bold; font-size: 1.2rem;">${medal}</td>
+                                <td style="font-weight: 500;">${item.teamName}</td>
+                                <td style="text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--accent-council);">${item.totalPoints} pts</td>
                             </tr>
-                            ;
+                            `;
                         }).join('');
                     }
                 }
@@ -1493,10 +1491,11 @@
                 showFeedback(lbIsVisible ? 'Leaderboard hidden from public' : 'Leaderboard published successfully!');
             } catch (error) {
                 console.error("Error toggling leaderboard:", error);
-                showFeedback('Error updating visibility', true);
+                showFeedback('Error updating visibility', 'error');
             }
         };
 
+        // =========================================================================
         // 6. GALLERY & NEWS MANAGEMENT (Using External Links)
         // =========================================================================
         async function handleGalleryLinkUpload(event) {
@@ -1611,13 +1610,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             initEventsListener();
             initParticipantsListener();
-                initLeaderboardAdmin();
+            initLeaderboardAdmin();
             initGalleryListener();
             initResultsListener();
         });
     </script>
 </body>
 </html>
-
-
-
