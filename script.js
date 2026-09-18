@@ -497,68 +497,7 @@ function initMetadataListeners() {
     });
 }
 
-// C. Leaderboard Visibility Listener
-function initLeaderboardVisibilityListener() {
-    if (!isConfigured) return;
-    
-    const docRef = doc(db, 'settings', 'leaderboard');
-    onSnapshot(docRef, (docSnap) => {
-        const miniLb = document.getElementById('home-mini-leaderboard') || document.querySelector('.mini-leaderboard-section');
-        const mainLb = document.getElementById('team-points');
-        const navLb = document.getElementById('nav-team-points');
-        
-        // Find existing banner or create it
-        let mainLbBanner = document.getElementById('lb-hidden-banner');
-        const isVisible = docSnap.exists() && docSnap.data().isVisible === true;
-        
-        if (isVisible) {
-            if (miniLb) {
-                miniLb.classList.remove('hidden-section');
-                miniLb.style.display = '';
-            }
-            if (navLb) {
-                navLb.classList.remove('hidden-section');
-                navLb.style.display = '';
-            }
-            if (mainLb) {
-                mainLb.classList.remove('hidden-section');
-                mainLb.style.display = '';
-                if (mainLbBanner) mainLbBanner.style.display = 'none';
-            }
-        } else {
-            if (miniLb) {
-                miniLb.classList.add('hidden-section');
-                miniLb.style.display = 'none';
-            }
-            if (navLb) {
-                navLb.classList.add('hidden-section');
-                navLb.style.display = 'none';
-            }
-            if (mainLb) {
-                mainLb.classList.add('hidden-section');
-                mainLb.style.display = 'none';
-                
-                // Show placeholder banner if the user was currently on the team-points tab
-                if (!mainLbBanner) {
-                    mainLbBanner = document.createElement('section');
-                    mainLbBanner.id = 'lb-hidden-banner';
-                    mainLbBanner.className = 'tab-section';
-                    mainLbBanner.innerHTML = `<div class="card" style="text-align: center; padding: 4rem 2rem;"><i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem;"></i><h2 style="color: #475569; font-family: var(--font-heading);">Leaderboard is Currently Hidden</h2><p style="color: #94a3b8; margin-top: 0.5rem;">The festival committee is processing evaluations. The official leaderboard will be published shortly.</p></div>`;
-                    mainLb.parentNode.insertBefore(mainLbBanner, mainLb);
-                }
-                if (mainLb.classList.contains('active')) {
-                    mainLbBanner.style.display = 'block';
-                } else {
-                    mainLbBanner.style.display = 'none';
-                }
-            }
-        }
-    }, (err) => {
-        console.error("Settings listener error:", err);
-    });
-}
-
-// B. Real-time Results & Leaderboard Listener
+// B. Real-time Results & Leaderboard Listener (Always Visible & Live)
 function initResultsRealtimeListener() {
     if (!isConfigured) return;
 
@@ -655,16 +594,26 @@ function calculateAndRenderLeaderboard(resultsList) {
     const teamScores = {};
 
     resultsList.forEach(r => {
+        if (r.status && r.status !== 'published') return;
+
         const p = participantsCache[r.chestNo];
-        const team = (p && p.team) ? p.team : (r.team || 'Independent');
+        const team = (p && p.team) ? p.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
+        if (!team) return;
 
         if (!teamScores[team]) teamScores[team] = 0;
 
-        // Points calculation based on position ranking: 1st = 5, 2nd = 3, 3rd = 1
+        // Accurate Points Calculation based on exact positions and grades:
+        // Position: 1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt
         const pos = Number(r.position);
         if (pos === 1) teamScores[team] += 5;
         else if (pos === 2) teamScores[team] += 3;
         else if (pos === 3) teamScores[team] += 1;
+
+        // Grade: A Grade = 5 pts, B Grade = 3 pts, C Grade = 1 pt
+        const g = (r.grade || '').trim().toUpperCase();
+        if (g === 'A') teamScores[team] += 5;
+        else if (g === 'B') teamScores[team] += 3;
+        else if (g === 'C') teamScores[team] += 1;
     });
 
     const sortedTeams = Object.entries(teamScores)
@@ -902,7 +851,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isConfigured) {
         initMetadataListeners();
         initResultsRealtimeListener();
-        initLeaderboardVisibilityListener();
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
     } else {

@@ -506,6 +506,9 @@
                 <div class="nav-item" data-tab="tab-verify">
                     <i class="fa-solid fa-clipboard-check"></i> Result Verification
                 </div>
+                <div class="nav-item" data-tab="tab-published">
+                    <i class="fa-solid fa-circle-check"></i> Published Results
+                </div>
                 <div class="nav-item" data-tab="tab-leaderboard">
                     <i class="fa-solid fa-trophy"></i> Leaderboard Mgmt
                 </div>
@@ -719,7 +722,7 @@
                 </div>
             </section>
 
-            <!-- Tab 4: Result Verification (Accordion Style) -->
+            <!-- Tab 4: Result Verification (Pending Queue) -->
             <section id="tab-verify" class="tab-section">
                 
                 <div class="content-header" style="margin-bottom: 1rem; border:none; padding:0;">
@@ -729,11 +732,16 @@
                         </h2>
                         <span id="pending-count" class="badge badge-category">0 Pending</span>
                     </div>
-                    <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
-                        <i class="fa-solid fa-rotate"></i> Refresh
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline btn-sm" onclick="switchAdminTab('tab-published')">
+                            <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> View Published History (<span id="btn-pub-count">0</span>)
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
+                            <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                    </div>
                 </div>
-                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Click on an event to view full results and publish them to the leaderboard.</p>
+                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Review pending score evaluations submitted by judges. Publishing updates official team points immediately and sends results live to the public website.</p>
 
                 <div id="verify-cards-container">
                     <div class="card"><p style="text-align:center;">Loading evaluations...</p></div>
@@ -741,20 +749,50 @@
 
             </section>
 
-            <!-- Tab 5: Leaderboard Management -->
+            <!-- Tab 4.5: Published Results View (Full History Archive) -->
+            <section id="tab-published" class="tab-section">
+                
+                <div class="content-header" style="margin-bottom: 1rem; border:none; padding:0;">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                        <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: #0f172a;">
+                            <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> Published Results History
+                        </h2>
+                        <span id="published-count-badge" class="badge" style="background:#dcfce7; color:#15803d; font-weight: 700;">0 Published Programs</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline btn-sm" onclick="switchAdminTab('tab-verify')">
+                            <i class="fa-solid fa-clock" style="color: #ea580c;"></i> Pending Verification (<span id="btn-pending-count">0</span>)
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
+                            <i class="fa-solid fa-rotate"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Full historical log of all published events. These results are publicly accessible on the festival portal and their scores are actively computed into the Team Leaderboard.</p>
+
+                <div id="published-cards-container">
+                    <div class="card"><p style="text-align:center;">Loading published results history...</p></div>
+                </div>
+
+            </section>
+
+            <!-- Tab 5: Leaderboard Management (Always Live) -->
             <section id="tab-leaderboard" class="tab-section">
                 <div class="card" style="margin-bottom: 2rem;">
                     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Leaderboard Controls</h2>
+                        <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Team Points Leaderboard</h2>
                         
                         <div style="display: flex; align-items: center; gap: 1rem;">
-                            <span id="lb-status-text" style="font-weight: 600; color: #64748b;">Loading status...</span>
-                            <button id="btn-toggle-lb" class="btn" style="background: var(--accent-council); border-color: var(--accent-council);" onclick="toggleLeaderboardVisibility()">
-                                <i class="fa-solid fa-eye"></i> Toggle Visibility
-                            </button>
+                            <span class="badge" style="background: #dcfce7; color: #15803d; font-weight: 700; padding: 6px 14px; border-radius: 20px;">
+                                <i class="fa-solid fa-globe"></i> Always Live to Public
+                            </span>
                         </div>
                     </div>
-                    <p style="color: #64748b; margin-bottom: 1.5rem;">The public website will only display the Leaderboard if visibility is enabled here. Points are auto-calculated from Published results (1st = 5, 2nd = 3, 3rd = 1).</p>
+                    <p style="color: #64748b; margin-bottom: 1.5rem;">
+                        The team points leaderboard is permanently visible to the public. Points are accurately calculated <strong>ONLY from published results</strong>.
+                        <br>
+                        <strong>Point Allocation System:</strong> Positions (1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt) + Grades (A Grade = 5 pts, B Grade = 3 pts, C Grade = 1 pt).
+                    </p>
                     
                     <div class="table-responsive">
                         <table class="data-table">
@@ -762,11 +800,16 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>Team Name</th>
+                                    <th style="text-align: center;">1st (5pts)</th>
+                                    <th style="text-align: center;">2nd (3pts)</th>
+                                    <th style="text-align: center;">3rd (1pt)</th>
+                                    <th style="text-align: center;">A (5pts)</th>
+                                    <th style="text-align: center;">B (3pts)</th>
                                     <th style="text-align: right;">Total Points</th>
                                 </tr>
                             </thead>
                             <tbody id="lb-admin-tbody">
-                                <tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading leaderboard...</td></tr>
+                                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading leaderboard standings...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -903,7 +946,7 @@
                 const target = document.getElementById(targetId);
                 if (target) target.classList.add('active');
 
-                if(targetId === 'tab-verify' && typeof window.fetchPendingResults === 'function') {
+                if((targetId === 'tab-verify' || targetId === 'tab-published') && typeof window.fetchPendingResults === 'function') {
                     window.fetchPendingResults();
                 }
             });
@@ -1171,7 +1214,7 @@
         }
 
         // =========================================================================
-        // 5. RESULT VERIFICATION (Accordion Style)
+        // 5. RESULT VERIFICATION & PUBLISHED RESULTS VIEWS
         // =========================================================================
         function initResultsListener() {
             if (!isConfigured) {
@@ -1180,20 +1223,28 @@
             }
             
             onSnapshot(collection(db, 'results'), (snapshot) => {
-                const container = document.getElementById('verify-cards-container');
+                const verifyContainer = document.getElementById('verify-cards-container');
+                const publishedContainer = document.getElementById('published-cards-container');
                 const countBadge = document.getElementById('pending-count');
+                const btnPendingCount = document.getElementById('btn-pending-count');
+                const btnPubCount = document.getElementById('btn-pub-count');
+                const pubBadge = document.getElementById('published-count-badge');
                 const statPending = document.getElementById('stat-pending');
                 const statResults = document.getElementById('stat-results');
 
-                if (!container) return;
-
                 if (snapshot.empty) {
-                    container.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No evaluations submitted by judges yet.</p></div>`;
+                    if (verifyContainer) verifyContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No evaluations submitted by judges yet.</p></div>`;
+                    if (publishedContainer) publishedContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No published results in archive.</p></div>`;
                     if (countBadge) countBadge.textContent = '0 Pending';
+                    if (btnPendingCount) btnPendingCount.textContent = '0';
+                    if (btnPubCount) btnPubCount.textContent = '0';
+                    if (pubBadge) pubBadge.textContent = '0 Published Programs';
                     if (statPending) statPending.textContent = '0';
+                    if (statResults) statResults.textContent = '0';
                     return;
                 }
 
+                // Group results by eventCode
                 const grouped = {};
                 snapshot.forEach(docSnap => {
                     const res = docSnap.data();
@@ -1204,16 +1255,11 @@
 
                 let pendingEventsCount = 0;
                 let publishedEventsCount = 0;
-                let htmlContent = '';
+                let pendingHtml = '';
+                let publishedHtml = '';
 
-                const sortedEvents = Object.entries(grouped).sort((a, b) => {
-                    const aPub = a[1].every(r => r.status === 'published');
-                    const bPub = b[1].every(r => r.status === 'published');
-                    if (aPub === bPub) return 0;
-                    return aPub ? 1 : -1; 
-                });
-
-                sortedEvents.forEach(([eventCode, results]) => {
+                Object.entries(grouped).forEach(([eventCode, results]) => {
+                    // Sort scores by rank/position, then mark descending
                     results.sort((a, b) => {
                         if (a.position && b.position) return a.position - b.position;
                         return (b.totalMark || 0) - (a.totalMark || 0);
@@ -1221,81 +1267,206 @@
 
                     const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
                     const isPublished = results.every(r => r.status === 'published');
-                    
-                    if (isPublished) publishedEventsCount++;
-                    else pendingEventsCount++;
+                    const hasPending = results.some(r => r.status === 'pending');
 
-                    const badgeHtml = isPublished 
-                        ? `<span class="badge badge-published"><i class="fa-solid fa-check-double"></i> Published</span>`
-                        : `<span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>`;
-
-                    const buttonHtml = isPublished
-                        ? `<button class="btn btn-outline" disabled><i class="fa-solid fa-check"></i> Already Published</button>`
-                        : `<button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>`;
-
-                    htmlContent += `
-                    <div class="accordion-card">
-                        <div class="accordion-header" id="acc-header-${eventCode}" onclick="toggleAccordion('${eventCode}')">
-                            <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
-                                <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
-                                <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(${eventInfo.category})</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                ${badgeHtml}
-                                <i class="fa-solid fa-chevron-down accordion-icon"></i>
-                            </div>
-                        </div>
-                        <div class="accordion-content" id="acc-content-${eventCode}">
-                            <div style="padding: 1.5rem 2rem;">
-                                <div class="table-responsive">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Position</th>
-                                                <th>Chest No</th>
-                                                <th>Participant</th>
-                                                <th>Team</th>
-                                                <th>Marks</th>
-                                                <th>Grade</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${results.map(res => {
-                                                const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
-                                                return `
-                                                    <tr>
-                                                        <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
-                                                        <td><strong>${res.chestNo}</strong></td>
-                                                        <td>${participant.name}</td>
-                                                        <td>${participant.team}</td>
-                                                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark || '-'}</strong></td>
-                                                        <td><strong style="font-size: 1.1rem;">${res.grade || '-'}</strong></td>
-                                                    </tr>
-                                                `;
-                                            }).join('')}
-                                        </tbody>
-                                    </table>
+                    // 1. Pending Verification Card
+                    if (hasPending) {
+                        pendingEventsCount++;
+                        pendingHtml += `
+                        <div class="accordion-card">
+                            <div class="accordion-header" id="acc-header-${eventCode}" onclick="toggleAccordion('${eventCode}')">
+                                <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
+                                    <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
+                                    <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(${eventInfo.category})</span>
                                 </div>
-                                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
-                                    ${buttonHtml}
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
+                                    <i class="fa-solid fa-chevron-down accordion-icon"></i>
                                 </div>
                             </div>
+                            <div class="accordion-content" id="acc-content-${eventCode}">
+                                <div style="padding: 1.5rem 2rem;">
+                                    <div class="table-responsive">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Position</th>
+                                                    <th>Chest No</th>
+                                                    <th>Participant</th>
+                                                    <th>Team</th>
+                                                    <th>Marks</th>
+                                                    <th>Grade</th>
+                                                    <th>Point Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${results.map(res => {
+                                                    const participant = participantsCache[res.chestNo] || {};
+                                                    const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
+                                                    const team = participant.team || res.team || 'Independent';
+
+                                                    const pos = Number(res.position);
+                                                    let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
+                                                    const g = (res.grade || '').trim().toUpperCase();
+                                                    let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
+                                                    const totalPts = posPts + grdPts;
+
+                                                    return `
+                                                        <tr>
+                                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
+                                                            <td><strong>${res.chestNo}</strong></td>
+                                                            <td>${name}</td>
+                                                            <td><strong>${team}</strong></td>
+                                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
+                                                            <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
+                                                            <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}, Grd: ${grdPts})</span></td>
+                                                        </tr>
+                                                    `;
+                                                }).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                                        <button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')">
+                                            <i class="fa-solid fa-bullhorn"></i> Publish Results
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    `;
+                        `;
+                    }
+
+                    // 2. Published Results History Card
+                    if (isPublished) {
+                        publishedEventsCount++;
+                        const winner = results[0];
+                        const winnerPart = participantsCache[winner.chestNo] || {};
+                        const winnerName = winnerPart.name || winner.participantName || ('Chest ' + winner.chestNo);
+                        const winnerTeam = winnerPart.team || winner.team || 'Independent';
+
+                        publishedHtml += `
+                        <div class="accordion-card" style="border-left: 4px solid #16a34a;">
+                            <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')">
+                                <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
+                                    <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
+                                    <span style="font-size: 0.9rem; font-weight: 500; color: #64748b;">(${eventInfo.category})</span>
+                                    <span style="font-size: 0.85rem; color: #15803d; background: #f0fdf4; padding: 2px 10px; border-radius: 12px; font-weight: 600;">
+                                        🥇 1st: ${winnerName} (${winnerTeam})
+                                    </span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span class="badge" style="background: #dcfce7; color: #15803d; font-weight:700;"><i class="fa-solid fa-check-double"></i> Published</span>
+                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">${results.length} Candidates</span>
+                                    <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                                </div>
+                            </div>
+                            <div class="accordion-content" id="acc-content-pub-${eventCode}">
+                                <div style="padding: 1.5rem 2rem;">
+                                    <div class="table-responsive">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Rank</th>
+                                                    <th>Chest No</th>
+                                                    <th>Participant</th>
+                                                    <th>Team</th>
+                                                    <th>Mark</th>
+                                                    <th>Grade</th>
+                                                    <th>Points Awarded</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${results.map(res => {
+                                                    const participant = participantsCache[res.chestNo] || {};
+                                                    const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
+                                                    const team = participant.team || res.team || 'Independent';
+
+                                                    const pos = Number(res.position);
+                                                    let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
+                                                    const g = (res.grade || '').trim().toUpperCase();
+                                                    let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
+                                                    const totalPts = posPts + grdPts;
+
+                                                    const medal = pos === 1 ? '🥇 1st Place' : pos === 2 ? '🥈 2nd Place' : pos === 3 ? '🥉 3rd Place' : `#${pos}`;
+
+                                                    return `
+                                                        <tr>
+                                                            <td><strong style="font-size: 0.95rem;">${medal}</strong></td>
+                                                            <td><strong>${res.chestNo}</strong></td>
+                                                            <td style="font-weight: 500;">${name}</td>
+                                                            <td><strong>${team}</strong></td>
+                                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
+                                                            <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
+                                                            <td><strong style="color: #16a34a; font-size: 1.05rem;">+${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts} + Grd: ${grdPts})</span></td>
+                                                        </tr>
+                                                    `;
+                                                }).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                        <span style="font-size: 0.85rem; color: #16a34a; font-weight: 600;">
+                                            <i class="fa-solid fa-globe"></i> Live on Public Results & Actively Counted in Team Points Leaderboard
+                                        </span>
+                                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="unpublishEventResults('${eventCode}')">
+                                            <i class="fa-solid fa-rotate-left"></i> Unpublish / Revert to Pending
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }
                 });
 
-                container.innerHTML = htmlContent;
+                if (verifyContainer) {
+                    if (pendingEventsCount === 0) {
+                        verifyContainer.innerHTML = `
+                            <div class="card" style="text-align: center; padding: 3.5rem 1.5rem;">
+                                <i class="fa-solid fa-circle-check" style="font-size: 3.5rem; color: #22c55e; margin-bottom: 1rem;"></i>
+                                <h3 style="color: #0f172a; margin-bottom: 0.5rem;">All Evaluations Verified!</h3>
+                                <p style="color: #64748b; margin-bottom: 1.5rem;">There are no pending evaluations waiting for verification. All published results are available in the Published Results tab.</p>
+                                <button class="btn btn-sm" onclick="switchAdminTab('tab-published')">
+                                    <i class="fa-solid fa-circle-check"></i> View Published Results (${publishedEventsCount})
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        verifyContainer.innerHTML = pendingHtml;
+                    }
+                }
+
+                if (publishedContainer) {
+                    if (publishedEventsCount === 0) {
+                        publishedContainer.innerHTML = `
+                            <div class="card" style="text-align: center; padding: 3.5rem 1.5rem;">
+                                <i class="fa-solid fa-clipboard-list" style="font-size: 3.5rem; color: #cbd5e1; margin-bottom: 1rem;"></i>
+                                <h3 style="color: #0f172a; margin-bottom: 0.5rem;">No Published Results Yet</h3>
+                                <p style="color: #64748b; margin-bottom: 1.5rem;">When you publish evaluations from the Result Verification tab, they will appear here in the historical archive.</p>
+                                <button class="btn btn-sm btn-outline" onclick="switchAdminTab('tab-verify')">
+                                    <i class="fa-solid fa-clipboard-check"></i> Go to Result Verification
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        publishedContainer.innerHTML = publishedHtml;
+                    }
+                }
 
                 if (countBadge) countBadge.textContent = pendingEventsCount + ' Pending';
+                if (btnPendingCount) btnPendingCount.textContent = pendingEventsCount;
+                if (btnPubCount) btnPubCount.textContent = publishedEventsCount;
+                if (pubBadge) pubBadge.textContent = publishedEventsCount + ' Published Programs';
                 if (statPending) statPending.textContent = pendingEventsCount;
                 if (statResults) statResults.textContent = publishedEventsCount;
             });
         }
 
         async function publishEventResults(eventCode) {
-            if (!confirm(`Are you sure you want to publish the results for ${eventCode}? This will make them visible on the main website.`)) return;
+            if (!confirm(`Are you sure you want to publish the results for ${eventCode}? This will immediately calculate team points and display results on the main website.`)) return;
             
             const btn = document.getElementById(`btn-pub-${eventCode}`);
             if (btn) {
@@ -1321,7 +1492,7 @@
                 });
 
                 await Promise.all(updatePromises);
-                showFeedback("Event results published successfully!");
+                showFeedback(`Results for ${eventCode} published successfully! View them in Published Results.`);
             } catch (err) {
                 showFeedback("Failed to publish event results: " + err.message, "error");
                 if(btn) {
@@ -1331,6 +1502,26 @@
             }
         }
         window.publishEventResults = publishEventResults;
+
+        async function unpublishEventResults(eventCode) {
+            if (!confirm(`Are you sure you want to unpublish the results for ${eventCode}? This will revert them to Pending Verification and remove them from the public website.`)) return;
+
+            try {
+                const q = query(collection(db, 'results'), where('eventCode', '==', eventCode), where('status', '==', 'published'));
+                const snapshot = await getDocs(q);
+                const updatePromises = [];
+                snapshot.forEach(docSnap => {
+                    const docRef = doc(db, 'results', docSnap.id);
+                    updatePromises.push(updateDoc(docRef, { status: 'pending' }));
+                });
+                await Promise.all(updatePromises);
+                showFeedback(`Results for ${eventCode} reverted to Pending Verification.`);
+            } catch (err) {
+                console.error("Error unpublishing event:", err);
+                showFeedback("Failed to unpublish: " + err.message, "error");
+            }
+        }
+        window.unpublishEventResults = unpublishEventResults;
 
         function fetchPendingResultsFallback() {
             const container = document.getElementById('verify-cards-container');
@@ -1399,6 +1590,7 @@
         window.toggleAccordion = function(id) {
             const header = document.getElementById('acc-header-' + id);
             const content = document.getElementById('acc-content-' + id);
+            if (!content || !header) return;
             if (content.style.maxHeight && content.style.maxHeight !== '0px') {
                 content.style.maxHeight = '0px';
                 header.classList.remove('expanded');
@@ -1408,73 +1600,98 @@
             }
         };
 
-        // =========================================================================
-        // LEADERBOARD MANAGEMENT
-        // =========================================================================
-        let lbIsVisible = false;
+        window.switchAdminTab = function(tabId) {
+            const navItem = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+            if (navItem) {
+                navItem.click();
+            } else {
+                document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+                const target = document.getElementById(tabId);
+                if (target) target.classList.add('active');
+            }
+        };
 
+        // =========================================================================
+        // 6. LEADERBOARD MANAGEMENT (Always Live - Accurate Point Allocation)
+        // =========================================================================
         function initLeaderboardAdmin() {
             if (!isConfigured) return;
-            
-            const docRef = doc(db, 'settings', 'leaderboard');
-            onSnapshot(docRef, (docSnap) => {
-                const statusText = document.getElementById('lb-status-text');
-                const toggleBtn = document.getElementById('btn-toggle-lb');
-                
-                if (docSnap.exists() && docSnap.data().isVisible) {
-                    lbIsVisible = true;
-                    if (statusText) {
-                        statusText.textContent = 'Visible to Public';
-                        statusText.style.color = '#16a34a';
-                    }
-                    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Hide from Public';
-                } else {
-                    lbIsVisible = false;
-                    if (statusText) {
-                        statusText.textContent = 'Hidden from Public';
-                        statusText.style.color = '#dc2626';
-                    }
-                    if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i> Publish to Main Website';
-                }
-            });
 
             const q = query(collection(db, 'results'), where('status', '==', 'published'));
             onSnapshot(q, (snapshot) => {
                 const teamScores = {};
-                
+
                 snapshot.forEach(docSnap => {
                     const r = docSnap.data();
+                    if (r.status !== 'published') return;
+
                     const participant = participantsCache[r.chestNo];
-                    const team = participant ? participant.team : 'Unknown Team';
-                    
-                    if (!teamScores[team]) teamScores[team] = 0;
-                    
-                    let points = 0;
-                    if (r.position === 1) points += 5;
-                    else if (r.position === 2) points += 3;
-                    else if (r.position === 3) points += 1;
-                    
-                    teamScores[team] += points;
+                    const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
+                    if (!team) return;
+
+                    if (!teamScores[team]) {
+                        teamScores[team] = {
+                            teamName: team,
+                            totalPoints: 0,
+                            firstCount: 0,
+                            secondCount: 0,
+                            thirdCount: 0,
+                            gradeACount: 0,
+                            gradeBCount: 0,
+                            gradeCCount: 0
+                        };
+                    }
+
+                    // Accurate Points allocation:
+                    // Position: 1st = 5, 2nd = 3, 3rd = 1
+                    const pos = Number(r.position);
+                    if (pos === 1) {
+                        teamScores[team].totalPoints += 5;
+                        teamScores[team].firstCount++;
+                    } else if (pos === 2) {
+                        teamScores[team].totalPoints += 3;
+                        teamScores[team].secondCount++;
+                    } else if (pos === 3) {
+                        teamScores[team].totalPoints += 1;
+                        teamScores[team].thirdCount++;
+                    }
+
+                    // Grade: A = 5, B = 3, C = 1
+                    const g = (r.grade || '').trim().toUpperCase();
+                    if (g === 'A') {
+                        teamScores[team].totalPoints += 5;
+                        teamScores[team].gradeACount++;
+                    } else if (g === 'B') {
+                        teamScores[team].totalPoints += 3;
+                        teamScores[team].gradeBCount++;
+                    } else if (g === 'C') {
+                        teamScores[team].totalPoints += 1;
+                        teamScores[team].gradeCCount++;
+                    }
                 });
-                
-                const sortedTeams = Object.entries(teamScores)
-                    .map(([team, pts]) => ({ teamName: team, totalPoints: pts }))
+
+                const sortedTeams = Object.values(teamScores)
                     .sort((a, b) => b.totalPoints - a.totalPoints);
-                
+
                 const tbody = document.getElementById('lb-admin-tbody');
                 if (tbody) {
                     if (sortedTeams.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">No published results yet.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2.5rem;">No published results yet. Publish event evaluations in Result Verification to see live standings.</td></tr>';
                     } else {
                         tbody.innerHTML = sortedTeams.map((item, index) => {
                             const rank = index + 1;
-                            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                            const medal = rank === 1 ? '🥇 1st' : rank === 2 ? '🥈 2nd' : rank === 3 ? '🥉 3rd' : `#${rank}`;
                             
                             return `
                             <tr>
-                                <td style="font-weight: bold; font-size: 1.2rem;">${medal}</td>
-                                <td style="font-weight: 500;">${item.teamName}</td>
-                                <td style="text-align: right; font-weight: bold; font-size: 1.1rem; color: var(--accent-council);">${item.totalPoints} pts</td>
+                                <td style="font-weight: bold; font-size: 1.1rem;">${medal}</td>
+                                <td style="font-weight: 600; color: #0f172a;">${item.teamName}</td>
+                                <td style="text-align: center;"><span class="badge" style="background:#fef3c7; color:#92400e; font-weight:700;">${item.firstCount}</span></td>
+                                <td style="text-align: center;"><span class="badge" style="background:#f1f5f9; color:#475569; font-weight:700;">${item.secondCount}</span></td>
+                                <td style="text-align: center;"><span class="badge" style="background:#ffedd5; color:#9a3412; font-weight:700;">${item.thirdCount}</span></td>
+                                <td style="text-align: center;"><span class="badge" style="background:#dcfce7; color:#166534; font-weight:700;">${item.gradeACount}</span></td>
+                                <td style="text-align: center;"><span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${item.gradeBCount}</span></td>
+                                <td style="text-align: right; font-weight: 800; font-size: 1.2rem; color: var(--accent-council);">${item.totalPoints} pts</td>
                             </tr>
                             `;
                         }).join('');
@@ -1482,18 +1699,6 @@
                 }
             });
         }
-
-        window.toggleLeaderboardVisibility = async function() {
-            if (!isConfigured) return;
-            try {
-                const docRef = doc(db, 'settings', 'leaderboard');
-                await setDoc(docRef, { isVisible: !lbIsVisible }, { merge: true });
-                showFeedback(lbIsVisible ? 'Leaderboard hidden from public' : 'Leaderboard published successfully!');
-            } catch (error) {
-                console.error("Error toggling leaderboard:", error);
-                showFeedback('Error updating visibility', 'error');
-            }
-        };
 
         // =========================================================================
         // 6. GALLERY & NEWS MANAGEMENT (Using External Links)

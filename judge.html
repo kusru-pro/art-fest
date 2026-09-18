@@ -680,9 +680,12 @@
                 }
 
                 const gradeVal = gradeSelect ? gradeSelect.value : 'None';
+                const pObj = currentParticipants.find(p => String(p.chestNo) === String(chestNo));
 
                 scores.push({
                     chestNo: chestNo,
+                    participantName: pObj ? (pObj.name || '') : '',
+                    team: pObj ? (pObj.team || '') : '',
                     eventCode: currentEventCode,
                     totalMark: num,
                     grade: gradeVal || 'None',

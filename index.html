@@ -15,12 +15,6 @@
 
     <!-- External Stylesheet -->
     <link rel="stylesheet" href="style.css">
-    
-    <style>
-        .hidden-section {
-            display: none !important;
-        }
-    </style>
 </head>
 <body>
 
@@ -30,7 +24,7 @@
         <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
         <ul class="nav-links" id="nav-links">
             <li><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
-            <li id="nav-team-points" class="hidden-section"><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
+            <li id="nav-team-points"><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
             <li><a class="nav-link" onclick="navigateTo('gallery')">Gallery</a></li>
             <li><a class="nav-link" onclick="navigateTo('news')">News</a></li>
             <li><button class="btn-login" onclick="openLoginModal()">Participant Login</button></li>
@@ -79,7 +73,7 @@
             </div>
 
             <!-- 2. Mini Leaderboard (Top 3) - Dynamically controlled -->
-            <div id="home-mini-leaderboard" class="home-section mini-leaderboard-section hidden-section">
+            <div id="home-mini-leaderboard" class="home-section mini-leaderboard-section">
                 <div class="home-section-header">
                     <h2 class="home-section-title">Current Standings</h2>
                     <p class="home-section-subtitle">Top 3 contending units leading the cultural championship</p>
@@ -386,7 +380,7 @@
         </section>
 
         <!-- 3. Team Points Section -->
-        <section id="team-points" class="hidden-section">
+        <section id="team-points">
             <h2 class="section-title">Leaderboard</h2>
             <div class="podium-container" id="public-main-podium">
                 <div style="text-align: center; width: 100%; color: #666; padding: 2rem;">Loading leaderboard...</div>
