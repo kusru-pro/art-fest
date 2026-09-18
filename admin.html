@@ -663,6 +663,22 @@
 
             <!-- Tab 3: Manage Events -->
             <section id="tab-events" class="tab-section">
+                <div class="card" style="background: #eff6ff; border: 1px dashed #93c5fd; margin-bottom: 1.5rem;">
+                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                        <h3 style="font-size: 1.1rem; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> Bulk Upload Events (CSV)</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="file" id="events-csv-file" accept=".csv" style="display: none;" onchange="handleEventsCSVUpload(event)">
+                            <button class="btn btn-sm" style="background: #1e3a8a;" onclick="document.getElementById('events-csv-file').click()">
+                                <i class="fa-solid fa-upload"></i> Upload CSV File
+                            </button>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #475569; margin-top: 0.8rem;">
+                        <strong>Format:</strong> <code>EventCode, EventName, Category, Type</code> <br>
+                        (E.g. <i>EL-ENG, English Elocution, Senior, Single</i>)
+                    </p>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title"><i class="fa-solid fa-plus"></i> Add New Event</h2>
@@ -998,6 +1014,94 @@
             reader.readAsText(file);
         }
         window.handleCSVUpload = handleCSVUpload;
+
+        async function handleEventsCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                let successCount = 0;
+                let skippedCount = 0;
+
+                showFeedback("Processing Events CSV...", "success");
+
+                let startIdx = 0;
+                if (lines.length > 0) {
+                    const firstLineLower = lines[0].toLowerCase();
+                    if (firstLineLower.includes('event') || firstLineLower.includes('code') || firstLineLower.includes('category')) {
+                        startIdx = 1;
+                    }
+                }
+
+                for (let i = startIdx; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const cols = line.split(',').map(c => c.trim());
+                    if (cols.length >= 4) {
+                        const eventCode = cols[0].toUpperCase();
+                        const eventName = cols[1];
+                        const category = cols[2];
+                        const type = cols[3];
+
+                        if (!eventCode || !eventName) continue;
+
+                        // Check if event already exists to prevent overwriting
+                        let alreadyExists = false;
+                        if (eventsCache[eventCode]) {
+                            alreadyExists = true;
+                        } else if (isConfigured) {
+                            try {
+                                const docSnap = await getDoc(doc(db, 'events', eventCode));
+                                if (docSnap.exists()) {
+                                    alreadyExists = true;
+                                }
+                            } catch (err) {
+                                console.warn("Error checking existing event:", err);
+                            }
+                        }
+
+                        if (alreadyExists) {
+                            skippedCount++;
+                            continue;
+                        }
+
+                        const eventData = { eventCode, eventName, category, type, updatedAt: Date.now() };
+
+                        if (isConfigured) {
+                            try {
+                                await setDoc(doc(db, 'events', eventCode), eventData);
+                                eventsCache[eventCode] = eventData;
+                                successCount++;
+                            } catch (err) {
+                                console.error("Error saving event:", err);
+                            }
+                        } else {
+                            eventsCache[eventCode] = eventData;
+                            successCount++;
+                        }
+                    }
+                }
+
+                if (!isConfigured) {
+                    renderEventsTable(Object.values(eventsCache));
+                    renderEventCheckboxes(Object.values(eventsCache));
+                }
+
+                let msg = `Successfully imported ${successCount} events!`;
+                if (skippedCount > 0) {
+                    msg += ` (${skippedCount} existing events skipped to prevent overwrite)`;
+                }
+                showFeedback(msg, "success");
+                const inputElem = document.getElementById('events-csv-file');
+                if (inputElem) inputElem.value = '';
+            };
+            reader.readAsText(file);
+        }
+        window.handleEventsCSVUpload = handleEventsCSVUpload;
 
         // =========================================================================
         // 3. PARTICIPANTS MANAGEMENT
@@ -1350,7 +1454,6 @@
                         <div class="accordion-card" style="border-left: 4px solid #16a34a;">
                             <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')">
                                 <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
                                     <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
                                     <span style="font-size: 0.9rem; font-weight: 500; color: #64748b;">(${eventInfo.category})</span>
                                     <span style="font-size: 0.85rem; color: #15803d; background: #f0fdf4; padding: 2px 10px; border-radius: 12px; font-weight: 600;">
@@ -1359,7 +1462,6 @@
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 15px;">
                                     <span class="badge" style="background: #dcfce7; color: #15803d; font-weight:700;"><i class="fa-solid fa-check-double"></i> Published</span>
-                                    <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">${results.length} Candidates</span>
                                     <i class="fa-solid fa-chevron-down accordion-icon"></i>
                                 </div>
                             </div>
@@ -1375,7 +1477,7 @@
                                                     <th>Team</th>
                                                     <th>Mark</th>
                                                     <th>Grade</th>
-                                                    <th>Points Awarded</th>
+                                                    <th>Points</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
