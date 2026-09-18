@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Judge Evaluation Panel | Sahityotsav 2026</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* === CSS Reset & Base Variables === */
+        :root {
+            --bg-outer: #a3987c;
+            --card-bg: #ffffff;
+            --text-dark: #000000;
+            --text-muted: #555555;
+            --border-light: #e2e8f0;
+            --primary-accent: #2e7d32;
+            --primary-accent-hover: #256628;
+            --badge-bg: rgba(44, 36, 27, 0.12);
+            --badge-text: #2c241b;
+            --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-heading: 'Playfair Display', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-outer);
+            font-family: var(--font-body);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+
+        /* === Mobile-First Container === */
+        .judge-panel-container {
+            width: 100%;
+            max-width: 580px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            padding-bottom: 2.5rem;
+        }
+
+        /* === Top Header Bar === */
+        .panel-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.25rem 1.25rem 1.1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .panel-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            margin-bottom: 0.75rem;
+        }
+
+        .panel-badge i {
+            font-size: 0.7rem;
+            color: #b58500;
+        }
+
+        .event-title {
+            font-family: var(--font-heading);
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.2;
+            margin-bottom: 0.35rem;
+        }
+
+        .event-category {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .event-category-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 50%;
+        }
+
+        .judge-info-bar {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .judge-status-pill {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #2e7d32;
+            border-radius: 50%;
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* === Section Subheading === */
+        .section-lead {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0 0.35rem;
+        }
+
+        .section-lead-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c241b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .participant-count {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: rgba(44, 36, 27, 0.8);
+        }
+
+        /* === Participants Mark Entry Cards === */
+        .entry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.15rem;
+        }
+
+        .participant-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .participant-card:focus-within {
+            border-color: #2e7d32;
+            box-shadow: 0 6px 22px rgba(46, 125, 50, 0.15);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .chest-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chest-number {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #000000;
+            letter-spacing: -0.2px;
+        }
+
+        .chest-tag {
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+        }
+
+        .order-indicator {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #888888;
+        }
+
+        /* === Inputs Grid === */
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.9rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .input-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #222222;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .input-label i {
+            font-size: 0.75rem;
+            color: #666666;
+        }
+
+        .mark-input {
+            width: 100%;
+            height: 52px;
+            padding: 0.75rem 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            color: #000000;
+            background-color: #f8fafc;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.2s ease;
+            -moz-appearance: textfield;
+        }
+
+        .mark-input::-webkit-outer-spin-button,
+        .mark-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .mark-input::placeholder {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .mark-input:focus {
+            outline: none;
+            background-color: #ffffff;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .grade-select {
+            width: 100%;
+            height: 52px;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            color: #000000;
+            background-color: #f8fafc;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .grade-select:focus {
+            outline: none;
+            background-color: #ffffff;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+        }
+
+        .select-chevron {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            pointer-events: none;
+            font-size: 0.85rem;
+        }
+
+        /* === Submission Area === */
+        .submission-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            min-height: 56px;
+            background-color: var(--primary-accent);
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.35);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-accent-hover);
+            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 12px rgba(46, 125, 50, 0.3);
+        }
+
+        .warning-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.5rem 0.25rem;
+            color: #2c241b;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+
+        .warning-notice i {
+            color: #8c2d19;
+            font-size: 0.85rem;
+            margin-top: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        /* === Small Mobile Tweaks === */
+        @media (max-width: 380px) {
+            .inputs-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .event-title {
+                font-size: 1.45rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="judge-panel-container">
+        
+        <!-- Header Section -->
+        <header class="panel-header">
+            <div class="panel-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                Judge Evaluation Panel
+            </div>
+
+            <h1 class="event-title" id="judge-event-title">Tech Hackathon</h1>
+            
+            <div class="event-category" id="judge-event-meta">
+                <span>General Open</span>
+                <span class="event-category-dot"></span>
+                <span>Group Event</span>
+                <span class="event-category-dot"></span>
+                <span>Stage 1</span>
+            </div>
+
+            <!-- Event Selector Dropdown -->
+            <div style="margin-top: 0.9rem;">
+                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.3rem;">Evaluating Program:</label>
+                <select id="judge-event-select" style="width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1.5px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; font-weight: 600; background: #fff;">
+                    <option value="EV-101" selected>Tech Hackathon (General Open)</option>
+                    <option value="EL-ENG">English Elocution (Senior)</option>
+                    <option value="QIR-01">Qira'at (General Open)</option>
+                </select>
+            </div>
+
+            <div class="judge-info-bar">
+                <span>Session ID: <strong>#JK-2026-88</strong></span>
+                <span class="judge-status-pill">
+                    <span class="status-dot"></span> Live Scoring
+                </span>
+            </div>
+        </header>
+
+        <!-- Participant List Subheading -->
+        <div class="section-lead">
+            <span class="section-lead-title">Participants Scoring</span>
+            <span class="participant-count" id="judge-participant-count">4 Teams Assigned</span>
+        </div>
+
+        <!-- Mark Entry Cards List -->
+        <div class="entry-list" id="judge-participants-list">
+
+            <!-- Card 1 -->
+            <article class="participant-card">
+                <div class="card-top">
+                    <div class="chest-badge">
+                        <span class="chest-number">Chest No: 104</span>
+                        <span class="chest-tag">Team A</span>
+                    </div>
+                    <span class="order-indicator">Slot #01</span>
+                </div>
+
+                <div class="inputs-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="mark-104">
+                            <i class="fa-solid fa-calculator"></i> Total Mark
+                        </label>
+                        <input 
+                            type="number" 
+                            id="mark-104" 
+                            class="mark-input" 
+                            placeholder="0 - 100" 
+                            min="0" 
+                            max="100"
+                            inputmode="numeric"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="grade-104">
+                            <i class="fa-solid fa-award"></i> Grade
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="grade-104" class="grade-select">
+                                <option value="" selected disabled>Select</option>
+                                <option value="A">Grade A</option>
+                                <option value="B">Grade B</option>
+                                <option value="C">Grade C</option>
+                                <option value="None">None</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-chevron"></i>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="participant-card">
+                <div class="card-top">
+                    <div class="chest-badge">
+                        <span class="chest-number">Chest No: 122</span>
+                        <span class="chest-tag">Team B</span>
+                    </div>
+                    <span class="order-indicator">Slot #02</span>
+                </div>
+
+                <div class="inputs-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="mark-122">
+                            <i class="fa-solid fa-calculator"></i> Total Mark
+                        </label>
+                        <input 
+                            type="number" 
+                            id="mark-122" 
+                            class="mark-input" 
+                            placeholder="0 - 100" 
+                            min="0" 
+                            max="100"
+                            inputmode="numeric"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="grade-122">
+                            <i class="fa-solid fa-award"></i> Grade
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="grade-122" class="grade-select">
+                                <option value="" selected disabled>Select</option>
+                                <option value="A">Grade A</option>
+                                <option value="B">Grade B</option>
+                                <option value="C">Grade C</option>
+                                <option value="None">None</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-chevron"></i>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="participant-card">
+                <div class="card-top">
+                    <div class="chest-badge">
+                        <span class="chest-number">Chest No: 109</span>
+                        <span class="chest-tag">Team C</span>
+                    </div>
+                    <span class="order-indicator">Slot #03</span>
+                </div>
+
+                <div class="inputs-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="mark-109">
+                            <i class="fa-solid fa-calculator"></i> Total Mark
+                        </label>
+                        <input 
+                            type="number" 
+                            id="mark-109" 
+                            class="mark-input" 
+                            placeholder="0 - 100" 
+                            min="0" 
+                            max="100"
+                            inputmode="numeric"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="grade-109">
+                            <i class="fa-solid fa-award"></i> Grade
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="grade-109" class="grade-select">
+                                <option value="" selected disabled>Select</option>
+                                <option value="A">Grade A</option>
+                                <option value="B">Grade B</option>
+                                <option value="C">Grade C</option>
+                                <option value="None">None</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-chevron"></i>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 4 -->
+            <article class="participant-card">
+                <div class="card-top">
+                    <div class="chest-badge">
+                        <span class="chest-number">Chest No: 201</span>
+                        <span class="chest-tag">Team D</span>
+                    </div>
+                    <span class="order-indicator">Slot #04</span>
+                </div>
+
+                <div class="inputs-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="mark-201">
+                            <i class="fa-solid fa-calculator"></i> Total Mark
+                        </label>
+                        <input 
+                            type="number" 
+                            id="mark-201" 
+                            class="mark-input" 
+                            placeholder="0 - 100" 
+                            min="0" 
+                            max="100"
+                            inputmode="numeric"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label" for="grade-201">
+                            <i class="fa-solid fa-award"></i> Grade
+                        </label>
+                        <div class="select-wrapper">
+                            <select id="grade-201" class="grade-select">
+                                <option value="" selected disabled>Select</option>
+                                <option value="A">Grade A</option>
+                                <option value="B">Grade B</option>
+                                <option value="C">Grade C</option>
+                                <option value="None">None</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-chevron"></i>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- Submission Action -->
+        <footer class="submission-section">
+            <div id="judge-feedback" style="display: none; padding: 0.9rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; text-align: center;"></div>
+
+            <button type="button" id="btn-judge-submit" class="btn-submit" onclick="submitJudgeEvaluations()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Submit to Council
+            </button>
+            <div class="warning-notice">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>Note: Submitted results are sent to the Project Council for verification and cannot be edited later.</span>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Firebase Modular SDK Integration for Judge Panel -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            getDocs, 
+            query, 
+            where 
+        } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+        // =========================================================================
+        // 1. FIREBASE CONFIGURATION (Replace with your actual Firebase Project Keys)
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const isConfigured = Boolean(
+            firebaseConfig.apiKey && 
+            firebaseConfig.apiKey !== "YOUR_API_KEY" && 
+            !firebaseConfig.projectId.includes("YOUR_PROJECT")
+        );
+
+        let app = null;
+        let db = null;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (e) {
+            console.warn("Firebase initialized with placeholder config.", e);
+        }
+
+        let currentEventCode = 'EV-101';
+        let currentParticipants = [];
+
+        // 1. Load Events from Firestore
+        async function loadEvents() {
+            const selectEl = document.getElementById('judge-event-select');
+            if (!selectEl) return;
+
+            if (!isConfigured) {
+                // Fallback default events
+                return;
+            }
+
+            try {
+                const snapshot = await getDocs(collection(db, 'events'));
+                if (!snapshot.empty) {
+                    selectEl.innerHTML = '';
+                    snapshot.forEach(docSnap => {
+                        const ev = docSnap.data();
+                        const opt = document.createElement('option');
+                        opt.value = ev.eventCode;
+                        opt.textContent = `${ev.eventName} (${ev.category})`;
+                        selectEl.appendChild(opt);
+                    });
+                    currentEventCode = selectEl.value;
+                    onEventChanged();
+                }
+            } catch (err) {
+                console.error("Error loading events for judge:", err);
+            }
+        }
+
+        // 2. Load Participants for selected Event from Firestore
+        async function loadParticipantsForEvent(eventCode) {
+            const container = document.getElementById('judge-participants-list');
+            const countLabel = document.getElementById('judge-participant-count');
+            if (!container) return;
+
+            if (!isConfigured) {
+                // Keep the initial static cards for preview
+                currentParticipants = [
+                    { chestNo: '104', name: 'Rashid K', team: 'Al-Huda Unit' },
+                    { chestNo: '122', name: 'Aman M', team: 'Badr Squad' },
+                    { chestNo: '109', name: 'Sameer H', team: 'Uhud Warriors' },
+                    { chestNo: '201', name: 'Ayesha M', team: 'Arafat Team' }
+                ];
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #555;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; margin-bottom: 0.8rem;"></i>
+                    <p>Loading participants for this program...</p>
+                </div>
+            `;
+
+            try {
+                // Query participants who have this eventCode in their events array
+                const q = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
+                const snapshot = await getDocs(q);
+
+                currentParticipants = [];
+                snapshot.forEach(docSnap => {
+                    currentParticipants.push(docSnap.data());
+                });
+
+                // Fallback if no specific array match, load all participants
+                if (currentParticipants.length === 0) {
+                    const allSnap = await getDocs(collection(db, 'participants'));
+                    allSnap.forEach(docSnap => {
+                        currentParticipants.push(docSnap.data());
+                    });
+                }
+
+                if (countLabel) {
+                    countLabel.textContent = `${currentParticipants.length} Participants Assigned`;
+                }
+
+                if (currentParticipants.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 16px; color: #666;">
+                            <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 0.8rem; color: #94a3b8;"></i>
+                            <p>No participants registered for this event yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = currentParticipants.map((p, idx) => `
+                    <article class="participant-card" id="card-${p.chestNo}">
+                        <div class="card-top">
+                            <div class="chest-badge">
+                                <span class="chest-number">Chest No: ${p.chestNo}</span>
+                                <span class="chest-tag">${p.name || p.team}</span>
+                            </div>
+                            <span class="order-indicator">Slot #${String(idx + 1).padStart(2, '0')}</span>
+                        </div>
+
+                        <div class="inputs-grid">
+                            <div class="input-group">
+                                <label class="input-label" for="mark-${p.chestNo}">
+                                    <i class="fa-solid fa-calculator"></i> Total Mark
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="mark-${p.chestNo}" 
+                                    class="mark-input" 
+                                    placeholder="0 - 100" 
+                                    min="0" 
+                                    max="100"
+                                    inputmode="numeric"
+                                >
+                            </div>
+
+                            <div class="input-group">
+                                <label class="input-label" for="grade-${p.chestNo}">
+                                    <i class="fa-solid fa-award"></i> Grade
+                                </label>
+                                <div class="select-wrapper">
+                                    <select id="grade-${p.chestNo}" class="grade-select">
+                                        <option value="" selected disabled>Select</option>
+                                        <option value="A">Grade A</option>
+                                        <option value="B">Grade B</option>
+                                        <option value="C">Grade C</option>
+                                        <option value="None">None</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down select-chevron"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+
+            } catch (err) {
+                console.error("Error loading participants:", err);
+                container.innerHTML = `<p style="color: #b91c1c; text-align: center; padding: 2rem;">Failed to load participants: ${err.message}</p>`;
+            }
+        }
+
+        function onEventChanged() {
+            const selectEl = document.getElementById('judge-event-select');
+            if (selectEl) {
+                currentEventCode = selectEl.value;
+                const titleEl = document.getElementById('judge-event-title');
+                if (titleEl) {
+                    titleEl.textContent = selectEl.options[selectEl.selectedIndex].text.split('(')[0].trim();
+                }
+                loadParticipantsForEvent(currentEventCode);
+            }
+        }
+
+        // 3. Submit Marks to Firestore with status: 'pending'
+        async function submitJudgeEvaluations() {
+            const btn = document.getElementById('btn-judge-submit');
+            const feedback = document.getElementById('judge-feedback');
+            
+            // Determine active participants to score
+            const participantsToScore = currentParticipants.length > 0 ? currentParticipants : [
+                { chestNo: '104' },
+                { chestNo: '122' },
+                { chestNo: '109' },
+                { chestNo: '201' }
+            ];
+
+            const scores = [];
+
+            for (const p of participantsToScore) {
+                const markInput = document.getElementById(`mark-${p.chestNo}`);
+                const gradeSelect = document.getElementById(`grade-${p.chestNo}`);
+                
+                if (!markInput) continue;
+
+                const markVal = markInput.value.trim();
+                const gradeVal = gradeSelect ? gradeSelect.value : 'None';
+
+                if (markVal === '') {
+                    alert(`Please enter marks for Chest No: ${p.chestNo}`);
+                    markInput.focus();
+                    return;
+                }
+
+                const num = Number(markVal);
+                if (isNaN(num) || num < 0 || num > 100) {
+                    alert(`Invalid mark for Chest No: ${p.chestNo}. Must be between 0 and 100.`);
+                    markInput.focus();
+                    return;
+                }
+
+                scores.push({
+                    chestNo: p.chestNo,
+                    eventCode: currentEventCode,
+                    totalMark: num,
+                    grade: gradeVal || 'None',
+                    status: 'pending',
+                    timestamp: Date.now()
+                });
+            }
+
+            // Loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting to Council...';
+
+            if (!isConfigured) {
+                // Local preview fallback
+                setTimeout(() => {
+                    feedback.style.display = 'block';
+                    feedback.style.background = '#dcfce7';
+                    feedback.style.color = '#15803d';
+                    feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluations submitted in preview mode! (Add Firebase keys for cloud sync)';
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Submitted Successfully';
+                    btn.style.background = '#15803d';
+                }, 700);
+                return;
+            }
+
+            try {
+                // Batch write or write each result document to Firestore
+                for (const item of scores) {
+                    const docId = `${item.eventCode}_${item.chestNo}`;
+                    await setDoc(doc(db, 'results', docId), item);
+                }
+
+                feedback.style.display = 'block';
+                feedback.style.background = '#dcfce7';
+                feedback.style.color = '#15803d';
+                feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluations successfully recorded in Firestore and forwarded to Council for verification!';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Submitted Successfully';
+                btn.style.background = '#15803d';
+            } catch (error) {
+                console.error("Firestore submission error:", error);
+                feedback.style.display = 'block';
+                feedback.style.background = '#fee2e2';
+                feedback.style.color = '#991b1b';
+                feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Submission failed: ${error.message}`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Retry Submission';
+            }
+        }
+        window.submitJudgeEvaluations = submitJudgeEvaluations;
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectEl = document.getElementById('judge-event-select');
+            if (selectEl) {
+                selectEl.addEventListener('change', onEventChanged);
+            }
+            loadEvents();
+            loadParticipantsForEvent(currentEventCode);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahityotsav Art Fest</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons (FontAwesome) for Vintage Elements -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="logo" onclick="navigateTo('hero')">Sahityotsav</div>
+        <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
+        <ul class="nav-links" id="nav-links">
+            <li><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
+            <li><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
+            <li><a class="nav-link" onclick="navigateTo('gallery')">Gallery</a></li>
+            <li><a class="nav-link" onclick="navigateTo('news')">News</a></li>
+            <li><button class="btn-login" onclick="openLoginModal()">Participant Login</button></li>
+        </ul>
+    </header>
+
+    <!-- Main Content Container -->
+    <main>
+        <!-- 1. Hero Section -->
+        <section id="hero" class="active">
+            <!-- Hero Top Banner Area -->
+            <div class="hero-banner-wrapper">
+                <!-- Vintage Floating Elements -->
+                <i class="fa-solid fa-clock floating-element el-1 parallax" data-speed="-2"></i>
+                <i class="fa-solid fa-gear floating-element el-2 parallax" data-speed="3"></i>
+                <i class="fa-solid fa-compass floating-element el-3 parallax" data-speed="-1"></i>
+                <i class="fa-solid fa-hourglass-half floating-element el-4 parallax" data-speed="2"></i>
+                <i class="fa-solid fa-feather-pointed floating-element el-5"></i>
+
+                <div class="hero-content parallax" data-speed="1">
+                    <div class="hero-subtitle">The Grand Cultural Fest 2026</div>
+                    <h1 class="hero-title">UPON THE <br>'BE-CAUSE'</h1>
+                    <div class="hero-details">
+                        <span><i class="fa-regular fa-calendar"></i> Nov 12 - Nov 15, 2026</span>
+                        <span><i class="fa-solid fa-location-dot"></i> Kerala Heritage Village</span>
+                    </div>
+                    <button class="btn-hero-results" onclick="showSection('results')">VIEW RESULTS</button>
+                </div>
+            </div>
+
+            <!-- 1. Theme Description Area -->
+            <div class="home-section theme-description-section">
+                <div class="theme-card">
+                    <div class="theme-badge">FESTIVAL THEME 2026</div>
+                    <h2 class="theme-title">UPON THE 'BE-CAUSE'</h2>
+                    <div class="theme-divider"><span>✦</span></div>
+                    <p class="theme-paragraph">
+                        Art does not merely mirror reality; it questions, awakens, and redeems. <em>"Upon the 'Be-Cause'"</em> is an ode to purpose-driven expression—a philosophical reflection on the reasons and convictions that ignite the creative spirit. At Kerala Sahityotsav 2026, every brushstroke, spoken verse, melody, and dramatic gesture becomes a deliberate response to the world around us. We celebrate creativity not merely for celebration's sake, but for the profound 'cause' that gives every human expression its timeless soul.
+                    </p>
+                    <div class="theme-quote">
+                        <i class="fa-solid fa-quote-left"></i>
+                        <span>"Every stroke carries a question, every rhythm echoes a purpose."</span>
+                        <i class="fa-solid fa-quote-right"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Mini Leaderboard (Top 3) -->
+            <div class="home-section mini-leaderboard-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">Current Standings</h2>
+                    <p class="home-section-subtitle">Top 3 contending units leading the cultural championship</p>
+                </div>
+
+                <div class="mini-podium">
+                    <!-- Rank 2 -->
+                    <div class="mini-podium-card rank-2">
+                        <div class="podium-crown"><i class="fa-solid fa-medal"></i> 2nd Place</div>
+                        <div class="mini-team-name">Badr Squad</div>
+                        <div class="mini-team-points"><strong>152</strong> <span>pts</span></div>
+                    </div>
+
+                    <!-- Rank 1 (Center Highlight) -->
+                    <div class="mini-podium-card rank-1">
+                        <div class="podium-crown gold-crown"><i class="fa-solid fa-crown"></i> 1st Place</div>
+                        <div class="mini-team-name">Al-Huda Unit</div>
+                        <div class="mini-team-points"><strong>184</strong> <span>pts</span></div>
+                    </div>
+
+                    <!-- Rank 3 -->
+                    <div class="mini-podium-card rank-3">
+                        <div class="podium-crown"><i class="fa-solid fa-award"></i> 3rd Place</div>
+                        <div class="mini-team-name">Uhud Warriors</div>
+                        <div class="mini-team-points"><strong>118</strong> <span>pts</span></div>
+                    </div>
+                </div>
+
+                <div class="section-action-center">
+                    <button class="btn-preview-link" onclick="showSection('points')">View Full Leaderboard &rarr;</button>
+                </div>
+            </div>
+
+            <!-- 3. Mini Gallery Preview -->
+            <div class="home-section mini-gallery-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">Festival Moments</h2>
+                    <p class="home-section-subtitle">Latest glimpses straight from the festival arena</p>
+                </div>
+
+                <div class="mini-gallery-grid">
+                    <div class="mini-gallery-item item-large" onclick="openGalleryModal(this.querySelector('img').src)">
+                        <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&q=80" alt="Festival Art 1">
+                        <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                    <div class="mini-gallery-item item-large" onclick="openGalleryModal(this.querySelector('img').src)">
+                        <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=700&q=80" alt="Festival Art 2">
+                        <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                    <div class="mini-gallery-item item-small" onclick="openGalleryModal(this.querySelector('img').src)">
+                        <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Festival Art 3">
+                        <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                    <div class="mini-gallery-item item-small" onclick="openGalleryModal(this.querySelector('img').src)">
+                        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Festival Art 4">
+                        <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                    <div class="mini-gallery-item item-small" onclick="openGalleryModal(this.querySelector('img').src)">
+                        <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Festival Art 5">
+                        <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                </div>
+
+                <div class="section-action-center">
+                    <button class="btn-preview-link" onclick="showSection('gallery')">View Full Gallery &rarr;</button>
+                </div>
+            </div>
+
+            <!-- 4. Mini News Preview -->
+            <div class="home-section mini-news-section">
+                <div class="home-section-header">
+                    <h2 class="home-section-title">Latest Updates</h2>
+                    <p class="home-section-subtitle">Announcements and dispatches from the festival committee</p>
+                </div>
+
+                <div class="mini-news-grid">
+                    <div class="mini-news-card" onclick="openNewsModal(1)">
+                        <div class="mini-news-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Chief Guest Arrives">
+                        </div>
+                        <div class="mini-news-body">
+                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 12, 2026</span>
+                            <h3 class="mini-news-title">Chief Guest Arrives</h3>
+                            <p class="mini-news-excerpt">Renowned artist Dr. Menon has arrived at the venue to inaugurate the grand festival...</p>
+                            <span class="mini-news-more">Read Story &rarr;</span>
+                        </div>
+                    </div>
+
+                    <div class="mini-news-card" onclick="openNewsModal(2)">
+                        <div class="mini-news-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Schedule Update">
+                        </div>
+                        <div class="mini-news-body">
+                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 12, 2026</span>
+                            <h3 class="mini-news-title">Schedule Update</h3>
+                            <p class="mini-news-excerpt">The English Debate for the senior category has been postponed by 30 minutes...</p>
+                            <span class="mini-news-more">Read Story &rarr;</span>
+                        </div>
+                    </div>
+
+                    <div class="mini-news-card" onclick="openNewsModal(3)">
+                        <div class="mini-news-img-wrap">
+                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Record Participation">
+                        </div>
+                        <div class="mini-news-body">
+                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 11, 2026</span>
+                            <h3 class="mini-news-title">Record Participation</h3>
+                            <p class="mini-news-excerpt">This year's Sahityotsav sees a record-breaking 2,500 participants across 150 events...</p>
+                            <span class="mini-news-more">Read Story &rarr;</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-action-center">
+                    <button class="btn-preview-link" onclick="showSection('news')">Read All News &rarr;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Results Section -->
+        <section id="results">
+            <!-- Floating Background Elements -->
+            <div class="watermark-container">
+                <i class="fa-solid fa-clock watermark-icon clock-mark"></i>
+                <i class="fa-solid fa-compass watermark-icon compass-mark"></i>
+            </div>
+
+            <h2 class="section-title">Event Results</h2>
+            <p class="section-subtitle">Every published result from Kerala Sahityotsav 2026. Results stream in live as the juries sign them off.</p>
+            
+            <!-- Dynamic Filters -->
+            <div class="filter-container">
+                <div class="custom-select-wrapper">
+                    <select id="category-filter" onchange="updateProgramFilter()">
+                        <option value="all">All Categories</option>
+                        <option value="Sub Junior">Sub Junior</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Senior">Senior</option>
+                        <option value="General">General</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-icon"></i>
+                </div>
+                
+                <div class="custom-select-wrapper">
+                    <select id="program-filter" onchange="filterResults()">
+                        <option value="all">All Programs</option>
+                        <!-- Options generated dynamically -->
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-icon"></i>
+                </div>
+            </div>
+
+            <!-- Results Container -->
+            <div id="results-container" class="results-container">
+                <!-- Result Item 1: Senior -->
+                <div class="accordion-item result-card" data-category="Senior" data-program="Elocution (English)">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="header-left">
+                            <div class="item-code">166</div>
+                            <div class="item-title-group">
+                                <span class="event-name">Elocution (English)</span>
+                                <span class="event-category">Senior • Individual</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-container">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Chest No</th>
+                                        <th>Participant</th>
+                                        <th>Team</th>
+                                        <th>Mark</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><i class="fa-solid fa-trophy trophy-gold"></i> 1</td>
+                                        <td>104</td>
+                                        <td class="winner-highlight">Rashid K.</td>
+                                        <td>Al-Huda Unit</td>
+                                        <td>95</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>122</td>
+                                        <td>Aman M.</td>
+                                        <td>Badr Squad</td>
+                                        <td>91</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>109</td>
+                                        <td>Sameer H.</td>
+                                        <td>Uhud Warriors</td>
+                                        <td>88</td>
+                                        <td><span class="grade-box">B</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Item 2: Junior -->
+                <div class="accordion-item result-card" data-category="Junior" data-program="Pencil Drawing">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="header-left">
+                            <div class="item-code">201</div>
+                            <div class="item-title-group">
+                                <span class="event-name">Pencil Drawing</span>
+                                <span class="event-category">Junior • Individual</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-container">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Chest No</th>
+                                        <th>Participant</th>
+                                        <th>Team</th>
+                                        <th>Mark</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><i class="fa-solid fa-trophy trophy-gold"></i> 1</td>
+                                        <td>209</td>
+                                        <td class="winner-highlight">Ayesha M.</td>
+                                        <td>Arafat Team</td>
+                                        <td>98</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>231</td>
+                                        <td>Zainab P.</td>
+                                        <td>Badr Squad</td>
+                                        <td>94</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>215</td>
+                                        <td>Fahad K.</td>
+                                        <td>Al-Huda Unit</td>
+                                        <td>85</td>
+                                        <td><span class="grade-box">B</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Result Item 3: General -->
+                <div class="accordion-item result-card" data-category="General" data-program="Qira'at">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="header-left">
+                            <div class="item-code">105</div>
+                            <div class="item-title-group">
+                                <span class="event-name">Qira'at</span>
+                                <span class="event-category">General • Individual</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="table-container">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Chest No</th>
+                                        <th>Participant</th>
+                                        <th>Team</th>
+                                        <th>Mark</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><i class="fa-solid fa-trophy trophy-gold"></i> 1</td>
+                                        <td>301</td>
+                                        <td class="winner-highlight">Zaid A.</td>
+                                        <td>Uhud Warriors</td>
+                                        <td>99</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>312</td>
+                                        <td>Rizwan T.</td>
+                                        <td>Al-Huda Unit</td>
+                                        <td>96</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>305</td>
+                                        <td>Hassan R.</td>
+                                        <td>Arafat Team</td>
+                                        <td>90</td>
+                                        <td><span class="grade-box">A</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Team Points Section -->
+        <section id="team-points">
+            <h2 class="section-title">Leaderboard</h2>
+            <div class="podium-container">
+                <div class="podium-card rank-2"><div class="podium-number">2</div><div class="podium-team">Badr Squad</div><div class="podium-points"><span class="counter-value" data-target="152">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
+                <div class="podium-card rank-1"><div class="podium-number">1</div><div class="podium-team">Al-Huda Unit</div><div class="podium-points"><span class="counter-value" data-target="184">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
+                <div class="podium-card rank-3"><div class="podium-number">3</div><div class="podium-team">Uhud Warriors</div><div class="podium-points"><span class="counter-value" data-target="118">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
+            </div>
+
+            <div class="leaderboard-list">
+                <div class="leaderboard-row box-rank"><div class="lb-rank">4</div><div class="lb-team">Arafat Team</div><div class="lb-points"><span class="counter-value" data-target="96">0</span> pts</div></div>
+                <div class="leaderboard-row box-rank"><div class="lb-rank">5</div><div class="lb-team">Tariq Unit</div><div class="lb-points"><span class="counter-value" data-target="72">0</span> pts</div></div>
+                <div class="leaderboard-row box-rank"><div class="lb-rank">6</div><div class="lb-team">Khalid Squad</div><div class="lb-points"><span class="counter-value" data-target="54">0</span> pts</div></div>
+
+                <div class="leaderboard-row list-rank"><div class="lb-rank">7</div><div class="lb-team">Makkah Group</div><div class="lb-points"><span class="counter-value" data-target="42">0</span> pts</div></div>
+                <div class="leaderboard-row list-rank"><div class="lb-rank">8</div><div class="lb-team">Madina Unit</div><div class="lb-points"><span class="counter-value" data-target="30">0</span> pts</div></div>
+            </div>
+        </section>
+
+        <!-- 4. Gallery Section -->
+        <section id="gallery">
+            <h2 class="section-title">IN GALLERY</h2>
+            <p class="section-subtitle">Moments from Kerala art 2026 at wayanad, Alappuzha, straight from the festival floor.</p>
+            
+            <div class="gallery-grid">
+                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 1" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 2" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 3" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 4" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 5" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 6" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 7" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 8" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 9" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 10" class="gallery-item" onclick="openGalleryModal(this.src)">
+                
+                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 11" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 12" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 13" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 14" class="gallery-item" onclick="openGalleryModal(this.src)">
+            </div>
+            
+            <div class="gallery-actions">
+                <button class="btn-view-all" onclick="toggleGallery(this)">View All Images</button>
+            </div>
+        </section>
+
+        <!-- 5. News Section -->
+        <section id="news">
+            <h2 class="section-title">Latest Updates</h2>
+            <p class="section-subtitle">Announcements and updates from the organizing team as the festival unfolds.</p>
+            
+            <div class="news-hero-card">
+                <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Chief Guest Arrives" class="news-hero-img">
+                <div class="news-hero-content">
+                    <span class="news-date">Nov 12, 2026</span>
+                    <h3>Chief Guest Arrives</h3>
+                    <p>Renowned artist Dr. Menon has arrived at the venue to inaugurate the grand festival. The ceremony begins shortly at the main stage...</p>
+                    <a class="read-more" onclick="openNewsModal(1)">READ FULL STORY &rarr;</a>
+                </div>
+            </div>
+
+            <div class="news-grid-standard">
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Schedule Update" class="news-img">
+                    <div class="news-content">
+                        <span class="news-date">Nov 12, 2026</span>
+                        <h3>Schedule Update</h3>
+                        <p>The English Debate for the senior category has been postponed by 30 minutes...</p>
+                        <a class="read-more" onclick="openNewsModal(2)">READ FULL STORY &rarr;</a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Record Participation" class="news-img">
+                    <div class="news-content">
+                        <span class="news-date">Nov 11, 2026</span>
+                        <h3>Record Participation</h3>
+                        <p>This year's Sahityotsav sees a record-breaking 2,500 participants across 150 events...</p>
+                        <a class="read-more" onclick="openNewsModal(3)">READ FULL STORY &rarr;</a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Culinary Arts Added" class="news-img">
+                    <div class="news-content">
+                        <span class="news-date">Nov 10, 2026</span>
+                        <h3>Culinary Arts Added</h3>
+                        <p>A brand new Culinary Arts competition has been added to the festival this year...</p>
+                        <a class="read-more" onclick="openNewsModal(4)">READ FULL STORY &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Login / Dashboard Modal -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-box login-modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('login-modal')"></i>
+            
+            <!-- LOGIN VIEW -->
+            <div id="login-view" class="fade-section active-view">
+                <h3>Participant Login</h3>
+                <p class="login-subtitle">Enter your Chest Number to view your dashboard.</p>
+                <div class="form-group">
+                    <input type="text" id="chestNo" placeholder="Enter Chest Number" autocomplete="off">
+                </div>
+                <button class="login-btn" onclick="submitLogin()">LOGIN</button>
+            </div>
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard-view" class="fade-section hidden-view">
+                <div class="profile-header">
+                    <i class="fa-solid fa-circle-user profile-avatar"></i>
+                    <h3 class="profile-name">Rashid K.</h3>
+                    <p class="profile-details">Chest No: 104 &nbsp;|&nbsp; Al-Huda Unit</p>
+                </div>
+                
+                <div class="events-list">
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-title">English Elocution</div>
+                            <div class="event-category">Senior</div>
+                        </div>
+                        <div class="event-status status-win">🏆 1st Place - A Grade</div>
+                    </div>
+                    
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-title">Qira'at</div>
+                            <div class="event-category">General</div>
+                        </div>
+                        <div class="event-status status-pending">⏳ Pending Result</div>
+                    </div>
+                    
+                    <div class="event-item">
+                        <div class="event-info">
+                            <div class="event-title">Essay Malayalam</div>
+                            <div class="event-category">Senior</div>
+                        </div>
+                        <div class="event-status status-schedule">📅 Today, 02:00 PM</div>
+                    </div>
+                </div>
+                
+                <button class="logout-btn" onclick="logoutDashboard()">LOGOUT</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Gallery Image Modal -->
+    <div id="gallery-modal" class="modal-overlay">
+        <div class="modal-box gallery-modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('gallery-modal')"></i>
+            <img id="gallery-modal-img" src="" alt="Full Screen Preview">
+        </div>
+    </div>
+    
+    <!-- News Full Story Modal -->
+    <div id="news-modal" class="modal-overlay">
+        <div class="modal-box news-modal-box">
+            <i class="fa-solid fa-xmark modal-close" onclick="closeModal('news-modal')"></i>
+            <img id="news-modal-img" src="" alt="News Image">
+            <div class="news-modal-content">
+                <span id="news-modal-date" class="news-date"></span>
+                <h3 id="news-modal-title"></h3>
+                <p id="news-modal-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript (Firebase Modular SDK) -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
