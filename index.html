@@ -15,6 +15,12 @@
 
     <!-- External Stylesheet -->
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .hidden-section {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -24,7 +30,7 @@
         <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
         <ul class="nav-links" id="nav-links">
             <li><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
-            <li><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
+            <li id="nav-team-points" class="hidden-section"><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
             <li><a class="nav-link" onclick="navigateTo('gallery')">Gallery</a></li>
             <li><a class="nav-link" onclick="navigateTo('news')">News</a></li>
             <li><button class="btn-login" onclick="openLoginModal()">Participant Login</button></li>
@@ -72,38 +78,19 @@
                 </div>
             </div>
 
-            <!-- 2. Mini Leaderboard (Top 3) -->
-            <div class="home-section mini-leaderboard-section">
+            <!-- 2. Mini Leaderboard (Top 3) - Dynamically controlled -->
+            <div id="home-mini-leaderboard" class="home-section mini-leaderboard-section hidden-section">
                 <div class="home-section-header">
                     <h2 class="home-section-title">Current Standings</h2>
                     <p class="home-section-subtitle">Top 3 contending units leading the cultural championship</p>
                 </div>
 
-                <div class="mini-podium">
-                    <!-- Rank 2 -->
-                    <div class="mini-podium-card rank-2">
-                        <div class="podium-crown"><i class="fa-solid fa-medal"></i> 2nd Place</div>
-                        <div class="mini-team-name">Badr Squad</div>
-                        <div class="mini-team-points"><strong>152</strong> <span>pts</span></div>
-                    </div>
-
-                    <!-- Rank 1 (Center Highlight) -->
-                    <div class="mini-podium-card rank-1">
-                        <div class="podium-crown gold-crown"><i class="fa-solid fa-crown"></i> 1st Place</div>
-                        <div class="mini-team-name">Al-Huda Unit</div>
-                        <div class="mini-team-points"><strong>184</strong> <span>pts</span></div>
-                    </div>
-
-                    <!-- Rank 3 -->
-                    <div class="mini-podium-card rank-3">
-                        <div class="podium-crown"><i class="fa-solid fa-award"></i> 3rd Place</div>
-                        <div class="mini-team-name">Uhud Warriors</div>
-                        <div class="mini-team-points"><strong>118</strong> <span>pts</span></div>
-                    </div>
+                <div class="mini-podium" id="public-mini-podium">
+                    <div style="text-align: center; width: 100%; color: #666; padding: 2rem;">Loading standings...</div>
                 </div>
 
                 <div class="section-action-center">
-                    <button class="btn-preview-link" onclick="showSection('points')">View Full Leaderboard &rarr;</button>
+                    <button class="btn-preview-link" onclick="showSection('team-points')">View Full Leaderboard &rarr;</button>
                 </div>
             </div>
 
@@ -399,21 +386,14 @@
         </section>
 
         <!-- 3. Team Points Section -->
-        <section id="team-points">
+        <section id="team-points" class="hidden-section">
             <h2 class="section-title">Leaderboard</h2>
-            <div class="podium-container">
-                <div class="podium-card rank-2"><div class="podium-number">2</div><div class="podium-team">Badr Squad</div><div class="podium-points"><span class="counter-value" data-target="152">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
-                <div class="podium-card rank-1"><div class="podium-number">1</div><div class="podium-team">Al-Huda Unit</div><div class="podium-points"><span class="counter-value" data-target="184">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
-                <div class="podium-card rank-3"><div class="podium-number">3</div><div class="podium-team">Uhud Warriors</div><div class="podium-points"><span class="counter-value" data-target="118">0</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div></div>
+            <div class="podium-container" id="public-main-podium">
+                <div style="text-align: center; width: 100%; color: #666; padding: 2rem;">Loading leaderboard...</div>
             </div>
 
-            <div class="leaderboard-list">
-                <div class="leaderboard-row box-rank"><div class="lb-rank">4</div><div class="lb-team">Arafat Team</div><div class="lb-points"><span class="counter-value" data-target="96">0</span> pts</div></div>
-                <div class="leaderboard-row box-rank"><div class="lb-rank">5</div><div class="lb-team">Tariq Unit</div><div class="lb-points"><span class="counter-value" data-target="72">0</span> pts</div></div>
-                <div class="leaderboard-row box-rank"><div class="lb-rank">6</div><div class="lb-team">Khalid Squad</div><div class="lb-points"><span class="counter-value" data-target="54">0</span> pts</div></div>
-
-                <div class="leaderboard-row list-rank"><div class="lb-rank">7</div><div class="lb-team">Makkah Group</div><div class="lb-points"><span class="counter-value" data-target="42">0</span> pts</div></div>
-                <div class="leaderboard-row list-rank"><div class="lb-rank">8</div><div class="lb-team">Madina Unit</div><div class="lb-points"><span class="counter-value" data-target="30">0</span> pts</div></div>
+            <div class="leaderboard-list" id="public-leaderboard-list">
+                <!-- Rest of leaderboard populates here -->
             </div>
         </section>
 
@@ -423,7 +403,7 @@
             <p class="section-subtitle">Moments from Kerala art 2026 at wayanad, Alappuzha, straight from the festival floor.</p>
             
             <div class="gallery-grid">
-              
+               
                 <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 2" class="gallery-item" onclick="openGalleryModal(this.src)">
                 <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 3" class="gallery-item" onclick="openGalleryModal(this.src)">
                 <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 4" class="gallery-item" onclick="openGalleryModal(this.src)">
@@ -569,6 +549,51 @@
             </div>
         </div>
     </div>
+
+    <!-- UI Interaction Scripts (Keep these for visual logic) -->
+    <script>
+        function navigateTo(sectionId) {
+            document.querySelectorAll('main > section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            const target = document.getElementById(sectionId);
+            if(target) {
+                target.classList.add('active');
+            }
+            if (window.innerWidth <= 768) {
+                document.getElementById('nav-links').classList.remove('active');
+            }
+        }
+        function showSection(id) { navigateTo(id); }
+        function toggleMobileMenu() { document.getElementById('nav-links').classList.toggle('active'); }
+        function toggleAccordion(element) { element.classList.toggle('active'); }
+        function openLoginModal() { document.getElementById('login-modal').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openGalleryModal(src) {
+            document.getElementById('gallery-modal-img').src = src;
+            document.getElementById('gallery-modal').classList.add('active');
+        }
+        function openNewsModal() { document.getElementById('news-modal').classList.add('active'); }
+        function toggleGallery(btn) {
+            const grid = document.querySelector('.gallery-grid');
+            grid.classList.toggle('expanded');
+            btn.textContent = grid.classList.contains('expanded') ? 'Show Less' : 'View All Images';
+        }
+        function submitLogin() {
+            // Very basic visual toggle for demo
+            document.getElementById('login-view').classList.remove('active-view');
+            document.getElementById('login-view').classList.add('hidden-view');
+            document.getElementById('dashboard-view').classList.remove('hidden-view');
+            document.getElementById('dashboard-view').classList.add('active-view');
+        }
+        function logoutDashboard() {
+            document.getElementById('dashboard-view').classList.remove('active-view');
+            document.getElementById('dashboard-view').classList.add('hidden-view');
+            document.getElementById('login-view').classList.remove('hidden-view');
+            document.getElementById('login-view').classList.add('active-view');
+            document.getElementById('chestNo').value = '';
+        }
+    </script>
 
     <!-- External JavaScript (Firebase Modular SDK) -->
     <script type="module" src="script.js"></script>
