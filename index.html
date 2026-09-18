@@ -20,7 +20,7 @@
 
     <!-- Header Navigation -->
     <header>
-        <div class="logo" onclick="navigateTo('hero')">Sahityotsav</div>
+        <div class="logo" id="site-logo" onclick="navigateTo('hero')">Sahityotsav</div>
         <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
         <ul class="nav-links" id="nav-links">
             <li><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
@@ -45,11 +45,11 @@
                 <i class="fa-solid fa-feather-pointed floating-element el-5"></i>
 
                 <div class="hero-content parallax" data-speed="1">
-                    <div class="hero-subtitle">The Grand Cultural Fest 2026</div>
-                    <h1 class="hero-title">UPON THE <br>'BE-CAUSE'</h1>
+                    <div class="hero-subtitle" id="hero-subtitle"><span id="hero-event-title">Sahityotsav</span> &bull; Grand Cultural Fest</div>
+                    <h1 class="hero-title" id="hero-theme-title">UPON THE <br>'BE-CAUSE'</h1>
                     <div class="hero-details">
-                        <span><i class="fa-regular fa-calendar"></i> Nov 12 - Nov 15, 2026</span>
-                        <span><i class="fa-solid fa-location-dot"></i> Kerala Heritage Village</span>
+                        <span id="hero-dates"><i class="fa-regular fa-calendar"></i> <span id="hero-dates-text">Nov 12 - Nov 15, 2026</span></span>
+                        <span id="hero-location"><i class="fa-solid fa-location-dot"></i> <span id="hero-location-text">Kerala Heritage Village</span></span>
                     </div>
                     <button class="btn-hero-results" onclick="showSection('results')">VIEW RESULTS</button>
                 </div>
@@ -58,11 +58,11 @@
             <!-- 1. Theme Description Area -->
             <div class="home-section theme-description-section">
                 <div class="theme-card">
-                    <div class="theme-badge">FESTIVAL THEME 2026</div>
-                    <h2 class="theme-title">UPON THE 'BE-CAUSE'</h2>
+                    <div class="theme-badge" id="theme-badge">FESTIVAL THEME</div>
+                    <h2 class="theme-title" id="theme-section-title">UPON THE 'BE-CAUSE'</h2>
                     <div class="theme-divider"><span>✦</span></div>
                     <p class="theme-paragraph">
-                        Art does not merely mirror reality; it questions, awakens, and redeems. <em>"Upon the 'Be-Cause'"</em> is an ode to purpose-driven expression—a philosophical reflection on the reasons and convictions that ignite the creative spirit. At Kerala Sahityotsav 2026, every brushstroke, spoken verse, melody, and dramatic gesture becomes a deliberate response to the world around us. We celebrate creativity not merely for celebration's sake, but for the profound 'cause' that gives every human expression its timeless soul.
+                        Art does not merely mirror reality; it questions, awakens, and redeems. <em id="theme-paragraph-theme">"Upon the 'Be-Cause'"</em> is an ode to purpose-driven expression—a philosophical reflection on the reasons and convictions that ignite the creative spirit. At <span id="theme-paragraph-event">Kerala Sahityotsav 2026</span>, every brushstroke, spoken verse, melody, and dramatic gesture becomes a deliberate response to the world around us. We celebrate creativity not merely for celebration's sake, but for the profound 'cause' that gives every human expression its timeless soul.
                     </p>
                     <div class="theme-quote">
                         <i class="fa-solid fa-quote-left"></i>

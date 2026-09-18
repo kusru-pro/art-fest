@@ -870,6 +870,73 @@ function initNewsRealtimeListener() {
 }
 
 // =========================================================================
+// 8.5. HOME PAGE & HERO SETTINGS (settings/homepage)
+// =========================================================================
+function initHomepageSettingsListener() {
+    if (!isConfigured) return;
+
+    onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+        if (!docSnap.exists()) return;
+        applyHomepageSettings(docSnap.data());
+    }, (err) => {
+        console.warn("Homepage settings listener error:", err);
+    });
+}
+window.initHomepageSettingsListener = initHomepageSettingsListener;
+
+function applyHomepageSettings(data) {
+    if (!data) return;
+
+    // 1. Event Title (e.g., Sahityotsav)
+    if (data.eventTitle) {
+        const heroEventTitle = document.getElementById('hero-event-title');
+        if (heroEventTitle) heroEventTitle.textContent = data.eventTitle;
+
+        const siteLogo = document.getElementById('site-logo');
+        if (siteLogo) siteLogo.textContent = data.eventTitle;
+
+        const themeEvent = document.getElementById('theme-paragraph-event');
+        if (themeEvent) themeEvent.textContent = data.eventTitle;
+    }
+
+    // 2. Theme Name (e.g., UPON THE 'BE-CAUSE')
+    if (data.themeName) {
+        const heroTheme = document.getElementById('hero-theme-title');
+        if (heroTheme) {
+            if (data.themeName.includes('<br>') || data.themeName.includes('<br/>')) {
+                heroTheme.innerHTML = data.themeName;
+            } else {
+                heroTheme.textContent = data.themeName;
+            }
+        }
+
+        const themeSectionTitle = document.getElementById('theme-section-title');
+        if (themeSectionTitle) {
+            themeSectionTitle.textContent = data.themeName.replace(/<[^>]*>/g, ' ');
+        }
+
+        const themeParagraph = document.getElementById('theme-paragraph-theme');
+        if (themeParagraph) {
+            const cleanTheme = data.themeName.replace(/<[^>]*>/g, ' ').replace(/^["']|["']$/g, '');
+            themeParagraph.textContent = `"${cleanTheme}"`;
+        }
+    }
+
+    // 3. Event Dates
+    if (data.eventDates) {
+        const datesText = document.getElementById('hero-dates-text');
+        if (datesText) datesText.textContent = data.eventDates;
+    }
+
+    // 4. Event Location
+    if (data.eventLocation) {
+        const locText = document.getElementById('hero-location-text');
+        if (locText) locText.textContent = data.eventLocation;
+    }
+}
+window.applyHomepageSettings = applyHomepageSettings;
+
+// =========================================================================
 // 9. PARALLAX MOUSE MOVE EFFECT
 // =========================================================================
 document.addEventListener('mousemove', function(e) {
@@ -894,6 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initResultsRealtimeListener();
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
+        initHomepageSettingsListener();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");
     }

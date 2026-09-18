@@ -518,6 +518,9 @@
                 <div class="nav-item" data-tab="tab-news">
                     <i class="fa-solid fa-bullhorn"></i> Manage News
                 </div>
+                <div class="nav-item" data-tab="tab-homepage">
+                    <i class="fa-solid fa-sliders"></i> Home Page Settings
+                </div>
             </nav>
         </aside>
 
@@ -890,6 +893,54 @@
                         <button type="submit" class="btn">
                             <i class="fa-solid fa-paper-plane"></i> Publish Live
                         </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Tab 8: Home Page Settings -->
+            <section id="tab-homepage" class="tab-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Home Page & Hero Settings</h2>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Customize the main headline text, theme, schedule dates, and venue location displayed on the public website's Hero section and Theme section in real-time.
+                    </p>
+                    <form id="homepage-settings-form" onsubmit="saveHomepageSettings(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="setting-event-title">Event Title *</label>
+                                <input type="text" id="setting-event-title" placeholder="e.g. Sahityotsav" required>
+                                <small style="color: #64748b; font-size: 0.78rem;">Shown in the Hero subtitle & event branding.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="setting-theme-name">Theme Name *</label>
+                                <input type="text" id="setting-theme-name" placeholder="e.g. UPON THE 'BE-CAUSE'" required>
+                                <small style="color: #64748b; font-size: 0.78rem;">Main Hero headline and Festival Theme title.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="setting-event-dates">Event Dates *</label>
+                                <input type="text" id="setting-event-dates" placeholder="e.g. Nov 12 - Nov 15, 2026" required>
+                                <small style="color: #64748b; font-size: 0.78rem;">Shown beside the calendar icon in the Hero area.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="setting-event-location">Event Location *</label>
+                                <input type="text" id="setting-event-location" placeholder="e.g. Kerala Heritage Village" required>
+                                <small style="color: #64748b; font-size: 0.78rem;">Shown beside the pin location icon in the Hero area.</small>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem; display: flex; gap: 15px; align-items: center;">
+                            <button type="submit" class="btn" id="btn-save-homepage">
+                                <i class="fa-solid fa-save"></i> Save Home Page Settings
+                            </button>
+                            <span id="homepage-save-status" style="font-size: 0.85rem; color: #16a34a; font-weight: 600; display: none;">
+                                <i class="fa-solid fa-circle-check"></i> Changes saved & live!
+                            </span>
+                        </div>
                     </form>
                 </div>
             </section>
@@ -1913,6 +1964,80 @@
         }
         window.publishNews = publishNews;
 
+        // =========================================================================
+        // 9. HOME PAGE SETTINGS (settings/homepage)
+        // =========================================================================
+        async function saveHomepageSettings(event) {
+            event.preventDefault();
+            const eventTitle = document.getElementById('setting-event-title').value.trim();
+            const themeName = document.getElementById('setting-theme-name').value.trim();
+            const eventDates = document.getElementById('setting-event-dates').value.trim();
+            const eventLocation = document.getElementById('setting-event-location').value.trim();
+
+            const data = {
+                eventTitle,
+                themeName,
+                eventDates,
+                eventLocation,
+                updatedAt: Date.now()
+            };
+
+            if (!isConfigured) {
+                showFeedback("Settings saved in local preview mode!");
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, 'settings', 'homepage'), data, { merge: true });
+                showFeedback("Home page settings saved to Firestore successfully!");
+                const statusSpan = document.getElementById('homepage-save-status');
+                if (statusSpan) {
+                    statusSpan.style.display = 'inline-flex';
+                    setTimeout(() => { statusSpan.style.display = 'none'; }, 3500);
+                }
+            } catch (err) {
+                console.error("Failed to save homepage settings:", err);
+                showFeedback("Failed to save homepage settings: " + err.message, "error");
+            }
+        }
+        window.saveHomepageSettings = saveHomepageSettings;
+
+        function initHomepageSettingsListener() {
+            const defaults = {
+                eventTitle: "Sahityotsav",
+                themeName: "UPON THE 'BE-CAUSE'",
+                eventDates: "Nov 12 - Nov 15, 2026",
+                eventLocation: "Kerala Heritage Village"
+            };
+
+            const populateForm = (data) => {
+                const titleEl = document.getElementById('setting-event-title');
+                const themeEl = document.getElementById('setting-theme-name');
+                const datesEl = document.getElementById('setting-event-dates');
+                const locEl = document.getElementById('setting-event-location');
+                if (titleEl) titleEl.value = data.eventTitle || defaults.eventTitle;
+                if (themeEl) themeEl.value = data.themeName || defaults.themeName;
+                if (datesEl) datesEl.value = data.eventDates || defaults.eventDates;
+                if (locEl) locEl.value = data.eventLocation || defaults.eventLocation;
+            };
+
+            if (!isConfigured) {
+                populateForm(defaults);
+                return;
+            }
+
+            onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
+                if (docSnap.exists()) {
+                    populateForm(docSnap.data());
+                } else {
+                    populateForm(defaults);
+                }
+            }, (err) => {
+                console.warn("Could not listen to homepage settings:", err);
+                populateForm(defaults);
+            });
+        }
+
         // Initialize All Listeners
         document.addEventListener('DOMContentLoaded', () => {
             initEventsListener();
@@ -1920,6 +2045,7 @@
             initLeaderboardAdmin();
             initGalleryListener();
             initResultsListener();
+            initHomepageSettingsListener();
         });
     </script>
 </body>
