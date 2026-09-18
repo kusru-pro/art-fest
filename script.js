@@ -15,15 +15,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 // =========================================================================
-// 1. FIREBASE CONFIGURATION (Replace with your actual Firebase Project Keys)
+// 1. FIREBASE CONFIGURATION (Live Project Keys)
 // =========================================================================
 export const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDFYLTpVbWLzZBTBDKMGe2F9QedxmP6zVI",
+    authDomain: "artfest-27.firebaseapp.com",
+    projectId: "artfest-27",
+    storageBucket: "artfest-27.firebasestorage.app",
+    messagingSenderId: "532303413059",
+    appId: "1:532303413059:web:6dca20cc6d8c3184a479f6",
+    measurementId: "G-M4PB0RE16T"
 };
 
 const isConfigured = Boolean(
