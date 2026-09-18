@@ -887,48 +887,72 @@ window.initHomepageSettingsListener = initHomepageSettingsListener;
 function applyHomepageSettings(data) {
     if (!data) return;
 
-    // 1. Event Title (e.g., Sahityotsav)
-    if (data.eventTitle) {
-        const heroEventTitle = document.getElementById('hero-event-title');
-        if (heroEventTitle) heroEventTitle.textContent = data.eventTitle;
+    // 1. Website Logo & Title in Header (.logo)
+    const siteLogo = document.getElementById('site-logo') || document.querySelector('.logo');
+    const websiteTitle = data.websiteTitle || data.eventTitle || 'Sahityotsav';
+    const websiteLogoUrl = (data.websiteLogo && data.websiteLogo.trim()) ? data.websiteLogo.trim() : '';
 
-        const siteLogo = document.getElementById('site-logo');
-        if (siteLogo) siteLogo.textContent = data.eventTitle;
-
-        const themeEvent = document.getElementById('theme-paragraph-event');
-        if (themeEvent) themeEvent.textContent = data.eventTitle;
+    if (siteLogo) {
+        if (websiteLogoUrl) {
+            siteLogo.innerHTML = `<img src="${websiteLogoUrl}" alt="${websiteTitle}" class="site-header-logo">`;
+        } else {
+            siteLogo.textContent = websiteTitle;
+        }
     }
 
-    // 2. Theme Name (e.g., UPON THE 'BE-CAUSE')
-    if (data.themeName) {
+    // Update document title
+    if (websiteTitle) {
+        document.title = `${websiteTitle} Art Fest`;
+    }
+
+    // 2. Hero Event Title & Theme Subtitle
+    const eventTitle = data.eventTitle || data.websiteTitle || 'Sahityotsav';
+    const heroEventTitle = document.getElementById('hero-event-title');
+    if (heroEventTitle) heroEventTitle.textContent = eventTitle;
+
+    const themeEvent = document.getElementById('theme-paragraph-event');
+    if (themeEvent) themeEvent.textContent = eventTitle;
+
+    // 3. Theme Title
+    const themeTitle = data.themeTitle || data.themeName;
+    if (themeTitle) {
         const heroTheme = document.getElementById('hero-theme-title');
         if (heroTheme) {
-            if (data.themeName.includes('<br>') || data.themeName.includes('<br/>')) {
-                heroTheme.innerHTML = data.themeName;
+            if (themeTitle.includes('<br>') || themeTitle.includes('<br/>')) {
+                heroTheme.innerHTML = themeTitle;
             } else {
-                heroTheme.textContent = data.themeName;
+                heroTheme.textContent = themeTitle;
             }
         }
 
-        const themeSectionTitle = document.getElementById('theme-section-title');
-        if (themeSectionTitle) {
-            themeSectionTitle.textContent = data.themeName.replace(/<[^>]*>/g, ' ');
-        }
+        // Dynamically update .theme-title elements
+        const themeTitleEls = document.querySelectorAll('.theme-title');
+        themeTitleEls.forEach(el => {
+            el.textContent = themeTitle.replace(/<[^>]*>/g, ' ');
+        });
 
-        const themeParagraph = document.getElementById('theme-paragraph-theme');
-        if (themeParagraph) {
-            const cleanTheme = data.themeName.replace(/<[^>]*>/g, ' ').replace(/^["']|["']$/g, '');
-            themeParagraph.textContent = `"${cleanTheme}"`;
+        const themeParagraphTheme = document.getElementById('theme-paragraph-theme');
+        if (themeParagraphTheme) {
+            const cleanTheme = themeTitle.replace(/<[^>]*>/g, ' ').replace(/^["']|["']$/g, '');
+            themeParagraphTheme.textContent = `"${cleanTheme}"`;
         }
     }
 
-    // 3. Event Dates
+    // 4. Theme Description Paragraph (.theme-paragraph)
+    if (data.themeDescription && data.themeDescription.trim()) {
+        const themeParagraphEls = document.querySelectorAll('.theme-paragraph');
+        themeParagraphEls.forEach(el => {
+            el.textContent = data.themeDescription;
+        });
+    }
+
+    // 5. Event Dates
     if (data.eventDates) {
         const datesText = document.getElementById('hero-dates-text');
         if (datesText) datesText.textContent = data.eventDates;
     }
 
-    // 4. Event Location
+    // 6. Event Location
     if (data.eventLocation) {
         const locText = document.getElementById('hero-location-text');
         if (locText) locText.textContent = data.eventLocation;

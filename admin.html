@@ -916,26 +916,44 @@
                     <form id="homepage-settings-form" onsubmit="saveHomepageSettings(event)">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="setting-event-title">Event Title *</label>
-                                <input type="text" id="setting-event-title" placeholder="e.g. Sahityotsav" required>
-                                <small style="color: #64748b; font-size: 0.78rem;">Shown in the Hero subtitle & event branding.</small>
+                                <label for="setting-website-title">Website Title *</label>
+                                <input type="text" id="setting-website-title" placeholder="e.g. Sahityotsav" required>
+                                <small style="color: #64748b; font-size: 0.78rem;">Header branding text (used if no logo image is provided).</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="setting-theme-name">Theme Name *</label>
+                                <label for="setting-website-logo">Website Logo URL (Optional)</label>
+                                <input type="url" id="setting-website-logo" placeholder="e.g. https://example.com/logo.png">
+                                <small style="color: #64748b; font-size: 0.78rem;">Direct image URL for header logo. Replaces text title if provided.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="setting-event-title">Event Title</label>
+                                <input type="text" id="setting-event-title" placeholder="e.g. Sahityotsav">
+                                <small style="color: #64748b; font-size: 0.78rem;">Shown in the Hero subtitle & event details.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="setting-theme-name">Theme Title *</label>
                                 <input type="text" id="setting-theme-name" placeholder="e.g. UPON THE 'BE-CAUSE'" required>
-                                <small style="color: #64748b; font-size: 0.78rem;">Main Hero headline and Festival Theme title.</small>
+                                <small style="color: #64748b; font-size: 0.78rem;">Main Hero headline and Festival Theme section title.</small>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="setting-theme-description">Theme Description Paragraph *</label>
+                                <textarea id="setting-theme-description" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem; resize: vertical;" placeholder="Enter theme description paragraph..." required></textarea>
+                                <small style="color: #64748b; font-size: 0.78rem;">Detailed description displayed inside the 'Festival Theme' card.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="setting-event-dates">Event Dates *</label>
-                                <input type="text" id="setting-event-dates" placeholder="e.g. Nov 12 - Nov 15, 2026" required>
+                                <label for="setting-event-dates">Event Dates</label>
+                                <input type="text" id="setting-event-dates" placeholder="e.g. Nov 12 - Nov 15, 2026">
                                 <small style="color: #64748b; font-size: 0.78rem;">Shown beside the calendar icon in the Hero area.</small>
                             </div>
 
                             <div class="form-group">
-                                <label for="setting-event-location">Event Location *</label>
-                                <input type="text" id="setting-event-location" placeholder="e.g. Kerala Heritage Village" required>
+                                <label for="setting-event-location">Event Location</label>
+                                <input type="text" id="setting-event-location" placeholder="e.g. Kerala Heritage Village">
                                 <small style="color: #64748b; font-size: 0.78rem;">Shown beside the pin location icon in the Hero area.</small>
                             </div>
                         </div>
@@ -2061,14 +2079,21 @@
         // =========================================================================
         async function saveHomepageSettings(event) {
             event.preventDefault();
-            const eventTitle = document.getElementById('setting-event-title').value.trim();
-            const themeName = document.getElementById('setting-theme-name').value.trim();
+            const websiteTitle = document.getElementById('setting-website-title').value.trim() || 'Sahityotsav';
+            const websiteLogo = document.getElementById('setting-website-logo').value.trim();
+            const eventTitle = document.getElementById('setting-event-title').value.trim() || websiteTitle;
+            const themeTitle = document.getElementById('setting-theme-name').value.trim();
+            const themeDescription = document.getElementById('setting-theme-description').value.trim();
             const eventDates = document.getElementById('setting-event-dates').value.trim();
             const eventLocation = document.getElementById('setting-event-location').value.trim();
 
             const data = {
+                websiteTitle,
+                websiteLogo,
                 eventTitle,
-                themeName,
+                themeTitle,
+                themeName: themeTitle, // backward compatibility
+                themeDescription,
                 eventDates,
                 eventLocation,
                 updatedAt: Date.now()
@@ -2095,20 +2120,32 @@
         window.saveHomepageSettings = saveHomepageSettings;
 
         function initHomepageSettingsListener() {
+            const defaultThemeDesc = `Art does not merely mirror reality; it questions, awakens, and redeems. "Upon the 'Be-Cause'" is an ode to purpose-driven expression—a philosophical reflection on the reasons and convictions that ignite the creative spirit. At Kerala Sahityotsav 2026, every brushstroke, spoken verse, melody, and dramatic gesture becomes a deliberate response to the world around us. We celebrate creativity not merely for celebration's sake, but for the profound 'cause' that gives every human expression its timeless soul.`;
+
             const defaults = {
+                websiteTitle: "Sahityotsav",
+                websiteLogo: "",
                 eventTitle: "Sahityotsav",
-                themeName: "UPON THE 'BE-CAUSE'",
+                themeTitle: "UPON THE 'BE-CAUSE'",
+                themeDescription: defaultThemeDesc,
                 eventDates: "Nov 12 - Nov 15, 2026",
                 eventLocation: "Kerala Heritage Village"
             };
 
             const populateForm = (data) => {
+                const webTitleEl = document.getElementById('setting-website-title');
+                const webLogoEl = document.getElementById('setting-website-logo');
                 const titleEl = document.getElementById('setting-event-title');
                 const themeEl = document.getElementById('setting-theme-name');
+                const themeDescEl = document.getElementById('setting-theme-description');
                 const datesEl = document.getElementById('setting-event-dates');
                 const locEl = document.getElementById('setting-event-location');
-                if (titleEl) titleEl.value = data.eventTitle || defaults.eventTitle;
-                if (themeEl) themeEl.value = data.themeName || defaults.themeName;
+
+                if (webTitleEl) webTitleEl.value = data.websiteTitle || data.eventTitle || defaults.websiteTitle;
+                if (webLogoEl) webLogoEl.value = data.websiteLogo || '';
+                if (titleEl) titleEl.value = data.eventTitle || data.websiteTitle || defaults.eventTitle;
+                if (themeEl) themeEl.value = data.themeTitle || data.themeName || defaults.themeTitle;
+                if (themeDescEl) themeDescEl.value = data.themeDescription || defaults.themeDescription;
                 if (datesEl) datesEl.value = data.eventDates || defaults.eventDates;
                 if (locEl) locEl.value = data.eventLocation || defaults.eventLocation;
             };
