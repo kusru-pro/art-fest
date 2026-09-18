@@ -272,11 +272,18 @@ document.addEventListener('click', (e) => {
 });
 
 // =========================================================================
-// 7. PARTICIPANT LOGIN & DASHBOARD (Firestore Integration)
+// 7. PARTICIPANT LOGIN & FULL-SCREEN STUDENT PORTAL (Firestore Integration)
 // =========================================================================
 function openLoginModal() {
     const modal = document.getElementById('login-modal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        const chestInput = document.getElementById('chestNo');
+        if (chestInput) {
+            chestInput.value = '';
+            setTimeout(() => chestInput.focus(), 100);
+        }
+    }
 }
 window.openLoginModal = openLoginModal;
 
@@ -286,11 +293,12 @@ async function submitLogin() {
 
     if (!chestNo) {
         alert('Please enter your Chest Number');
+        if (chestNoInput) chestNoInput.focus();
         return;
     }
 
     const loginBtn = document.querySelector('#login-view .login-btn');
-    const originalText = loginBtn ? loginBtn.innerText : 'LOGIN';
+    const originalText = loginBtn ? loginBtn.innerText : 'ENTER PORTAL';
     if (loginBtn) {
         loginBtn.innerText = 'VERIFYING...';
         loginBtn.disabled = true;
@@ -299,21 +307,18 @@ async function submitLogin() {
     if (!isConfigured) {
         // Local simulation fallback
         setTimeout(() => {
-            if (chestNo === '104' || chestNo === '101' || chestNo === '102') {
-                renderParticipantDashboard({
-                    name: chestNo === '104' ? 'Rashid K' : 'Participant #' + chestNo,
-                    chestNo: chestNo,
-                    teamName: 'Team 1',
-                    events: [
-                        { eventName: 'English Elocution', category: 'Senior', displayStatus: '🏆 1st Place - A Grade', statusClass: 'status-win' },
-                        { eventName: 'Qira\'at', category: 'General', displayStatus: '⏳ Pending Result', statusClass: 'status-pending' },
-                        { eventName: 'Essay Malayalam', category: 'Senior', displayStatus: '📅 Today, 02:00 PM', statusClass: 'status-registered' }
-                    ]
-                });
-                transitionToDashboard();
-            } else {
-                alert(`No participant registered with Chest No: ${chestNo} (Demo: Try 104)`);
-            }
+            renderStudentPortal({
+                name: 'Student Contestant ' + chestNo,
+                chestNo: chestNo,
+                category: 'Senior',
+                team: 'Team 1',
+                events: [
+                    { eventCode: 'EV-1', eventName: 'English Elocution', category: 'Senior', status: 'published', rank: 1, marks: 95, grade: 'A', points: 5 },
+                    { eventCode: 'EV-2', eventName: 'Qira\'at', category: 'General', status: 'pending', rank: null, marks: null, grade: null, points: 0 },
+                    { eventCode: 'EV-3', eventName: 'Pencil Drawing', category: 'Senior', status: 'scheduled', rank: null, marks: null, grade: null, points: 0 }
+                ]
+            });
+            showStudentPortal();
             if (loginBtn) {
                 loginBtn.innerText = originalText;
                 loginBtn.disabled = false;
@@ -323,71 +328,145 @@ async function submitLogin() {
     }
 
     try {
-        // Query Firestore for participant document
-        const participantDoc = await getDoc(doc(db, 'participants', chestNo));
-        
-        if (!participantDoc.exists()) {
+        // Query Firestore participants collection for document with ID matching chestNo
+        let participantDoc = await getDoc(doc(db, 'participants', String(chestNo)));
+        let participantData = null;
+
+        if (participantDoc.exists()) {
+            participantData = participantDoc.data();
+        } else {
+            // Secondary lookup by chestNo field in case doc ID differs
+            const q = query(collection(db, 'participants'), where('chestNo', '==', String(chestNo)));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                participantDoc = snap.docs[0];
+                participantData = participantDoc.data();
+            }
+        }
+
+        if (!participantData) {
             alert(`No participant found with Chest Number: ${chestNo}`);
             if (loginBtn) {
                 loginBtn.innerText = originalText;
                 loginBtn.disabled = false;
             }
+            if (chestNoInput) chestNoInput.focus();
             return;
         }
 
-        const participantData = participantDoc.data();
-
-        // Fetch participant's results from Firestore
-        const resultsQuery = query(collection(db, 'results'), where('chestNo', '==', chestNo));
+        // Fetch all results for this participant from Firestore
+        const resultsQuery = query(collection(db, 'results'), where('chestNo', '==', String(chestNo)));
         const resultsSnap = await getDocs(resultsQuery);
         const resultsMap = {};
 
         resultsSnap.forEach(snap => {
             const data = snap.data();
-            resultsMap[data.eventCode] = data;
+            // Store by eventCode
+            if (data.eventCode) {
+                resultsMap[data.eventCode] = data;
+            }
         });
 
-        // Assemble events list
-        const registeredEvents = Array.isArray(participantData.events) ? participantData.events : [];
-        const eventsDisplayList = [];
+        // Parse events array from participant document
+        let rawEvents = participantData.events;
+        let eventList = [];
 
-        for (const evCode of registeredEvents) {
-            const evInfo = eventsCache[evCode] || { eventName: evCode, category: participantData.category || 'General' };
-            const res = resultsMap[evCode];
-
-            let displayStatus = '📅 Registered';
-            let statusClass = 'status-registered';
-
-            if (res) {
-                if (res.status === 'published') {
-                    displayStatus = `🏆 ${res.totalMark} Marks (${res.grade} Grade)`;
-                    statusClass = 'status-win';
-                } else if (res.status === 'pending') {
-                    displayStatus = '⏳ Pending Result';
-                    statusClass = 'status-pending';
+        if (Array.isArray(rawEvents)) {
+            rawEvents.forEach(evItem => {
+                if (typeof evItem === 'string') {
+                    // Could be comma or pipe separated, e.g. "Drawing,Elocution" or "101|102"
+                    const parts = evItem.includes('|') ? evItem.split('|') : evItem.split(',');
+                    parts.forEach(p => {
+                        const trimmed = p.trim();
+                        if (trimmed) eventList.push(trimmed);
+                    });
+                } else if (evItem) {
+                    eventList.push(String(evItem).trim());
                 }
-            }
-
-            eventsDisplayList.push({
-                eventName: evInfo.eventName,
-                category: evInfo.category,
-                displayStatus,
-                statusClass
+            });
+        } else if (typeof rawEvents === 'string') {
+            const parts = rawEvents.includes('|') ? rawEvents.split('|') : rawEvents.split(',');
+            parts.forEach(p => {
+                const trimmed = p.trim();
+                if (trimmed) eventList.push(trimmed);
             });
         }
 
-        renderParticipantDashboard({
-            name: participantData.name,
-            chestNo: participantData.chestNo,
-            teamName: participantData.team,
-            events: eventsDisplayList
+        // Filter duplicates
+        eventList = [...new Set(eventList)];
+
+        // Build display events with exact status logic
+        const processedEvents = [];
+
+        eventList.forEach((evCodeOrName, idx) => {
+            // Find event metadata from eventsCache or lookup
+            let matchedCode = evCodeOrName;
+            let evInfo = eventsCache[evCodeOrName];
+
+            // If not found by key, search by eventName
+            if (!evInfo) {
+                const foundCode = Object.keys(eventsCache).find(k => 
+                    eventsCache[k].eventName && eventsCache[k].eventName.toLowerCase() === evCodeOrName.toLowerCase()
+                );
+                if (foundCode) {
+                    matchedCode = foundCode;
+                    evInfo = eventsCache[foundCode];
+                }
+            }
+
+            const eventName = (evInfo && evInfo.eventName) ? evInfo.eventName : evCodeOrName;
+            const category = (evInfo && evInfo.category) ? evInfo.category : (participantData.category || 'General');
+
+            // Find matching result in resultsMap (by matchedCode or original evCodeOrName)
+            const res = resultsMap[matchedCode] || resultsMap[evCodeOrName];
+
+            let status = 'scheduled';
+            let rank = null;
+            let marks = null;
+            let grade = null;
+            let points = 0;
+
+            if (res) {
+                if (res.status === 'published') {
+                    status = 'published';
+                    rank = res.position ? Number(res.position) : null;
+                    marks = res.totalMark != null ? res.totalMark : '-';
+                    grade = res.grade ? res.grade : '-';
+                    // 1st=5, 2nd=3, 3rd=1
+                    if (rank === 1) points = 5;
+                    else if (rank === 2) points = 3;
+                    else if (rank === 3) points = 1;
+                } else if (res.status === 'pending') {
+                    status = 'pending';
+                }
+            }
+
+            processedEvents.push({
+                index: idx,
+                eventCode: matchedCode,
+                eventName: eventName,
+                category: category,
+                status: status,
+                rank: rank,
+                marks: marks,
+                grade: grade,
+                points: points
+            });
         });
 
-        transitionToDashboard();
+        renderStudentPortal({
+            name: participantData.name || 'Participant',
+            chestNo: participantData.chestNo || chestNo,
+            category: participantData.category || 'General',
+            team: participantData.team || 'Independent',
+            events: processedEvents
+        });
+
+        showStudentPortal();
 
     } catch (err) {
         console.error("Login verification error:", err);
-        alert("Verification failed: " + err.message);
+        alert("Verification error: " + err.message);
     } finally {
         if (loginBtn) {
             loginBtn.innerText = originalText;
@@ -397,73 +476,175 @@ async function submitLogin() {
 }
 window.submitLogin = submitLogin;
 
-function renderParticipantDashboard(profile) {
-    const nameEl = document.querySelector('.profile-name');
-    const detailsEl = document.querySelector('.profile-details');
-    const eventsContainer = document.querySelector('.events-list');
+function renderStudentPortal(profile) {
+    const studentNameEl = document.getElementById('portal-student-name');
+    const chestNoEl = document.getElementById('portal-chest-no');
+    const categoryEl = document.getElementById('portal-category');
+    const teamEl = document.getElementById('portal-team');
+    const countEl = document.getElementById('portal-events-count');
+    const listEl = document.getElementById('portal-events-list');
+    const totalPointsEl = document.getElementById('portal-total-points');
 
-    if (nameEl && profile.name) nameEl.textContent = profile.name;
-    if (detailsEl && profile.teamName) {
-        detailsEl.innerHTML = `Chest No: ${profile.chestNo} &nbsp;|&nbsp; ${profile.teamName}`;
+    if (studentNameEl) studentNameEl.textContent = profile.name || '-';
+    if (chestNoEl) chestNoEl.textContent = profile.chestNo || '-';
+    if (categoryEl) categoryEl.textContent = profile.category || '-';
+    if (teamEl) teamEl.textContent = profile.team || '-';
+
+    const events = profile.events || [];
+    if (countEl) countEl.textContent = `${events.length} Program${events.length === 1 ? '' : 's'}`;
+
+    // Calculate total earned points ONLY from published results
+    let totalPoints = 0;
+    events.forEach(ev => {
+        if (ev.status === 'published') {
+            totalPoints += (ev.points || 0);
+        }
+    });
+
+    if (totalPointsEl) totalPointsEl.textContent = totalPoints;
+
+    if (!listEl) return;
+
+    if (events.length === 0) {
+        listEl.innerHTML = `
+            <div style="text-align: center; padding: 2.5rem 1rem; color: #94a3b8;">
+                <i class="fa-solid fa-calendar-xmark" style="font-size: 2.5rem; margin-bottom: 0.75rem; color: #cbd5e1;"></i>
+                <p style="margin: 0; font-size: 1rem; font-weight: 500;">No programs registered for this chest number.</p>
+            </div>
+        `;
+        return;
     }
 
-    if (eventsContainer) {
-        if (!profile.events || profile.events.length === 0) {
-            eventsContainer.innerHTML = `<p style="text-align:center; color: #94a3b8; padding: 1.5rem;">No programs registered for this chest number.</p>`;
-            return;
+    listEl.innerHTML = events.map(ev => {
+        let statusBadge = '';
+        let actionBtn = '';
+        let drawerHtml = '';
+
+        if (ev.status === 'published') {
+            statusBadge = `
+                <span class="portal-badge-status badge-published">
+                    <i class="fa-solid fa-circle-check"></i> Published
+                </span>
+            `;
+            actionBtn = `
+                <button class="btn-view-result" onclick="togglePortalResultDrawer(${ev.index})">
+                    <i class="fa-solid fa-eye"></i> View Result
+                </button>
+            `;
+
+            let rankDisplay = '-';
+            if (ev.rank === 1) rankDisplay = '🥇 1st Place';
+            else if (ev.rank === 2) rankDisplay = '🥈 2nd Place';
+            else if (ev.rank === 3) rankDisplay = '🥉 3rd Place';
+            else if (ev.rank) rankDisplay = `#${ev.rank}`;
+
+            drawerHtml = `
+                <div class="portal-result-drawer" id="portal-drawer-${ev.index}">
+                    <div class="portal-result-grid">
+                        <div class="result-stat-item">
+                            <span class="result-stat-label">Position / Rank</span>
+                            <span class="result-stat-value stat-rank-medal">${rankDisplay}</span>
+                        </div>
+                        <div class="result-stat-item">
+                            <span class="result-stat-label">Total Marks</span>
+                            <span class="result-stat-value" style="color: #1e3a8a;">${ev.marks}</span>
+                        </div>
+                        <div class="result-stat-item">
+                            <span class="result-stat-label">Grade</span>
+                            <span class="result-stat-value"><span style="background: #f1f5f9; padding: 2px 10px; border-radius: 6px;">${ev.grade}</span></span>
+                        </div>
+                        <div class="result-stat-item">
+                            <span class="result-stat-label">Points Earned</span>
+                            <span class="result-stat-value stat-pts-badge">+${ev.points} PTS</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (ev.status === 'pending') {
+            statusBadge = `
+                <span class="portal-badge-status badge-pending">
+                    <i class="fa-solid fa-clock"></i> Pending
+                </span>
+            `;
+        } else {
+            statusBadge = `
+                <span class="portal-badge-status badge-scheduled">
+                    <i class="fa-solid fa-calendar-check"></i> Scheduled / Not Started
+                </span>
+            `;
         }
 
-        eventsContainer.innerHTML = profile.events.map(ev => `
-            <div class="event-item">
-                <div class="event-info">
-                    <div class="event-title">${ev.eventName}</div>
-                    <div class="event-category">${ev.category}</div>
+        return `
+            <div class="portal-event-row">
+                <div class="portal-event-top">
+                    <div class="portal-event-main">
+                        <div class="portal-event-icon">
+                            <i class="fa-solid fa-masks-theater"></i>
+                        </div>
+                        <div>
+                            <h4 class="portal-event-name">${ev.eventName}</h4>
+                            <div class="portal-event-meta">${ev.category} Category &bull; Code: ${ev.eventCode}</div>
+                        </div>
+                    </div>
+                    <div class="portal-event-status-wrap">
+                        ${statusBadge}
+                        ${actionBtn}
+                    </div>
                 </div>
-                <div class="event-status ${ev.statusClass}">${ev.displayStatus}</div>
+                ${drawerHtml}
             </div>
-        `).join('');
+        `;
+    }).join('');
+}
+
+window.togglePortalResultDrawer = function(index) {
+    const drawer = document.getElementById('portal-drawer-' + index);
+    if (!drawer) return;
+    if (drawer.style.display === 'block') {
+        drawer.style.display = 'none';
+    } else {
+        drawer.style.display = 'block';
+    }
+};
+
+function showStudentPortal() {
+    // Close login modal
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) loginModal.classList.remove('active');
+
+    // Hide main header and main website content
+    const header = document.querySelector('header');
+    const main = document.querySelector('main');
+    if (header) header.style.display = 'none';
+    if (main) main.style.display = 'none';
+
+    // Show full-screen student portal
+    const portal = document.getElementById('student-portal-view');
+    if (portal) {
+        portal.style.display = 'flex';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 
-function transitionToDashboard() {
-    const loginView = document.getElementById('login-view');
-    const dashView = document.getElementById('dashboard-view');
-    
-    if (!loginView || !dashView) return;
+function logoutStudentPortal() {
+    // Hide full-screen student portal
+    const portal = document.getElementById('student-portal-view');
+    if (portal) portal.style.display = 'none';
 
-    loginView.classList.remove('active-view');
-    loginView.classList.add('hidden-view');
-    
-    setTimeout(() => {
-        loginView.style.display = 'none';
-        dashView.style.display = 'block';
-        void dashView.offsetWidth;
-        dashView.classList.remove('hidden-view');
-        dashView.classList.add('active-view');
-    }, 300);
-}
+    // Restore main website layout and header
+    const header = document.querySelector('header');
+    const main = document.querySelector('main');
+    if (header) header.style.display = 'flex';
+    if (main) main.style.display = 'block';
 
-function logoutDashboard() {
-    const loginView = document.getElementById('login-view');
-    const dashView = document.getElementById('dashboard-view');
-    
+    // Clear chest input
     const chestInput = document.getElementById('chestNo');
     if (chestInput) chestInput.value = '';
-    
-    if (!loginView || !dashView) return;
 
-    dashView.classList.remove('active-view');
-    dashView.classList.add('hidden-view');
-    
-    setTimeout(() => {
-        dashView.style.display = 'none';
-        loginView.style.display = 'block';
-        void loginView.offsetWidth;
-        loginView.classList.remove('hidden-view');
-        loginView.classList.add('active-view');
-    }, 300);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-window.logoutDashboard = logoutDashboard;
+window.logoutStudentPortal = logoutStudentPortal;
+window.logoutDashboard = logoutStudentPortal;
 
 // =========================================================================
 // 8. REAL-TIME FIRESTORE LISTENERS (Results, Leaderboard, Gallery, News)

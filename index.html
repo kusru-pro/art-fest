@@ -281,60 +281,88 @@
         </section>
     </main>
 
+    <!-- Full-Screen Student Portal View (Hidden by default) -->
+    <div id="student-portal-view" class="student-portal-container" style="display: none;">
+        <div class="portal-wrapper">
+            <!-- 1. Top Motivational Banner Box -->
+            <div class="portal-banner">
+                <div class="portal-banner-content">
+                    <span class="portal-badge"><i class="fa-solid fa-graduation-cap"></i> Participant Dashboard</span>
+                    <h1 class="portal-title">My Student Portal</h1>
+                    <p class="portal-motivational-quote">"Unleash your creativity, embrace the spirit of art, and let your talent shine across every stage!"</p>
+                </div>
+            </div>
+
+            <!-- 2. Student Profile Details Card -->
+            <div class="portal-profile-card">
+                <div class="portal-avatar-wrap">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div class="portal-profile-info">
+                    <div class="portal-profile-meta">
+                        <span class="portal-tag tag-chest"><i class="fa-solid fa-id-badge"></i> Chest No: <strong id="portal-chest-no">-</strong></span>
+                        <span class="portal-tag tag-category"><i class="fa-solid fa-layer-group"></i> <span id="portal-category">-</span></span>
+                        <span class="portal-tag tag-team"><i class="fa-solid fa-shield-halved"></i> <span id="portal-team">-</span></span>
+                    </div>
+                    <h2 class="portal-student-name" id="portal-student-name">Student Name</h2>
+                </div>
+            </div>
+
+            <!-- 3. Registered Events List & Real-time Status -->
+            <div class="portal-events-card">
+                <div class="portal-card-header">
+                    <h3><i class="fa-solid fa-masks-theater"></i> Registered Events & Live Status</h3>
+                    <span class="portal-events-count" id="portal-events-count">0 Programs</span>
+                </div>
+                <div class="portal-events-list" id="portal-events-list">
+                    <p style="text-align:center; color:#94a3b8; padding: 2rem;">Loading events...</p>
+                </div>
+            </div>
+
+            <!-- 4. Individual Points Calculation Summary & Logout -->
+            <div class="portal-footer-card">
+                <div class="portal-points-summary">
+                    <div class="points-icon-wrap">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="points-text-wrap">
+                        <div class="points-label">Total Earned Points</div>
+                        <div class="points-subtext">Calculated exclusively from your officially published results (1st=5 pts, 2nd=3 pts, 3rd=1 pt)</div>
+                    </div>
+                    <div class="points-number-wrap">
+                        <span class="points-number" id="portal-total-points">0</span>
+                        <span class="points-unit">PTS</span>
+                    </div>
+                </div>
+
+                <div class="portal-actions">
+                    <button class="portal-btn-logout" onclick="logoutStudentPortal()">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout & Return to Website
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modals -->
 
-    <!-- Login / Dashboard Modal -->
+    <!-- Login Prompt Modal -->
     <div id="login-modal" class="modal-overlay">
         <div class="modal-box login-modal-box">
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal('login-modal')"></i>
             
             <!-- LOGIN VIEW -->
             <div id="login-view" class="fade-section active-view">
+                <div style="width: 50px; height: 50px; background: rgba(231, 76, 60, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #e74c3c; font-size: 1.5rem;">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
                 <h3>Participant Login</h3>
-                <p class="login-subtitle">Enter your Chest Number to view your dashboard.</p>
+                <p class="login-subtitle">Enter your Chest Number to enter your Student Portal.</p>
                 <div class="form-group">
-                    <input type="text" id="chestNo" placeholder="Enter Chest Number" autocomplete="off">
+                    <input type="text" id="chestNo" placeholder="e.g. 101" autocomplete="off" onkeydown="if(event.key==='Enter') submitLogin()">
                 </div>
-                <button class="login-btn" onclick="submitLogin()">LOGIN</button>
+                <button class="login-btn" onclick="submitLogin()">ENTER PORTAL</button>
             </div>
-
-            <!-- DASHBOARD VIEW -->
-            <div id="dashboard-view" class="fade-section hidden-view">
-                <div class="profile-header">
-                    <i class="fa-solid fa-circle-user profile-avatar"></i>
-                    <h3 class="profile-name">Rashid K.</h3>
-                    <p class="profile-details">Chest No: 104 &nbsp;|&nbsp; Team 1</p>
-                </div>
-                
-                <div class="events-list">
-                    <div class="event-item">
-                        <div class="event-info">
-                            <div class="event-title">English Elocution</div>
-                            <div class="event-category">Senior</div>
-                        </div>
-                        <div class="event-status status-win">🏆 1st Place - A Grade</div>
-                    </div>
-                    
-                    <div class="event-item">
-                        <div class="event-info">
-                            <div class="event-title">Qira'at</div>
-                            <div class="event-category">General</div>
-                        </div>
-                        <div class="event-status status-pending">⏳ Pending Result</div>
-                    </div>
-                    
-                    <div class="event-item">
-                        <div class="event-info">
-                            <div class="event-title">Essay Malayalam</div>
-                            <div class="event-category">Senior</div>
-                        </div>
-                        <div class="event-status status-schedule">📅 Today, 02:00 PM</div>
-                    </div>
-                </div>
-                
-                <button class="logout-btn" onclick="logoutDashboard()">LOGOUT</button>
-            </div>
-
         </div>
     </div>
 
@@ -387,20 +415,6 @@
             const grid = document.querySelector('.gallery-grid');
             grid.classList.toggle('expanded');
             btn.textContent = grid.classList.contains('expanded') ? 'Show Less' : 'View All Images';
-        }
-        function submitLogin() {
-            // Very basic visual toggle for demo
-            document.getElementById('login-view').classList.remove('active-view');
-            document.getElementById('login-view').classList.add('hidden-view');
-            document.getElementById('dashboard-view').classList.remove('hidden-view');
-            document.getElementById('dashboard-view').classList.add('active-view');
-        }
-        function logoutDashboard() {
-            document.getElementById('dashboard-view').classList.remove('active-view');
-            document.getElementById('dashboard-view').classList.add('hidden-view');
-            document.getElementById('login-view').classList.remove('hidden-view');
-            document.getElementById('login-view').classList.add('active-view');
-            document.getElementById('chestNo').value = '';
         }
     </script>
 

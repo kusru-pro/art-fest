@@ -1234,110 +1234,493 @@ h2.section-title {
     transform: translateY(-2px);
 }
 
-/* --- Dashboard State Styles --- */
-#dashboard-view {
-    display: none;
-    text-align: left;
+/* ==========================================================================
+   Full-Screen Student Portal Styles
+   ========================================================================== */
+.student-portal-container {
+    min-height: 100vh;
+    width: 100%;
+    background: #f8fafc;
+    color: #1e293b;
+    padding: 3rem 1.5rem 5rem;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    animation: portalFadeIn 0.35s ease-out forwards;
 }
 
-.profile-header {
-    text-align: center;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(253, 251, 247, 0.1);
-    margin-bottom: 1.2rem;
-}
-.profile-avatar {
-    font-size: 3.5rem;
-    color: #d4af37;
-    margin-bottom: 0.8rem;
-}
-.profile-name {
-    font-family: var(--font-heading);
-    font-size: 1.8rem;
-    color: var(--text-light);
-    margin-bottom: 0.2rem;
-}
-.profile-details {
-    font-size: 0.95rem;
-    color: rgba(253, 251, 247, 0.6);
-    letter-spacing: 0.5px;
+@keyframes portalFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.events-list {
+.portal-wrapper {
+    width: 100%;
+    max-width: 900px;
     display: flex;
     flex-direction: column;
-    margin-bottom: 2rem;
+    gap: 1.5rem;
 }
 
-.event-item {
+/* 1. Motivational Banner */
+.portal-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e1b4b 100%);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    color: #ffffff;
+    box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.portal-banner::after {
+    content: '\f19d';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: -20px;
+    bottom: -35px;
+    font-size: 11rem;
+    color: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+
+.portal-banner-content {
+    position: relative;
+    z-index: 1;
+}
+
+.portal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin-bottom: 0.75rem;
+}
+
+.portal-title {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+    line-height: 1.15;
+}
+
+.portal-motivational-quote {
+    font-size: 1.05rem;
+    color: #cbd5e1;
+    font-style: italic;
+    line-height: 1.6;
+    max-width: 650px;
+    margin: 0;
+}
+
+/* 2. Profile Details Card */
+.portal-profile-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.8rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.portal-avatar-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+    border: 2px solid #dbeafe;
+}
+
+.portal-profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.portal-profile-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.portal-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tag-chest {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.tag-category {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.tag-team {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+.portal-student-name {
+    font-family: var(--font-heading);
+    font-size: 1.7rem;
+    color: #0f172a;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* 3. Events List Card */
+.portal-events-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.portal-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid rgba(253, 251, 247, 0.1);
-}
-.event-item:last-child {
-    border-bottom: none;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.event-info {
+.portal-card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.portal-card-header h3 i {
+    color: #2563eb;
+}
+
+.portal-events-count {
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.3rem 0.8rem;
+    border-radius: 9999px;
+}
+
+.portal-events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.portal-event-row {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.portal-event-row:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.portal-event-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.portal-event-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.portal-event-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.portal-event-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.portal-event-meta {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.portal-event-status-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Status Badges */
+.portal-badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.4rem 0.9rem;
+    border-radius: 9999px;
+}
+
+.badge-scheduled {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.badge-pending {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.badge-published {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+/* View Result Button */
+.btn-view-result {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.btn-view-result:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/* Revealed Result Box */
+.portal-result-drawer {
+    display: none;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    border-left: 4px solid #10b981;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    animation: drawerSlideDown 0.25s ease forwards;
+}
+
+@keyframes drawerSlideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.portal-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1.2rem;
+}
+
+.result-stat-item {
     display: flex;
     flex-direction: column;
 }
-.event-title {
-    font-size: 1.05rem;
+
+.result-stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
     font-weight: 600;
-    color: var(--text-light);
+    letter-spacing: 0.5px;
     margin-bottom: 2px;
 }
-.event-item .event-category {
-    font-size: 0.8rem;
-    color: rgba(253, 251, 247, 0.5);
-    text-transform: uppercase;
+
+.result-stat-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.stat-rank-medal {
+    color: #d97706;
+}
+
+.stat-pts-badge {
+    color: #10b981;
+}
+
+/* 4. Points Summary Card */
+.portal-footer-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.portal-points-summary {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.points-icon-wrap {
+    width: 65px;
+    height: 65px;
+    border-radius: 16px;
+    background: #fef3c7;
+    color: #b45309;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    border: 2px solid #fde68a;
+}
+
+.points-text-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.points-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.points-subtext {
+    font-size: 0.85rem;
+    color: #64748b;
+    max-width: 400px;
+}
+
+.points-number-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: #f0fdf4;
+    padding: 0.6rem 1.4rem;
+    border-radius: 14px;
+    border: 1.5px solid #bbf7d0;
+}
+
+.points-number {
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: #15803d;
+    line-height: 1;
+}
+
+.points-unit {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #16a34a;
     letter-spacing: 0.5px;
 }
 
-.event-status {
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    white-space: nowrap;
+.portal-actions {
+    display: flex;
+    align-items: center;
 }
 
-.status-win {
-    color: #d4af37;
-    background: rgba(212, 175, 55, 0.1);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-.status-pending {
-    color: #f39c12;
-    background: rgba(243, 156, 18, 0.1);
-    border: 1px solid rgba(243, 156, 18, 0.3);
-}
-.status-schedule {
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
-    border: 1px solid rgba(52, 152, 219, 0.3);
-}
-
-.logout-btn {
-    width: 100%;
-    background: transparent;
-    color: rgba(253, 251, 247, 0.7);
-    padding: 1rem;
-    border-radius: 8px;
+.portal-btn-logout {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    padding: 0.85rem 1.5rem;
+    border-radius: 12px;
     font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    border: 1px solid rgba(253, 251, 247, 0.2);
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
 }
-.logout-btn:hover {
-    background: rgba(231, 76, 60, 0.1);
-    color: #e74c3c;
-    border-color: rgba(231, 76, 60, 0.4);
+
+.portal-btn-logout:hover {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+@media (max-width: 768px) {
+    .portal-banner { padding: 2rem 1.5rem; }
+    .portal-title { font-size: 2rem; }
+    .portal-profile-card { flex-direction: column; text-align: center; }
+    .portal-profile-meta { justify-content: center; }
+    .portal-footer-card { flex-direction: column; align-items: stretch; text-align: center; }
+    .portal-points-summary { flex-direction: column; text-align: center; }
+    .points-number-wrap { justify-content: center; }
+    .portal-btn-logout { width: 100%; justify-content: center; }
+    .portal-event-top { flex-direction: column; align-items: flex-start; }
 }
 
 /* Gallery / News Modal Specifics */
