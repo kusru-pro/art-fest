@@ -443,189 +443,15 @@
 
         <!-- Participant List Subheading -->
         <div class="section-lead">
-            <span class="section-lead-title">Participants Scoring</span>
-            <span class="participant-count" id="judge-participant-count">4 Teams Assigned</span>
+            <span class="section-lead-title">Ranked Results</span>
+            <button type="button" onclick="window.addPositionCard()" style="background: none; border: none; color: #2e7d32; font-weight: 700; cursor: pointer; font-size: 0.9rem; padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-plus"></i> Add Position
+            </button>
         </div>
 
         <!-- Mark Entry Cards List -->
         <div class="entry-list" id="judge-participants-list">
-
-            <!-- Card 1 -->
-            <article class="participant-card">
-                <div class="card-top">
-                    <div class="chest-badge">
-                        <span class="chest-number">Chest No: 104</span>
-                        <span class="chest-tag">Team A</span>
-                    </div>
-                    <span class="order-indicator">Slot #01</span>
-                </div>
-
-                <div class="inputs-grid">
-                    <div class="input-group">
-                        <label class="input-label" for="mark-104">
-                            <i class="fa-solid fa-calculator"></i> Total Mark
-                        </label>
-                        <input 
-                            type="number" 
-                            id="mark-104" 
-                            class="mark-input" 
-                            placeholder="0 - 100" 
-                            min="0" 
-                            max="100"
-                            inputmode="numeric"
-                        >
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="grade-104">
-                            <i class="fa-solid fa-award"></i> Grade
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="grade-104" class="grade-select">
-                                <option value="" selected disabled>Select</option>
-                                <option value="A">Grade A</option>
-                                <option value="B">Grade B</option>
-                                <option value="C">Grade C</option>
-                                <option value="None">None</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down select-chevron"></i>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Card 2 -->
-            <article class="participant-card">
-                <div class="card-top">
-                    <div class="chest-badge">
-                        <span class="chest-number">Chest No: 122</span>
-                        <span class="chest-tag">Team B</span>
-                    </div>
-                    <span class="order-indicator">Slot #02</span>
-                </div>
-
-                <div class="inputs-grid">
-                    <div class="input-group">
-                        <label class="input-label" for="mark-122">
-                            <i class="fa-solid fa-calculator"></i> Total Mark
-                        </label>
-                        <input 
-                            type="number" 
-                            id="mark-122" 
-                            class="mark-input" 
-                            placeholder="0 - 100" 
-                            min="0" 
-                            max="100"
-                            inputmode="numeric"
-                        >
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="grade-122">
-                            <i class="fa-solid fa-award"></i> Grade
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="grade-122" class="grade-select">
-                                <option value="" selected disabled>Select</option>
-                                <option value="A">Grade A</option>
-                                <option value="B">Grade B</option>
-                                <option value="C">Grade C</option>
-                                <option value="None">None</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down select-chevron"></i>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Card 3 -->
-            <article class="participant-card">
-                <div class="card-top">
-                    <div class="chest-badge">
-                        <span class="chest-number">Chest No: 109</span>
-                        <span class="chest-tag">Team C</span>
-                    </div>
-                    <span class="order-indicator">Slot #03</span>
-                </div>
-
-                <div class="inputs-grid">
-                    <div class="input-group">
-                        <label class="input-label" for="mark-109">
-                            <i class="fa-solid fa-calculator"></i> Total Mark
-                        </label>
-                        <input 
-                            type="number" 
-                            id="mark-109" 
-                            class="mark-input" 
-                            placeholder="0 - 100" 
-                            min="0" 
-                            max="100"
-                            inputmode="numeric"
-                        >
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="grade-109">
-                            <i class="fa-solid fa-award"></i> Grade
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="grade-109" class="grade-select">
-                                <option value="" selected disabled>Select</option>
-                                <option value="A">Grade A</option>
-                                <option value="B">Grade B</option>
-                                <option value="C">Grade C</option>
-                                <option value="None">None</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down select-chevron"></i>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Card 4 -->
-            <article class="participant-card">
-                <div class="card-top">
-                    <div class="chest-badge">
-                        <span class="chest-number">Chest No: 201</span>
-                        <span class="chest-tag">Team D</span>
-                    </div>
-                    <span class="order-indicator">Slot #04</span>
-                </div>
-
-                <div class="inputs-grid">
-                    <div class="input-group">
-                        <label class="input-label" for="mark-201">
-                            <i class="fa-solid fa-calculator"></i> Total Mark
-                        </label>
-                        <input 
-                            type="number" 
-                            id="mark-201" 
-                            class="mark-input" 
-                            placeholder="0 - 100" 
-                            min="0" 
-                            max="100"
-                            inputmode="numeric"
-                        >
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="grade-201">
-                            <i class="fa-solid fa-award"></i> Grade
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="grade-201" class="grade-select">
-                                <option value="" selected disabled>Select</option>
-                                <option value="A">Grade A</option>
-                                <option value="B">Grade B</option>
-                                <option value="C">Grade C</option>
-                                <option value="None">None</option>
-                            </select>
-                            <i class="fa-solid fa-chevron-down select-chevron"></i>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
+            <!-- Dynamically populated via JS -->
         </div>
 
         <!-- Submission Action -->
@@ -688,6 +514,78 @@
 
         let currentEventCode = 'EV-101';
         let currentParticipants = [];
+        let positionCount = 0;
+
+        window.addPositionCard = function(posNumber = null) {
+            if (!posNumber) {
+                positionCount++;
+                posNumber = positionCount;
+            } else {
+                if (posNumber > positionCount) positionCount = posNumber;
+            }
+            
+            const container = document.getElementById('judge-participants-list');
+            
+            const options = currentParticipants.map(p => 
+                <option value=" + p.chestNo + "> + p.chestNo +  -  + (p.name || p.team) + </option>
+            ).join('');
+
+            const html = 
+                <article class="participant-card" id="pos-card- + posNumber + ">
+                    <div class="card-top">
+                        <div class="chest-badge">
+                            <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #b58500; margin-right: 0.5rem; font-size: 1rem;"></i>Position  + posNumber + </span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label class="input-label" style="margin-bottom: 0.35rem;" for="participant-pos- + posNumber + ">Select Participant</label>
+                        <div class="select-wrapper">
+                            <select id="participant-pos- + posNumber + " class="grade-select" style="height: 48px; font-size: 0.95rem; padding-left: 1rem;">
+                                <option value="" selected disabled>Select Participant for Position  + posNumber + </option>
+                                 + options + 
+                            </select>
+                            <i class="fa-solid fa-chevron-down select-chevron"></i>
+                        </div>
+                    </div>
+
+                    <div class="inputs-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="mark-pos- + posNumber + ">
+                                <i class="fa-solid fa-calculator"></i> Total Mark
+                            </label>
+                            <input 
+                                type="number" 
+                                id="mark-pos- + posNumber + " 
+                                class="mark-input" 
+                                placeholder="0 - 100" 
+                                min="0" 
+                                max="100"
+                                inputmode="numeric"
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="grade-pos- + posNumber + ">
+                                <i class="fa-solid fa-award"></i> Grade
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="grade-pos- + posNumber + " class="grade-select">
+                                    <option value="" selected disabled>Select</option>
+                                    <option value="A">Grade A</option>
+                                    <option value="B">Grade B</option>
+                                    <option value="C">Grade C</option>
+                                    <option value="None">None</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down select-chevron"></i>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            ;
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
 
         // 1. Load Events from Firestore
         async function loadEvents() {
@@ -707,7 +605,7 @@
                         const ev = docSnap.data();
                         const opt = document.createElement('option');
                         opt.value = ev.eventCode;
-                        opt.textContent = `${ev.eventName} (${ev.category})`;
+                        opt.textContent = ev.eventName + ' (' + ev.category + ')';
                         selectEl.appendChild(opt);
                     });
                     currentEventCode = selectEl.value;
@@ -721,8 +619,10 @@
         // 2. Load Participants for selected Event from Firestore
         async function loadParticipantsForEvent(eventCode) {
             const container = document.getElementById('judge-participants-list');
-            const countLabel = document.getElementById('judge-participant-count');
             if (!container) return;
+            
+            positionCount = 0;
+            container.innerHTML = '';
 
             if (!isConfigured) {
                 // Keep the initial static cards for preview
@@ -732,15 +632,11 @@
                     { chestNo: '109', name: 'Sameer H', team: 'Uhud Warriors' },
                     { chestNo: '201', name: 'Ayesha M', team: 'Arafat Team' }
                 ];
+                window.addPositionCard(1);
+                window.addPositionCard(2);
+                window.addPositionCard(3);
                 return;
             }
-
-            container.innerHTML = `
-                <div style="text-align: center; padding: 2rem; color: #555;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; margin-bottom: 0.8rem;"></i>
-                    <p>Loading participants for this program...</p>
-                </div>
-            `;
 
             try {
                 // Query participants who have this eventCode in their events array
@@ -759,69 +655,15 @@
                         currentParticipants.push(docSnap.data());
                     });
                 }
-
-                if (countLabel) {
-                    countLabel.textContent = `${currentParticipants.length} Participants Assigned`;
-                }
-
-                if (currentParticipants.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align: center; padding: 2.5rem; background: #fff; border-radius: 16px; color: #666;">
-                            <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 0.8rem; color: #94a3b8;"></i>
-                            <p>No participants registered for this event yet.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = currentParticipants.map((p, idx) => `
-                    <article class="participant-card" id="card-${p.chestNo}">
-                        <div class="card-top">
-                            <div class="chest-badge">
-                                <span class="chest-number">Chest No: ${p.chestNo}</span>
-                                <span class="chest-tag">${p.name || p.team}</span>
-                            </div>
-                            <span class="order-indicator">Slot #${String(idx + 1).padStart(2, '0')}</span>
-                        </div>
-
-                        <div class="inputs-grid">
-                            <div class="input-group">
-                                <label class="input-label" for="mark-${p.chestNo}">
-                                    <i class="fa-solid fa-calculator"></i> Total Mark
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="mark-${p.chestNo}" 
-                                    class="mark-input" 
-                                    placeholder="0 - 100" 
-                                    min="0" 
-                                    max="100"
-                                    inputmode="numeric"
-                                >
-                            </div>
-
-                            <div class="input-group">
-                                <label class="input-label" for="grade-${p.chestNo}">
-                                    <i class="fa-solid fa-award"></i> Grade
-                                </label>
-                                <div class="select-wrapper">
-                                    <select id="grade-${p.chestNo}" class="grade-select">
-                                        <option value="" selected disabled>Select</option>
-                                        <option value="A">Grade A</option>
-                                        <option value="B">Grade B</option>
-                                        <option value="C">Grade C</option>
-                                        <option value="None">None</option>
-                                    </select>
-                                    <i class="fa-solid fa-chevron-down select-chevron"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                `).join('');
+                
+                // Add top 3 initially
+                window.addPositionCard(1);
+                window.addPositionCard(2);
+                window.addPositionCard(3);
 
             } catch (err) {
                 console.error("Error loading participants:", err);
-                container.innerHTML = `<p style="color: #b91c1c; text-align: center; padding: 2rem;">Failed to load participants: ${err.message}</p>`;
+                container.innerHTML = '<p style="color: #b91c1c; text-align: center; padding: 2rem;">Failed to load participants: ' + err.message + '</p>';
             }
         }
 
@@ -842,46 +684,50 @@
             const btn = document.getElementById('btn-judge-submit');
             const feedback = document.getElementById('judge-feedback');
             
-            // Determine active participants to score
-            const participantsToScore = currentParticipants.length > 0 ? currentParticipants : [
-                { chestNo: '104' },
-                { chestNo: '122' },
-                { chestNo: '109' },
-                { chestNo: '201' }
-            ];
-
             const scores = [];
+            const selectedParticipants = new Set();
 
-            for (const p of participantsToScore) {
-                const markInput = document.getElementById(`mark-${p.chestNo}`);
-                const gradeSelect = document.getElementById(`grade-${p.chestNo}`);
+            for (let i = 1; i <= positionCount; i++) {
+                const pSelect = document.getElementById('participant-pos-' + i);
+                const markInput = document.getElementById('mark-pos-' + i);
+                const gradeSelect = document.getElementById('grade-pos-' + i);
                 
-                if (!markInput) continue;
+                if (!pSelect || !pSelect.value) continue; // skip if no participant selected for this position
+                
+                const chestNo = pSelect.value;
+                
+                if (selectedParticipants.has(chestNo)) {
+                    alert('Chest No: ' + chestNo + ' is selected for multiple positions. Please select unique participants.');
+                    return;
+                }
+                selectedParticipants.add(chestNo);
 
-                const markVal = markInput.value.trim();
+                let num = null;
+                if (markInput && markInput.value.trim() !== '') {
+                    num = Number(markInput.value.trim());
+                    if (isNaN(num) || num < 0 || num > 100) {
+                        alert('Invalid mark for Chest No: ' + chestNo + '. Must be between 0 and 100.');
+                        markInput.focus();
+                        return;
+                    }
+                }
+
                 const gradeVal = gradeSelect ? gradeSelect.value : 'None';
 
-                if (markVal === '') {
-                    alert(`Please enter marks for Chest No: ${p.chestNo}`);
-                    markInput.focus();
-                    return;
-                }
-
-                const num = Number(markVal);
-                if (isNaN(num) || num < 0 || num > 100) {
-                    alert(`Invalid mark for Chest No: ${p.chestNo}. Must be between 0 and 100.`);
-                    markInput.focus();
-                    return;
-                }
-
                 scores.push({
-                    chestNo: p.chestNo,
+                    chestNo: chestNo,
                     eventCode: currentEventCode,
                     totalMark: num,
                     grade: gradeVal || 'None',
+                    position: i,
                     status: 'pending',
                     timestamp: Date.now()
                 });
+            }
+            
+            if (scores.length === 0) {
+                alert('Please fill out at least one position before submitting.');
+                return;
             }
 
             // Loading state
@@ -902,9 +748,9 @@
             }
 
             try {
-                // Batch write or write each result document to Firestore
+                // Write each result document to Firestore
                 for (const item of scores) {
-                    const docId = `${item.eventCode}_${item.chestNo}`;
+                    const docId = item.eventCode + '_' + item.chestNo;
                     await setDoc(doc(db, 'results', docId), item);
                 }
 
@@ -919,7 +765,7 @@
                 feedback.style.display = 'block';
                 feedback.style.background = '#fee2e2';
                 feedback.style.color = '#991b1b';
-                feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Submission failed: ${error.message}`;
+                feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Submission failed: ' + error.message;
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Retry Submission';
             }
@@ -938,3 +784,5 @@
     </script>
 </body>
 </html>
+
+

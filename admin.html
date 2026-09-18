@@ -1208,39 +1208,64 @@
                 const statPending = document.getElementById('stat-pending');
 
                 if (!tableBody) return;
+
                 if (snapshot.empty) {
-                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No pending evaluations.</td></tr>`;
+                    tableBody.innerHTML = <tr><td colspan="7" style="text-align:center; padding: 2rem; color: #64748b;">No pending evaluations. All submissions verified!</td></tr>;
                     if (countBadge) countBadge.textContent = '0';
                     if (statPending) statPending.textContent = '0';
                     return;
                 }
+
                 const count = snapshot.size;
                 if (countBadge) countBadge.textContent = count;
                 if (statPending) statPending.textContent = count;
 
-                tableBody.innerHTML = '';
+                const grouped = {};
                 snapshot.forEach(docSnap => {
                     const res = docSnap.data();
-                    const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: '' };
-                    const eventInfo = eventsCache[res.eventCode] || { eventName: res.eventCode, category: '' };
-
-                    const tr = document.createElement('tr');
-                    tr.id = `row-${docSnap.id}`;
-                    tr.innerHTML = `
-                        <td><strong>${res.chestNo}</strong></td>
-                        <td>${participant.name}<br><small>${participant.team}</small></td>
-                        <td>${eventInfo.eventName}<br><small>${eventInfo.category}</small></td>
-                        <td><strong style="color: #1e3a8a;">${res.totalMark}</strong></td>
-                        <td><strong>${res.grade || '-'}</strong></td>
-                        <td><span class="badge badge-pending">pending</span></td>
-                        <td>
-                            <button class="btn btn-sm" onclick="approveResult('${docSnap.id}')">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                        </td>
-                    `;
-                    tableBody.appendChild(tr);
+                    res.id = docSnap.id;
+                    if (!grouped[res.eventCode]) grouped[res.eventCode] = [];
+                    grouped[res.eventCode].push(res);
                 });
+
+                tableBody.innerHTML = '';
+                
+                for (const [eventCode, results] of Object.entries(grouped)) {
+                    results.sort((a, b) => {
+                        if (a.position && b.position) return a.position - b.position;
+                        return (b.totalMark || 0) - (a.totalMark || 0);
+                    });
+
+                    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+
+                    const headerRow = document.createElement('tr');
+                    headerRow.style.backgroundColor = '#f8fafc';
+                    headerRow.innerHTML = <td colspan="7" style="padding: 0.8rem 1rem; border-bottom: 2px solid #e2e8f0;"><strong style="color: #0f172a; font-size: 1rem;"><i class="fa-solid fa-masks-theater" style="color: var(--accent-council); margin-right: 8px;"></i>\ <span style="color: #64748b; font-size: 0.85rem; font-weight: normal;">(\)</span></strong></td>;
+                    tableBody.appendChild(headerRow);
+
+                    results.forEach(res => {
+                        const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
+                        const tr = document.createElement('tr');
+                        tr.id = ow-\;
+                        
+                        let posHtml = res.position ? <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#\</span> : '';
+
+                        tr.innerHTML = 
+                            <td>\<strong>\</strong></td>
+                            <td>\<br><small style="color:#64748b;">\</small></td>
+                            <td>\<br><small style="color:#64748b;">\</small></td>
+                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">\</strong></td>
+                            <td><strong>\</strong></td>
+                            <td><span class="badge badge-pending">pending</span></td>
+                            <td>
+                                <button class="btn btn-sm" onclick="approveResult('\')">
+                                    <i class="fa-solid fa-check"></i> Approve & Publish
+                                </button>
+                            </td>
+                        ;
+                        tableBody.appendChild(tr);
+                    });
+                }
             });
 
             const qPublished = query(collection(db, 'results'), where('status', '==', 'published'));
@@ -1269,12 +1294,20 @@
         function fetchPendingResultsFallback() {
             const tableBody = document.getElementById('pending-table-body');
             if (tableBody) {
-                tableBody.innerHTML = `
+                tableBody.innerHTML = 
+                    <tr style="background-color: #f8fafc;">
+                        <td colspan="7" style="padding: 0.8rem 1rem; border-bottom: 2px solid #e2e8f0;">
+                            <strong style="color: #0f172a; font-size: 1rem;">
+                                <i class="fa-solid fa-masks-theater" style="color: #475569; margin-right: 8px;"></i>
+                                Tech Hackathon <span style="color: #64748b; font-size: 0.85rem; font-weight: normal;">(General Open)</span>
+                            </strong>
+                        </td>
+                    </tr>
                     <tr id="row-mock-1">
-                        <td><strong>104</strong></td>
-                        <td>Rashid K<br><small>Al-Huda Unit</small></td>
-                        <td>Tech Hackathon<br><small>General Open</small></td>
-                        <td><strong style="color: #1e3a8a;">95</strong></td>
+                        <td><span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#1</span><strong>104</strong></td>
+                        <td>Rashid K<br><small style="color:#64748b;">Al-Huda Unit</small></td>
+                        <td>Tech Hackathon<br><small style="color:#64748b;">General Open</small></td>
+                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
                         <td><strong>A</strong></td>
                         <td><span class="badge badge-pending">pending</span></td>
                         <td>
@@ -1283,8 +1316,22 @@
                             </button>
                         </td>
                     </tr>
-                `;
+                    <tr id="row-mock-2">
+                        <td><span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#2</span><strong>109</strong></td>
+                        <td>Sameer H<br><small style="color:#64748b;">Uhud Warriors</small></td>
+                        <td>Tech Hackathon<br><small style="color:#64748b;">General Open</small></td>
+                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
+                        <td><strong>B</strong></td>
+                        <td><span class="badge badge-pending">pending</span></td>
+                        <td>
+                            <button class="btn btn-sm" onclick="approveResult('mock-2')">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                        </td>
+                    </tr>
+                ;
             }
+        }
         }
         window.fetchPendingResults = () => {
             if (isConfigured) initResultsListener();
@@ -1301,3 +1348,4 @@
     </script>
 </body>
 </html>
+
