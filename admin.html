@@ -647,8 +647,31 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Registered Participants</h2>
+                    <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+                        <h2 class="card-title"><i class="fa-solid fa-users"></i> Registered Participants</h2>
+                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <label for="filter-part-category" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Category:</label>
+                                <select id="filter-part-category" onchange="applyParticipantFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
+                                    <option value="all">All Categories</option>
+                                    <option value="Sub Junior">Sub Junior</option>
+                                    <option value="Junior">Junior</option>
+                                    <option value="Senior">Senior</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="filter-part-team" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Team:</label>
+                                <select id="filter-part-team" onchange="applyParticipantFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
+                                    <option value="all">All Teams</option>
+                                    <option value="Team 1">Team 1</option>
+                                    <option value="Team 2">Team 2</option>
+                                    <option value="Team 3">Team 3</option>
+                                    <option value="Team 4">Team 4</option>
+                                    <option value="Team 5">Team 5</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -726,8 +749,28 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">All Events</h2>
+                    <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+                        <h2 class="card-title"><i class="fa-solid fa-calendar-check"></i> All Events</h2>
+                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <label for="filter-event-category" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Category:</label>
+                                <select id="filter-event-category" onchange="applyEventFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
+                                    <option value="all">All Categories</option>
+                                    <option value="Sub Junior">Sub Junior</option>
+                                    <option value="Junior">Junior</option>
+                                    <option value="Senior">Senior</option>
+                                    <option value="General Open">General Open</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="filter-event-type" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Type:</label>
+                                <select id="filter-event-type" onchange="applyEventFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
+                                    <option value="all">All Types</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Group">Group</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -1288,26 +1331,49 @@
         }
         window.editParticipant = editParticipant;
 
+        function normalizeCategory(cat) {
+            if (!cat) return '';
+            return cat.toString().toLowerCase().replace(/[\s\-_]/g, '');
+        }
+
+        function isCategoryMatch(eventCat, selectedCat) {
+            if (!selectedCat || selectedCat === 'all') return true;
+            return normalizeCategory(eventCat) === normalizeCategory(selectedCat);
+        }
+
+        function applyParticipantFilters() {
+            const catFilter = document.getElementById('filter-part-category') ? document.getElementById('filter-part-category').value : 'all';
+            const teamFilter = document.getElementById('filter-part-team') ? document.getElementById('filter-part-team').value : 'all';
+
+            const allParticipants = Object.values(participantsCache);
+            const filtered = allParticipants.filter(p => {
+                const matchCategory = isCategoryMatch(p.category, catFilter);
+                const matchTeam = (teamFilter === 'all') || (p.team && p.team.trim().toLowerCase() === teamFilter.trim().toLowerCase());
+                return matchCategory && matchTeam;
+            });
+
+            renderParticipantsTable(filtered);
+        }
+        window.applyParticipantFilters = applyParticipantFilters;
+
         function initParticipantsListener() {
             if (!isConfigured) {
                 participantsCache = {
                     "101": { chestNo: "101", name: "Rashid K", category: "Senior", team: "Team 1", events: ["EL-ENG"] },
                     "102": { chestNo: "102", name: "Ameen", category: "Junior", team: "Team 2", events: ["QIR-01"] }
                 };
-                renderParticipantsTable(Object.values(participantsCache));
+                applyParticipantFilters();
                 return;
             }
 
             onSnapshot(collection(db, 'participants'), (snapshot) => {
-                const list = [];
                 participantsCache = {};
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     participantsCache[data.chestNo] = data;
-                    list.push(data);
                 });
-                renderParticipantsTable(list);
-                document.getElementById('stat-participants').textContent = list.length;
+                applyParticipantFilters();
+                document.getElementById('stat-participants').textContent = Object.keys(participantsCache).length;
             });
         }
 
@@ -1315,7 +1381,7 @@
             const tbody = document.getElementById('participants-table-body');
             if (!tbody) return;
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem;">No participants found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: #64748b;">No participants match the selected filter.</td></tr>`;
                 return;
             }
             tbody.innerHTML = list.map(p => `
@@ -1421,28 +1487,41 @@
         }
         window.deleteAllEvents = deleteAllEvents;
 
+        function applyEventFilters() {
+            const catFilter = document.getElementById('filter-event-category') ? document.getElementById('filter-event-category').value : 'all';
+            const typeFilter = document.getElementById('filter-event-type') ? document.getElementById('filter-event-type').value : 'all';
+
+            const allEventsList = Object.values(eventsCache);
+            const filtered = allEventsList.filter(ev => {
+                const matchCategory = isCategoryMatch(ev.category, catFilter);
+                const matchType = (typeFilter === 'all') || (ev.type && ev.type.trim().toLowerCase() === typeFilter.trim().toLowerCase());
+                return matchCategory && matchType;
+            });
+
+            renderEventsTable(filtered);
+        }
+        window.applyEventFilters = applyEventFilters;
+
         function initEventsListener() {
             if (!isConfigured) {
                 eventsCache = {
                     "EL-ENG": { eventCode: "EL-ENG", eventName: "English Elocution", category: "Senior", type: "Single" },
                     "QIR-01": { eventCode: "QIR-01", eventName: "Qira'at", category: "General Open", type: "Single" }
                 };
-                renderEventsTable(Object.values(eventsCache));
+                applyEventFilters();
                 renderEventCheckboxes(Object.values(eventsCache));
                 return;
             }
 
             onSnapshot(collection(db, 'events'), (snapshot) => {
-                const list = [];
                 eventsCache = {};
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     eventsCache[data.eventCode] = data;
-                    list.push(data);
                 });
-                renderEventsTable(list);
-                renderEventCheckboxes(list);
-                document.getElementById('stat-events').textContent = list.length;
+                applyEventFilters();
+                renderEventCheckboxes(Object.values(eventsCache));
+                document.getElementById('stat-events').textContent = Object.keys(eventsCache).length;
             });
         }
 
@@ -1450,7 +1529,7 @@
             const tbody = document.getElementById('events-table-body');
             if (!tbody) return;
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem;">No events found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #64748b;">No events match the selected filter.</td></tr>`;
                 return;
             }
             tbody.innerHTML = list.map(ev => `
