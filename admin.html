@@ -713,42 +713,6 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title"><i class="fa-solid fa-plus"></i> Add New Event</h2>
-                    </div>
-                    <form id="event-form" onsubmit="handleEventSubmit(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Event Code (Unique) *</label>
-                                <input type="text" id="event-code" required placeholder="e.g. EL-ENG">
-                            </div>
-                            <div class="form-group">
-                                <label>Event Name *</label>
-                                <input type="text" id="event-name" required placeholder="e.g. English Elocution">
-                            </div>
-                            <div class="form-group">
-                                <label>Category *</label>
-                                <select id="event-category" required>
-                                    <option value="">Select category</option>
-                                    <option value="Sub Junior">Sub Junior</option>
-                                    <option value="Junior">Junior</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="General Open">General Open</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Type *</label>
-                                <select id="event-type" required>
-                                    <option value="Single">Single</option>
-                                    <option value="Group">Group</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn"><i class="fa-solid fa-save"></i> Create Event</button>
-                    </form>
-                </div>
-
-                <div class="card">
                     <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                         <h2 class="card-title"><i class="fa-solid fa-calendar-check"></i> All Events</h2>
                         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
@@ -1869,58 +1833,11 @@
             const container = document.getElementById('verify-cards-container');
             if (container) {
                 container.innerHTML = `
-                <div class="accordion-card">
-                    <div class="accordion-header" id="acc-header-mock" onclick="toggleAccordion('mock')">
-                        <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
-                            <span style="font-weight: 700; color: #0f172a;">EV-101 - Tech Hackathon</span>
-                            <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(General Open)</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
-                            <i class="fa-solid fa-chevron-down accordion-icon"></i>
-                        </div>
+                    <div class="card" style="text-align: center; padding: 3.5rem 1.5rem;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 3.5rem; color: #cbd5e1; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #0f172a; margin-bottom: 0.5rem;">No Pending Evaluations</h3>
+                        <p style="color: #64748b; margin-bottom: 0;">There are no evaluations awaiting verification. New evaluations submitted by judges will appear here.</p>
                     </div>
-                    <div class="accordion-content" id="acc-content-mock">
-                        <div style="padding: 1.5rem 2rem;">
-                            <div class="table-responsive">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Position</th>
-                                            <th>Chest No</th>
-                                            <th>Participant</th>
-                                            <th>Team</th>
-                                            <th>Marks</th>
-                                            <th>Grade</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#1</span></td>
-                                            <td><strong>104</strong></td>
-                                            <td>Rashid K</td>
-                                            <td>Team 1</td>
-                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
-                                            <td><strong style="font-size: 1.1rem;">A</strong></td>
-                                        </tr>
-                                        <tr>
-                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#2</span></td>
-                                            <td><strong>109</strong></td>
-                                            <td>Sameer H</td>
-                                            <td>Team 3</td>
-                                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
-                                            <td><strong style="font-size: 1.1rem;">B</strong></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
-                                <button class="btn" id="btn-pub-mock" onclick="publishEventResults('mock')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 `;
             }
         }

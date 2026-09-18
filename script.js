@@ -519,7 +519,19 @@ function initResultsRealtimeListener() {
 
 function renderLiveResults(resultsList) {
     const container = document.getElementById('results-container');
-    if (!container || resultsList.length === 0) return;
+    if (!container) return;
+
+    if (!resultsList || resultsList.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 4rem 1.5rem; color: var(--text-dark); opacity: 0.85;">
+                <i class="fa-solid fa-hourglass-half" style="font-size: 2.5rem; color: var(--highlight-gold); margin-bottom: 1rem; display: block;"></i>
+                <h3 style="font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: 0.5rem;">Results Awaiting Publication</h3>
+                <p style="font-size: 0.95rem; max-width: 500px; margin: 0 auto;">Evaluations are currently being reviewed by the Council. Once approved and published, official rankings and marks will appear here live.</p>
+            </div>
+        `;
+        updateProgramFilter();
+        return;
+    }
 
     // Group results by eventCode
     const grouped = {};
