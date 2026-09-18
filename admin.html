@@ -772,6 +772,9 @@
                         <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
                             <i class="fa-solid fa-rotate"></i> Refresh
                         </button>
+                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="deleteAllPendingResults()">
+                            <i class="fa-solid fa-trash-can"></i> Delete All Pending
+                        </button>
                     </div>
                 </div>
                 <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Review pending score evaluations submitted by judges. Publishing updates official team points immediately and sends results live to the public website.</p>
@@ -1635,7 +1638,10 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
+                                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="deletePendingEventResults('${eventCode}')">
+                                            <i class="fa-solid fa-trash-can"></i> Delete Evaluation
+                                        </button>
                                         <button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')">
                                             <i class="fa-solid fa-bullhorn"></i> Publish Results
                                         </button>
@@ -1808,6 +1814,70 @@
             }
         }
         window.publishEventResults = publishEventResults;
+
+        async function deletePendingEventResults(eventCode) {
+            if (!confirm(`Are you sure you want to delete the pending evaluation results for ${eventCode}? This action cannot be undone.`)) return;
+
+            if (!isConfigured) {
+                showFeedback(`Deleted pending results for ${eventCode} (preview mode).`);
+                return;
+            }
+
+            try {
+                const q = query(collection(db, 'results'), where('eventCode', '==', eventCode), where('status', '==', 'pending'));
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    showFeedback(`No pending results found for ${eventCode}.`);
+                    return;
+                }
+
+                const deletePromises = [];
+                snapshot.forEach(docSnap => {
+                    deletePromises.push(deleteDoc(doc(db, 'results', docSnap.id)));
+                });
+                await Promise.all(deletePromises);
+                showFeedback(`Pending evaluation for ${eventCode} deleted successfully!`, "success");
+            } catch (err) {
+                console.error("Error deleting pending event results:", err);
+                showFeedback("Failed to delete pending results: " + err.message, "error");
+            }
+        }
+        window.deletePendingEventResults = deletePendingEventResults;
+
+        async function deleteAllPendingResults() {
+            const confirmText = prompt("⚠️ PERMANENT DELETION WARNING!\n\nThis will delete ALL pending evaluation results awaiting verification.\n\nTo confirm, please type 'DELETE' below:");
+            if (confirmText !== 'DELETE') {
+                if (confirmText !== null) {
+                    showFeedback("Deletion cancelled. Confirmation word did not match.", "error");
+                }
+                return;
+            }
+
+            if (!isConfigured) {
+                showFeedback("All pending evaluations deleted (preview mode).");
+                return;
+            }
+
+            try {
+                const q = query(collection(db, 'results'), where('status', '==', 'pending'));
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    showFeedback("No pending results found to delete.");
+                    return;
+                }
+
+                const deletePromises = [];
+                snapshot.forEach(docSnap => {
+                    deletePromises.push(deleteDoc(doc(db, 'results', docSnap.id)));
+                });
+                await Promise.all(deletePromises);
+                showFeedback(`Successfully deleted ${deletePromises.length} pending result evaluations!`, "success");
+            } catch (err) {
+                console.error("Error deleting all pending results:", err);
+                showFeedback("Failed to delete pending evaluations: " + err.message, "error");
+            }
+        }
+        window.deleteAllPendingResults = deleteAllPendingResults;
 
         async function unpublishEventResults(eventCode) {
             if (!confirm(`Are you sure you want to unpublish the results for ${eventCode}? This will revert them to Pending Verification and remove them from the public website.`)) return;
