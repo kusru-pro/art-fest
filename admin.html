@@ -581,12 +581,15 @@
                 
                 <!-- Bulk CSV Upload Area -->
                 <div class="card" style="background: #eff6ff; border: 1px dashed #93c5fd; margin-bottom: 1.5rem;">
-                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-                        <h3 style="font-size: 1.1rem; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> Bulk Upload Participants (CSV)</h3>
-                        <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1.1rem; color: #1e3a8a; margin: 0;"><i class="fa-solid fa-file-csv"></i> Bulk Upload Participants (CSV)</h3>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             <input type="file" id="csv-file" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
                             <button class="btn btn-sm" style="background: #1e3a8a;" onclick="document.getElementById('csv-file').click()">
                                 <i class="fa-solid fa-upload"></i> Upload CSV File
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAllParticipants()" style="background: #dc2626; color: #fff;">
+                                <i class="fa-solid fa-trash-can"></i> Delete All Participants
                             </button>
                         </div>
                     </div>
@@ -667,12 +670,15 @@
             <!-- Tab 3: Manage Events -->
             <section id="tab-events" class="tab-section">
                 <div class="card" style="background: #eff6ff; border: 1px dashed #93c5fd; margin-bottom: 1.5rem;">
-                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-                        <h3 style="font-size: 1.1rem; color: #1e3a8a;"><i class="fa-solid fa-file-csv"></i> Bulk Upload Events (CSV)</h3>
-                        <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 1.1rem; color: #1e3a8a; margin: 0;"><i class="fa-solid fa-file-csv"></i> Bulk Upload Events (CSV)</h3>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             <input type="file" id="events-csv-file" accept=".csv" style="display: none;" onchange="handleEventsCSVUpload(event)">
                             <button class="btn btn-sm" style="background: #1e3a8a;" onclick="document.getElementById('events-csv-file').click()">
                                 <i class="fa-solid fa-upload"></i> Upload CSV File
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAllEvents()" style="background: #dc2626; color: #fff;">
+                                <i class="fa-solid fa-trash-can"></i> Delete All Events
                             </button>
                         </div>
                     </div>
@@ -1203,6 +1209,48 @@
         }
         window.deleteParticipant = deleteParticipant;
 
+        async function deleteAllParticipants() {
+            const confirmText = prompt("⚠️ PERMANENT DELETION WARNING!\n\nThis will permanently delete ALL registered participants from the database.\n\nTo confirm, please type 'DELETE' in all caps below:");
+            if (confirmText !== 'DELETE') {
+                if (confirmText !== null) {
+                    showFeedback("Bulk deletion cancelled. Confirmation word did not match.", "error");
+                }
+                return;
+            }
+
+            showFeedback("Deleting all participants... Please wait.");
+
+            if (!isConfigured) {
+                participantsCache = {};
+                renderParticipantsTable([]);
+                const statEl = document.getElementById('stat-participants');
+                if (statEl) statEl.textContent = '0';
+                showFeedback("All participants removed (Preview Mode).", "success");
+                return;
+            }
+
+            try {
+                const snapshot = await getDocs(collection(db, 'participants'));
+                if (snapshot.empty) {
+                    showFeedback("No participants found to delete.");
+                    return;
+                }
+
+                const deletePromises = [];
+                snapshot.forEach((docSnap) => {
+                    deletePromises.push(deleteDoc(doc(db, 'participants', docSnap.id)));
+                });
+
+                await Promise.all(deletePromises);
+                participantsCache = {};
+                showFeedback(`Successfully deleted all ${deletePromises.length} participants!`, "success");
+            } catch (err) {
+                console.error("Error deleting all participants:", err);
+                showFeedback("Failed to delete all participants: " + err.message, "error");
+            }
+        }
+        window.deleteAllParticipants = deleteAllParticipants;
+
         function editParticipant(chestNo) {
             const p = participantsCache[chestNo];
             if (!p) return;
@@ -1310,6 +1358,49 @@
             }
         }
         window.deleteEvent = deleteEvent;
+
+        async function deleteAllEvents() {
+            const confirmText = prompt("⚠️ PERMANENT DELETION WARNING!\n\nThis will permanently delete ALL events/programs from the database.\n\nTo confirm, please type 'DELETE' in all caps below:");
+            if (confirmText !== 'DELETE') {
+                if (confirmText !== null) {
+                    showFeedback("Bulk deletion cancelled. Confirmation word did not match.", "error");
+                }
+                return;
+            }
+
+            showFeedback("Deleting all events... Please wait.");
+
+            if (!isConfigured) {
+                eventsCache = {};
+                renderEventsTable([]);
+                renderEventCheckboxes([]);
+                const statEl = document.getElementById('stat-events');
+                if (statEl) statEl.textContent = '0';
+                showFeedback("All events removed (Preview Mode).", "success");
+                return;
+            }
+
+            try {
+                const snapshot = await getDocs(collection(db, 'events'));
+                if (snapshot.empty) {
+                    showFeedback("No events found to delete.");
+                    return;
+                }
+
+                const deletePromises = [];
+                snapshot.forEach((docSnap) => {
+                    deletePromises.push(deleteDoc(doc(db, 'events', docSnap.id)));
+                });
+
+                await Promise.all(deletePromises);
+                eventsCache = {};
+                showFeedback(`Successfully deleted all ${deletePromises.length} events!`, "success");
+            } catch (err) {
+                console.error("Error deleting all events:", err);
+                showFeedback("Failed to delete all events: " + err.message, "error");
+            }
+        }
+        window.deleteAllEvents = deleteAllEvents;
 
         function initEventsListener() {
             if (!isConfigured) {
