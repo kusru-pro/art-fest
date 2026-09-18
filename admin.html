@@ -302,8 +302,13 @@
             transition: all 0.2s;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             background: var(--accent-council-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
         
         .btn-outline {
@@ -312,7 +317,7 @@
             border: 1px solid #cbd5e1;
         }
         
-        .btn-outline:hover {
+        .btn-outline:hover:not(:disabled) {
             background: #f1f5f9;
             color: #0f172a;
         }
@@ -362,9 +367,9 @@
         }
 
         .badge {
-            padding: 0.2rem 0.6rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 600;
             display: inline-block;
         }
@@ -388,17 +393,6 @@
             margin-bottom: 2rem;
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        .gallery-upload-area:hover {
-            border-color: var(--accent-council);
-            background: #eff6ff;
-        }
-
-        .gallery-upload-area i {
-            font-size: 3rem;
-            color: #94a3b8;
-            margin-bottom: 1rem;
         }
 
         .gallery-grid {
@@ -520,7 +514,7 @@
                         <div class="stat-icon" style="background: #fee2e2; color: #b91c1c;"><i class="fa-solid fa-clock"></i></div>
                         <div class="stat-details">
                             <h3 id="stat-pending">0</h3>
-                            <p>Pending Verification</p>
+                            <p>Pending Events</p>
                         </div>
                     </div>
                 </div>
@@ -684,39 +678,27 @@
                 </div>
             </section>
 
-            <!-- Tab 4: Result Verification -->
+            <!-- Tab 4: Result Verification (NEW DESIGN) -->
             <section id="tab-verify" class="tab-section">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fa-solid fa-clipboard-check" style="color: var(--accent-council);"></i>
-                            Pending Evaluations
-                            <span id="pending-count" class="badge badge-category" style="margin-left: 10px;">0</span>
-                        </div>
-                        <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
-                            <i class="fa-solid fa-rotate"></i> Refresh
-                        </button>
+                
+                <div class="content-header" style="margin-bottom: 1rem; border:none; padding:0;">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                        <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: #0f172a;">
+                            <i class="fa-solid fa-clipboard-check" style="color: var(--accent-council);"></i> Result Verification
+                        </h2>
+                        <span id="pending-count" class="badge badge-category">0 Pending</span>
                     </div>
-
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Chest No</th>
-                                    <th>Participant & Team</th>
-                                    <th>Event</th>
-                                    <th>Marks</th>
-                                    <th>Grade</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pending-table-body">
-                                <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="if(window.fetchPendingResults) window.fetchPendingResults()">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
                 </div>
+                <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem;">Review evaluations submitted by judges. Publish an event to make its results live on the public leaderboard.</p>
+
+                <div id="verify-cards-container">
+                    <!-- Dynamic Event Cards will be injected here -->
+                    <div class="card"><p style="text-align:center;">Loading evaluations...</p></div>
+                </div>
+
             </section>
 
             <!-- Tab 5: Manage Gallery -->
@@ -1119,31 +1101,29 @@
         }
 
         // =========================================================================
-        // 5. RESULT VERIFICATION
+        // 5. RESULT VERIFICATION (NEW DESIGN)
         // =========================================================================
         function initResultsListener() {
             if (!isConfigured) {
                 fetchPendingResultsFallback();
                 return;
             }
-            const qPending = query(collection(db, 'results'), where('status', '==', 'pending'));
-            onSnapshot(qPending, (snapshot) => {
-                const tableBody = document.getElementById('pending-table-body');
+            
+            // Listen to ALL results to group them by event and check overall status
+            onSnapshot(collection(db, 'results'), (snapshot) => {
+                const container = document.getElementById('verify-cards-container');
                 const countBadge = document.getElementById('pending-count');
                 const statPending = document.getElementById('stat-pending');
+                const statResults = document.getElementById('stat-results');
 
-                if (!tableBody) return;
+                if (!container) return;
 
                 if (snapshot.empty) {
-                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem; color: #64748b;">No pending evaluations. All submissions verified!</td></tr>`;
-                    if (countBadge) countBadge.textContent = '0';
+                    container.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No evaluations submitted by judges yet.</p></div>`;
+                    if (countBadge) countBadge.textContent = '0 Pending';
                     if (statPending) statPending.textContent = '0';
                     return;
                 }
-
-                const count = snapshot.size;
-                if (countBadge) countBadge.textContent = count;
-                if (statPending) statPending.textContent = count;
 
                 const grouped = {};
                 snapshot.forEach(docSnap => {
@@ -1153,107 +1133,181 @@
                     grouped[res.eventCode].push(res);
                 });
 
-                tableBody.innerHTML = '';
-                
-                for (const [eventCode, results] of Object.entries(grouped)) {
+                let pendingEventsCount = 0;
+                let publishedEventsCount = 0;
+                let htmlContent = '';
+
+                // Sort groups so pending events appear at the top
+                const sortedEvents = Object.entries(grouped).sort((a, b) => {
+                    const aPub = a[1].every(r => r.status === 'published');
+                    const bPub = b[1].every(r => r.status === 'published');
+                    if (aPub === bPub) return 0;
+                    return aPub ? 1 : -1; 
+                });
+
+                sortedEvents.forEach(([eventCode, results]) => {
+                    // Sort inside the card by position (1, 2, 3...)
                     results.sort((a, b) => {
                         if (a.position && b.position) return a.position - b.position;
                         return (b.totalMark || 0) - (a.totalMark || 0);
                     });
 
                     const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+                    
+                    // Check if all results for this event are published
+                    const isPublished = results.every(r => r.status === 'published');
+                    
+                    if (isPublished) publishedEventsCount++;
+                    else pendingEventsCount++;
 
-                    const headerRow = document.createElement('tr');
-                    headerRow.style.backgroundColor = '#f8fafc';
-                    headerRow.innerHTML = `<td colspan="7" style="padding: 0.8rem 1rem; border-bottom: 2px solid #e2e8f0;"><strong style="color: #0f172a; font-size: 1rem;"><i class="fa-solid fa-masks-theater" style="color: var(--accent-council); margin-right: 8px;"></i> ${eventInfo.eventName} <span style="color: #64748b; font-size: 0.85rem; font-weight: normal;">(${eventInfo.category})</span></strong></td>`;
-                    tableBody.appendChild(headerRow);
+                    const badgeHtml = isPublished 
+                        ? `<span class="badge badge-published"><i class="fa-solid fa-check-double"></i> Published</span>`
+                        : `<span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>`;
 
-                    results.forEach(res => {
-                        const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
-                        const tr = document.createElement('tr');
-                        tr.id = `row-${res.id}`;
-                        
-                        let posHtml = res.position ? `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#${res.position}</span>` : '';
+                    const buttonHtml = isPublished
+                        ? `<button class="btn btn-outline" disabled><i class="fa-solid fa-check"></i> Already Published</button>`
+                        : `<button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>`;
 
-                        tr.innerHTML = `
-                            <td>${posHtml}<strong>${res.chestNo}</strong></td>
-                            <td>${participant.name}<br><small style="color:#64748b;">${participant.team}</small></td>
-                            <td>${eventInfo.eventName}<br><small style="color:#64748b;">${eventInfo.category}</small></td>
-                            <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark || '-'}</strong></td>
-                            <td><strong>${res.grade || '-'}</strong></td>
-                            <td><span class="badge badge-pending">pending</span></td>
-                            <td>
-                                <button class="btn btn-sm" onclick="approveResult('${res.id}')">
-                                    <i class="fa-solid fa-check"></i> Approve & Publish
-                                </button>
-                            </td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                }
-            });
+                    htmlContent += `
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header" style="background: #f8fafc; margin: -2rem -2rem 1.5rem -2rem; padding: 1.5rem 2rem; border-radius: 16px 16px 0 0; border-bottom: 1px solid #e2e8f0;">
+                            <div class="card-title">
+                                <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
+                                ${eventInfo.eventName} <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 8px;">(${eventInfo.category})</span>
+                            </div>
+                            ${badgeHtml}
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Position</th>
+                                        <th>Chest No</th>
+                                        <th>Participant</th>
+                                        <th>Team</th>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${results.map(res => {
+                                        const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
+                                        return \`
+                                            <tr>
+                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#\${res.position || '-'}</span></td>
+                                                <td><strong>\${res.chestNo}</strong></td>
+                                                <td>\${participant.name}</td>
+                                                <td>\${participant.team}</td>
+                                                <td><strong style="color: #1e3a8a; font-size: 1.1rem;">\${res.totalMark || '-'}</strong></td>
+                                                <td><strong style="font-size: 1.1rem;">\${res.grade || '-'}</strong></td>
+                                            </tr>
+                                        \`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                            ${buttonHtml}
+                        </div>
+                    </div>
+                    `;
+                });
 
-            const qPublished = query(collection(db, 'results'), where('status', '==', 'published'));
-            onSnapshot(qPublished, (snapshot) => {
-                const statResults = document.getElementById('stat-results');
-                if (statResults) statResults.textContent = snapshot.size;
+                container.innerHTML = htmlContent;
+
+                if (countBadge) countBadge.textContent = pendingEventsCount + ' Pending';
+                if (statPending) statPending.textContent = pendingEventsCount;
+                if (statResults) statResults.textContent = publishedEventsCount;
             });
         }
 
-        async function approveResult(resultDocId) {
+        async function publishEventResults(eventCode) {
+            if (!confirm(`Are you sure you want to publish the results for ${eventCode}? This will make them visible on the main website.`)) return;
+            
+            const btn = document.getElementById(`btn-pub-${eventCode}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...';
+            }
+
             if (!isConfigured) {
-                showFeedback("Result approved in preview mode!");
-                const row = document.getElementById(`row-${resultDocId}`);
-                if (row) row.remove();
+                setTimeout(() => {
+                    showFeedback("Event results published in preview mode!");
+                }, 800);
                 return;
             }
+
             try {
-                await updateDoc(doc(db, 'results', resultDocId), { status: 'published', publishedAt: Date.now() });
-                showFeedback("Result published live!");
+                // Find all pending results for this specific event
+                const q = query(collection(db, 'results'), where('eventCode', '==', eventCode), where('status', '==', 'pending'));
+                const snapshot = await getDocs(q);
+                
+                const updatePromises = [];
+                snapshot.forEach(docSnap => {
+                    const docRef = doc(db, 'results', docSnap.id);
+                    updatePromises.push(updateDoc(docRef, { status: 'published', publishedAt: Date.now() }));
+                });
+
+                await Promise.all(updatePromises);
+                showFeedback("Event results published successfully!");
             } catch (err) {
-                showFeedback("Failed to approve result: " + err.message, "error");
+                showFeedback("Failed to publish event results: " + err.message, "error");
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-bullhorn"></i> Publish Results';
+                }
             }
         }
-        window.approveResult = approveResult;
+        window.publishEventResults = publishEventResults;
 
         function fetchPendingResultsFallback() {
-            const tableBody = document.getElementById('pending-table-body');
-            if (tableBody) {
-                tableBody.innerHTML = `
-                    <tr style="background-color: #f8fafc;">
-                        <td colspan="7" style="padding: 0.8rem 1rem; border-bottom: 2px solid #e2e8f0;">
-                            <strong style="color: #0f172a; font-size: 1rem;">
-                                <i class="fa-solid fa-masks-theater" style="color: #475569; margin-right: 8px;"></i>
-                                Tech Hackathon <span style="color: #64748b; font-size: 0.85rem; font-weight: normal;">(General Open)</span>
-                            </strong>
-                        </td>
-                    </tr>
-                    <tr id="row-mock-1">
-                        <td><span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#1</span><strong>104</strong></td>
-                        <td>Rashid K<br><small style="color:#64748b;">Al-Huda Unit</small></td>
-                        <td>Tech Hackathon<br><small style="color:#64748b;">General Open</small></td>
-                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
-                        <td><strong>A</strong></td>
-                        <td><span class="badge badge-pending">pending</span></td>
-                        <td>
-                            <button class="btn btn-sm" onclick="approveResult('mock-1')">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                        </td>
-                    </tr>
-                    <tr id="row-mock-2">
-                        <td><span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-right: 8px;">#2</span><strong>109</strong></td>
-                        <td>Sameer H<br><small style="color:#64748b;">Uhud Warriors</small></td>
-                        <td>Tech Hackathon<br><small style="color:#64748b;">General Open</small></td>
-                        <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
-                        <td><strong>B</strong></td>
-                        <td><span class="badge badge-pending">pending</span></td>
-                        <td>
-                            <button class="btn btn-sm" onclick="approveResult('mock-2')">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                        </td>
-                    </tr>
+            const container = document.getElementById('verify-cards-container');
+            if (container) {
+                container.innerHTML = `
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header" style="background: #f8fafc; margin: -2rem -2rem 1.5rem -2rem; padding: 1.5rem 2rem; border-radius: 16px 16px 0 0; border-bottom: 1px solid #e2e8f0;">
+                        <div class="card-title">
+                            <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
+                            Tech Hackathon <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 8px;">(General Open)</span>
+                        </div>
+                        <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Position</th>
+                                    <th>Chest No</th>
+                                    <th>Participant</th>
+                                    <th>Team</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#1</span></td>
+                                    <td><strong>104</strong></td>
+                                    <td>Rashid K</td>
+                                    <td>Al-Huda Unit</td>
+                                    <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
+                                    <td><strong style="font-size: 1.1rem;">A</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#2</span></td>
+                                    <td><strong>109</strong></td>
+                                    <td>Sameer H</td>
+                                    <td>Uhud Warriors</td>
+                                    <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
+                                    <td><strong style="font-size: 1.1rem;">B</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                        <button class="btn" id="btn-pub-mock" onclick="publishEventResults('mock')"><i class="fa-solid fa-bullhorn"></i> Publish Results</button>
+                    </div>
+                </div>
                 `;
             }
         }
