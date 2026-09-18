@@ -502,8 +502,33 @@
         let currentParticipants = [];
         let positionCount = 0;
 
+        // Helper functions for category normalization
+        function normalizeCategory(cat) {
+            if (!cat) return '';
+            return cat.toString().toLowerCase().replace(/[\s\-_]/g, '');
+        }
+
+        function isCategoryMatch(eventCat, selectedCat) {
+            if (!selectedCat) return true;
+            return normalizeCategory(eventCat) === normalizeCategory(selectedCat);
+        }
+
+        function formatCategoryDisplay(cat) {
+            const norm = normalizeCategory(cat);
+            if (norm === 'subjunior') return 'Sub Junior';
+            if (norm === 'generalopen' || norm === 'general') return 'General Open';
+            if (norm === 'junior') return 'Junior';
+            if (norm === 'senior') return 'Senior';
+            return cat || 'General';
+        }
+
         // DYNAMIC POSITION CARD ADDER (Fixed String Literals)
         window.addPositionCard = function(posNumber = null) {
+            if (!currentParticipants || currentParticipants.length === 0) {
+                alert("No participants registered for this program.");
+                return;
+            }
+
             if (!posNumber) {
                 positionCount++;
                 posNumber = positionCount;
@@ -512,6 +537,7 @@
             }
             
             const container = document.getElementById('judge-participants-list');
+            if (!container) return;
             
             const options = currentParticipants.map(p => 
                 `<option value="${p.chestNo}">${p.chestNo} - ${p.name || p.team}</option>`
@@ -593,7 +619,7 @@
 
             // Update subtitle (Category • Type)
             if (metaEl) {
-                const category = eventData.category || 'General';
+                const category = formatCategoryDisplay(eventData.category);
                 const type = eventData.type ? `${eventData.type} Event` : 'Single Event';
                 metaEl.innerHTML = `
                     <span>${category}</span>
@@ -641,7 +667,7 @@
             progSelect.innerHTML = '';
 
             const filteredEvents = selectedCategory
-                ? allEvents.filter(ev => (ev.category || '').trim().toLowerCase() === selectedCategory.toLowerCase())
+                ? allEvents.filter(ev => isCategoryMatch(ev.category, selectedCategory))
                 : allEvents;
 
             if (filteredEvents.length === 0) {
@@ -681,24 +707,27 @@
         }
         window.onProgramChanged = onProgramChanged;
 
-        // 2. Load Participants for selected Event
+        // 2. Load Participants for selected Event (strictly filtered by eventCode)
         async function loadParticipantsForEvent(eventCode) {
             const container = document.getElementById('judge-participants-list');
             if (!container) return;
             
             positionCount = 0;
-            container.innerHTML = '';
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading participants for ' + eventCode + '...</p>';
 
-            if (!eventCode) return;
+            if (!eventCode) {
+                container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">Please select a program.</p>';
+                return;
+            }
 
             if (!isConfigured) {
-                // Keep initial static cards for preview
+                // Mock preview participants
                 currentParticipants = [
-                    { chestNo: '104', name: 'Rashid K', team: 'Al-Huda Unit' },
-                    { chestNo: '122', name: 'Aman M', team: 'Badr Squad' },
-                    { chestNo: '109', name: 'Sameer H', team: 'Uhud Warriors' },
-                    { chestNo: '201', name: 'Ayesha M', team: 'Arafat Team' }
+                    { chestNo: '104', name: 'Rashid K', team: 'Al-Huda Unit', events: [eventCode] },
+                    { chestNo: '122', name: 'Aman M', team: 'Badr Squad', events: [eventCode] },
+                    { chestNo: '109', name: 'Sameer H', team: 'Uhud Warriors', events: [eventCode] }
                 ];
+                container.innerHTML = '';
                 window.addPositionCard(1);
                 window.addPositionCard(2);
                 window.addPositionCard(3);
@@ -706,25 +735,55 @@
             }
 
             try {
-                const q = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
-                const snapshot = await getDocs(q);
+                // Query Firestore strictly for participants with this eventCode in their events array
+                const codeUpper = eventCode.toUpperCase();
+                const q = query(collection(db, 'participants'), where('events', 'array-contains', codeUpper));
+                let snapshot = await getDocs(q);
+
+                // Fallback query if eventCode is stored in original casing and differs
+                if (snapshot.empty && codeUpper !== eventCode) {
+                    const qExact = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
+                    snapshot = await getDocs(qExact);
+                }
 
                 currentParticipants = [];
+                const seenChestNos = new Set();
                 snapshot.forEach(docSnap => {
-                    currentParticipants.push(docSnap.data());
+                    const data = docSnap.data();
+                    const cNo = String(data.chestNo || docSnap.id);
+                    if (!seenChestNos.has(cNo)) {
+                        seenChestNos.add(cNo);
+                        currentParticipants.push(data);
+                    }
                 });
 
+                container.innerHTML = '';
+
+                // Strictly do NOT load all participants if none are registered for this event
                 if (currentParticipants.length === 0) {
-                    const allSnap = await getDocs(collection(db, 'participants'));
-                    allSnap.forEach(docSnap => {
-                        currentParticipants.push(docSnap.data());
-                    });
+                    container.innerHTML = `
+                        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 2.5rem 1.5rem; text-align: center; margin: 1rem 0;">
+                            <i class="fa-solid fa-user-slash" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.75rem; display: block;"></i>
+                            <h3 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">No Participants Registered</h3>
+                            <p style="color: #64748b; font-size: 0.88rem; margin: 0;">No participants have registered for <strong>${eventCode}</strong> yet. Register candidates in the Admin Panel to evaluate.</p>
+                        </div>
+                    `;
+                    return;
                 }
-                
-                // Add Top 3 initially
-                window.addPositionCard(1);
-                window.addPositionCard(2);
-                window.addPositionCard(3);
+
+                // Sort participants numerically by chestNo
+                currentParticipants.sort((a, b) => {
+                    const numA = parseInt(a.chestNo, 10);
+                    const numB = parseInt(b.chestNo, 10);
+                    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                    return String(a.chestNo).localeCompare(String(b.chestNo));
+                });
+
+                // Populate initial cards up to number of participants (default max 3)
+                const initialSlots = Math.min(currentParticipants.length, 3);
+                for (let i = 1; i <= initialSlots; i++) {
+                    window.addPositionCard(i);
+                }
 
             } catch (err) {
                 console.error("Error loading participants:", err);
