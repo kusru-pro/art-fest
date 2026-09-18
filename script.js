@@ -11,6 +11,7 @@ import {
     query, 
     where, 
     orderBy, 
+    limit,
     onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -705,45 +706,85 @@ function calculateAndRenderLeaderboard(resultsList) {
     animateCounters();
 }
 
-// C. Real-time Gallery Listener
+// C. Real-time Gallery Listener & Festival Moments Mini-Gallery
+async function loadMiniGallery() {
+    const miniGalleryGrid = document.querySelector('.mini-gallery-grid');
+    if (!miniGalleryGrid) return;
+
+    if (!isConfigured) return;
+
+    try {
+        // Firestore query to fetch the 5 most recent images from the 'gallery' collection
+        const miniGalleryQuery = query(
+            collection(db, 'gallery'),
+            orderBy('timestamp', 'desc'),
+            limit(5)
+        );
+
+        onSnapshot(miniGalleryQuery, (snapshot) => {
+            renderMiniGallery(snapshot);
+        }, async (error) => {
+            console.warn("Real-time listener for mini gallery failed, falling back to getDocs:", error);
+            try {
+                const snap = await getDocs(miniGalleryQuery);
+                renderMiniGallery(snap);
+            } catch (err) {
+                console.error("Error fetching mini-gallery images:", err);
+            }
+        });
+    } catch (err) {
+        console.error("Error setting up mini gallery query:", err);
+    }
+}
+window.loadMiniGallery = loadMiniGallery;
+
+function renderMiniGallery(snapshot) {
+    const miniGalleryGrid = document.querySelector('.mini-gallery-grid');
+    if (!miniGalleryGrid) return;
+
+    const photos = [];
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const url = data.imageUrl || data.url || data.image;
+        if (url) photos.push(url);
+    });
+
+    if (photos.length === 0) {
+        return;
+    }
+
+    // Dynamically populate .mini-gallery-grid:
+    // First 2 images get class 'item-large', remaining 3 get class 'item-small'
+    miniGalleryGrid.innerHTML = photos.slice(0, 5).map((src, index) => {
+        const sizeClass = index < 2 ? 'item-large' : 'item-small';
+        return `
+            <div class="mini-gallery-item ${sizeClass}" onclick="openGalleryModal('${src}')">
+                <img src="${src}" alt="Festival Moment ${index + 1}">
+                <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+            </div>
+        `;
+    }).join('');
+}
+window.renderMiniGallery = renderMiniGallery;
+
 function initGalleryRealtimeListener() {
     if (!isConfigured) return;
 
+    // 1. Dynamically load the 5 most recent images into Home Page Festival Moments
+    loadMiniGallery();
+
+    // 2. Real-time listener for full Gallery section
     const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
     onSnapshot(q, (snapshot) => {
         const photos = [];
-        snapshot.forEach(docSnap => photos.push(docSnap.data().imageUrl));
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const url = data.imageUrl || data.url || data.image;
+            if (url) photos.push(url);
+        });
 
         if (photos.length === 0) return;
 
-        // 1. Update Home Mini Gallery Preview (5 Photos)
-        const miniGalleryGrid = document.querySelector('.mini-gallery-grid');
-        if (miniGalleryGrid && photos.length >= 5) {
-            miniGalleryGrid.innerHTML = `
-                <div class="mini-gallery-item item-large" onclick="openGalleryModal('${photos[0]}')">
-                    <img src="${photos[0]}" alt="Festival Photo">
-                    <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
-                </div>
-                <div class="mini-gallery-item item-large" onclick="openGalleryModal('${photos[1]}')">
-                    <img src="${photos[1]}" alt="Festival Photo">
-                    <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
-                </div>
-                <div class="mini-gallery-item item-small" onclick="openGalleryModal('${photos[2]}')">
-                    <img src="${photos[2]}" alt="Festival Photo">
-                    <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
-                </div>
-                <div class="mini-gallery-item item-small" onclick="openGalleryModal('${photos[3]}')">
-                    <img src="${photos[3]}" alt="Festival Photo">
-                    <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
-                </div>
-                <div class="mini-gallery-item item-small" onclick="openGalleryModal('${photos[4]}')">
-                    <img src="${photos[4]}" alt="Festival Photo">
-                    <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
-                </div>
-            `;
-        }
-
-        // 2. Update Main Gallery Grid
         const mainGalleryGrid = document.querySelector('#gallery .gallery-grid');
         if (mainGalleryGrid) {
             mainGalleryGrid.innerHTML = photos.map((url, i) => `
