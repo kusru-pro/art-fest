@@ -595,7 +595,7 @@
                     </div>
                     <p style="font-size: 0.85rem; color: #475569; margin-top: 0.8rem;">
                         <strong>Format:</strong> <code>ChestNo, Name, Team, Category, EventCode1|EventCode2</code> <br>
-                        (Events must be separated by the <b>|</b> symbol. E.g. <i>101, Rashid, Al-Huda Unit, Senior, EL-ENG|QIR-01</i>)
+                        (Events must be separated by the <b>|</b> symbol. E.g. <i>101, Rashid, Team 1, Senior, EL-ENG|QIR-01</i>)
                     </p>
                 </div>
 
@@ -628,10 +628,11 @@
                                 <label>Team / Unit *</label>
                                 <select id="part-team" required>
                                     <option value="">Select a team</option>
-                                    <option value="Al-Huda Unit">Al-Huda Unit</option>
-                                    <option value="Badr Squad">Badr Squad</option>
-                                    <option value="Uhud Warriors">Uhud Warriors</option>
-                                    <option value="Arafat Team">Arafat Team</option>
+                                    <option value="Team 1">Team 1</option>
+                                    <option value="Team 2">Team 2</option>
+                                    <option value="Team 3">Team 3</option>
+                                    <option value="Team 4">Team 4</option>
+                                    <option value="Team 5">Team 5</option>
                                 </select>
                             </div>
                             <div class="form-group full-width">
@@ -1272,8 +1273,8 @@
         function initParticipantsListener() {
             if (!isConfigured) {
                 participantsCache = {
-                    "101": { chestNo: "101", name: "Rashid K", category: "Senior", team: "Al-Huda Unit", events: ["EL-ENG"] },
-                    "102": { chestNo: "102", name: "Ameen", category: "Junior", team: "Badr Squad", events: ["QIR-01"] }
+                    "101": { chestNo: "101", name: "Rashid K", category: "Senior", team: "Team 1", events: ["EL-ENG"] },
+                    "102": { chestNo: "102", name: "Ameen", category: "Junior", team: "Team 2", events: ["QIR-01"] }
                 };
                 renderParticipantsTable(Object.values(participantsCache));
                 return;
@@ -1802,7 +1803,7 @@
                                             <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#1</span></td>
                                             <td><strong>104</strong></td>
                                             <td>Rashid K</td>
-                                            <td>Al-Huda Unit</td>
+                                            <td>Team 1</td>
                                             <td><strong style="color: #1e3a8a; font-size: 1.1rem;">95</strong></td>
                                             <td><strong style="font-size: 1.1rem;">A</strong></td>
                                         </tr>
@@ -1810,7 +1811,7 @@
                                             <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#2</span></td>
                                             <td><strong>109</strong></td>
                                             <td>Sameer H</td>
-                                            <td>Uhud Warriors</td>
+                                            <td>Team 3</td>
                                             <td><strong style="color: #1e3a8a; font-size: 1.1rem;">89</strong></td>
                                             <td><strong style="font-size: 1.1rem;">B</strong></td>
                                         </tr>

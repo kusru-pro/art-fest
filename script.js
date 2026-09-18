@@ -303,7 +303,7 @@ async function submitLogin() {
                 renderParticipantDashboard({
                     name: chestNo === '104' ? 'Rashid K' : 'Participant #' + chestNo,
                     chestNo: chestNo,
-                    teamName: 'Al-Huda Unit',
+                    teamName: 'Team 1',
                     events: [
                         { eventName: 'English Elocution', category: 'Senior', displayStatus: '🏆 1st Place - A Grade', statusClass: 'status-win' },
                         { eventName: 'Qira\'at', category: 'General', displayStatus: '⏳ Pending Result', statusClass: 'status-pending' },
