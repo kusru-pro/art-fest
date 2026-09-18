@@ -852,7 +852,6 @@
 
                 showFeedback("Processing CSV...", "success");
 
-                // Skip header (i=1)
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     
@@ -863,7 +862,6 @@
                         const team = cols[2].trim();
                         const category = cols[3].trim();
                         
-                        // Parse events separated by |
                         const eventsString = cols.slice(4).join(','); 
                         const events = eventsString.split('|').map(e => e.trim()).filter(e => e);
 
@@ -1109,7 +1107,6 @@
                 return;
             }
             
-            // Listen to ALL results to group them by event and check overall status
             onSnapshot(collection(db, 'results'), (snapshot) => {
                 const container = document.getElementById('verify-cards-container');
                 const countBadge = document.getElementById('pending-count');
@@ -1137,7 +1134,6 @@
                 let publishedEventsCount = 0;
                 let htmlContent = '';
 
-                // Sort groups so pending events appear at the top
                 const sortedEvents = Object.entries(grouped).sort((a, b) => {
                     const aPub = a[1].every(r => r.status === 'published');
                     const bPub = b[1].every(r => r.status === 'published');
@@ -1146,15 +1142,12 @@
                 });
 
                 sortedEvents.forEach(([eventCode, results]) => {
-                    // Sort inside the card by position (1, 2, 3...)
                     results.sort((a, b) => {
                         if (a.position && b.position) return a.position - b.position;
                         return (b.totalMark || 0) - (a.totalMark || 0);
                     });
 
                     const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
-                    
-                    // Check if all results for this event are published
                     const isPublished = results.every(r => r.status === 'published');
                     
                     if (isPublished) publishedEventsCount++;
@@ -1192,16 +1185,16 @@
                                 <tbody>
                                     ${results.map(res => {
                                         const participant = participantsCache[res.chestNo] || { name: 'Participant ' + res.chestNo, team: 'Contesting Unit' };
-                                        return \`
+                                        return `
                                             <tr>
-                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#\${res.position || '-'}</span></td>
-                                                <td><strong>\${res.chestNo}</strong></td>
-                                                <td>\${participant.name}</td>
-                                                <td>\${participant.team}</td>
-                                                <td><strong style="color: #1e3a8a; font-size: 1.1rem;">\${res.totalMark || '-'}</strong></td>
-                                                <td><strong style="font-size: 1.1rem;">\${res.grade || '-'}</strong></td>
+                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
+                                                <td><strong>${res.chestNo}</strong></td>
+                                                <td>${participant.name}</td>
+                                                <td>${participant.team}</td>
+                                                <td><strong style="color: #1e3a8a; font-size: 1.1rem;">${res.totalMark || '-'}</strong></td>
+                                                <td><strong style="font-size: 1.1rem;">${res.grade || '-'}</strong></td>
                                             </tr>
-                                        \`;
+                                        `;
                                     }).join('')}
                                 </tbody>
                             </table>
@@ -1238,7 +1231,6 @@
             }
 
             try {
-                // Find all pending results for this specific event
                 const q = query(collection(db, 'results'), where('eventCode', '==', eventCode), where('status', '==', 'pending'));
                 const snapshot = await getDocs(q);
                 
