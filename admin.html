@@ -1029,13 +1029,14 @@
                             <thead>
                                 <tr>
                                     <th>Chest No</th>
-                                    <th>Participant / Team</th>
+                                    <th>Name</th>
+                                    <th>Team</th>
                                     <th>Scanner / Manual Verify</th>
                                     <th>Status & Code</th>
                                 </tr>
                             </thead>
                             <tbody id="attendance-table-body">
-                                <tr><td colspan="4" style="text-align:center; color:#64748b;">Select a category and program to view participants.</td></tr>
+                                <tr><td colspan="5" style="text-align:center; color:#64748b;">Select a category and program to view participants.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2854,24 +2855,55 @@
         }
         window.onAttendanceCategoryChanged = onAttendanceCategoryChanged;
 
-        function onAttendanceEventChanged() {
+        let spotRegistrationParticipants = [];
+
+        async function onAttendanceEventChanged() {
             const eventSelect = document.getElementById('attendance-event');
             const eventCode = eventSelect ? eventSelect.value : null;
+            
             if (attendanceSnapshotUnsub) {
                 attendanceSnapshotUnsub();
                 attendanceSnapshotUnsub = null;
             }
+            
             currentAttendanceData = {};
+            spotRegistrationParticipants = [];
+            
+            const tbody = document.getElementById('attendance-table-body');
+            if (tbody) {
+                if (!eventCode) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching participants...</td></tr>';
+            }
+
             if (eventCode && isConfigured) {
-                const q = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
-                attendanceSnapshotUnsub = onSnapshot(q, (snapshot) => {
-                    currentAttendanceData = {};
-                    snapshot.forEach(doc => {
-                        currentAttendanceData[doc.data().chestNo] = doc.data();
+                try {
+                    // Query the participants collection directly for this event
+                    const partsQuery = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
+                    const partsSnap = await getDocs(partsQuery);
+                    
+                    partsSnap.forEach(docSnap => {
+                        spotRegistrationParticipants.push(docSnap.data());
                     });
-                    renderAttendanceTable(eventCode);
-                });
-            } else {
+                    
+                    // Now listen to the attendance collection for real-time status updates
+                    const q = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
+                    attendanceSnapshotUnsub = onSnapshot(q, (snapshot) => {
+                        currentAttendanceData = {};
+                        snapshot.forEach(doc => {
+                            currentAttendanceData[doc.data().chestNo] = doc.data();
+                        });
+                        renderAttendanceTable(eventCode);
+                    });
+                } catch (err) {
+                    console.error("Error fetching spot registration data:", err);
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ef4444;">Error fetching data: ${err.message}</td></tr>`;
+                }
+            } else if (!isConfigured) {
+                // Mock behavior
+                spotRegistrationParticipants = Object.values(participantsCache).filter(p => p.events && p.events.includes(eventCode));
                 renderAttendanceTable(eventCode);
             }
         }
@@ -2882,24 +2914,20 @@
             if (!tbody) return;
 
             if (!eventCode) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
                 return;
             }
 
-            // Find participants for this event
-            const matchedParticipants = Object.values(participantsCache).filter(p => {
-                return p.events && p.events.includes(eventCode);
-            });
-
-            if (matchedParticipants.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">No participants registered for this program.</td></tr>';
+            if (spotRegistrationParticipants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No participants registered for this program.</td></tr>';
                 return;
             }
 
-            matchedParticipants.sort((a, b) => (parseInt(a.chestNo) || 0) - (parseInt(b.chestNo) || 0));
+            // Sort participants logically
+            spotRegistrationParticipants.sort((a, b) => (parseInt(a.chestNo) || 0) - (parseInt(b.chestNo) || 0));
 
             let html = '';
-            matchedParticipants.forEach(p => {
+            spotRegistrationParticipants.forEach(p => {
                 const att = currentAttendanceData[p.chestNo];
                 const isDone = !!att;
                 const statusBadge = isDone 
@@ -2911,8 +2939,9 @@
                         <td><strong>${p.chestNo}</strong></td>
                         <td>
                             <div style="font-weight:600; color:#0f172a;">${p.name || '-'}</div>
-                            <div style="font-size:0.8rem; color:#64748b;">${p.team}</div>
+                            <small style="color: #64748b;">${p.category || 'General'}</small>
                         </td>
+                        <td>${p.team || '-'}</td>
                         <td>
                             ${isDone ? `<span style="color:#16a34a; font-size:0.9rem;"><i class="fa-solid fa-check-circle"></i> Complete</span>` : `
                             <div style="display:flex; gap:10px; align-items:center;">
