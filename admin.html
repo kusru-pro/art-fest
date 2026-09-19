@@ -15,6 +15,9 @@
 
     <!-- html2canvas for ID Card Download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- html5-qrcode for Spot Registration Scanner -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         :root {
@@ -1109,6 +1112,17 @@
                             </select>
                         </div>
                     </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <button id="btn-scan-qr" class="btn btn-primary" style="background: #1e3a8a;" onclick="window.startQRScanner()">
+                            <i class="fa-solid fa-qrcode"></i> Scan Chest No / QR
+                        </button>
+                        <button id="btn-close-registration" class="btn" style="background: #ef4444; color: white;" onclick="window.closeEventRegistration()" disabled>
+                            <i class="fa-solid fa-lock"></i> Close Registration for this Event
+                        </button>
+                    </div>
+                    
+                    <div id="qr-reader" style="display: none; width: 100%; max-width: 500px; margin-bottom: 1.5rem; border-radius: 8px; overflow: hidden; border: 2px solid #cbd5e1;"></div>
 
                     <div class="table-responsive">
                         <table class="data-table">
@@ -2256,24 +2270,24 @@
                         const winnerTeam = winnerPart.team || winner.team || 'Independent';
 
                         publishedHtml += `
-                        <div class="accordion-card" style="border-left: 4px solid #16a34a;">
-                            <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')">
+                        <div class="accordion-card" style="border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: none; margin-bottom: 0.5rem;">
+                            <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')" style="padding: 0.75rem 1rem; background: #ffffff;">
                                 <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
-                                    <span style="font-size: 0.9rem; font-weight: 500; color: #64748b;">(${eventInfo.category})</span>
-                                    <span style="font-size: 0.85rem; color: #15803d; background: #f0fdf4; padding: 2px 10px; border-radius: 12px; font-weight: 600;">
+                                    <span style="font-weight: 600; color: #334155; font-size: 0.95rem;">${eventCode} - ${eventInfo.eventName}</span>
+                                    <span style="font-size: 0.8rem; font-weight: 500; color: #94a3b8;">(${eventInfo.category})</span>
+                                    <span style="font-size: 0.75rem; color: #15803d; background: #f0fdf4; padding: 1px 6px; border-radius: 4px; font-weight: 600;">
                                         🥇 1st: ${winnerName} (${winnerTeam})
                                     </span>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 15px;">
-                                    <span class="badge" style="background: #dcfce7; color: #15803d; font-weight:700;"><i class="fa-solid fa-check-double"></i> Published</span>
-                                    <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="badge" style="background: transparent; color: #64748b; font-size: 0.75rem; border: 1px solid #cbd5e1;"><i class="fa-solid fa-check"></i> Published</span>
+                                    <i class="fa-solid fa-chevron-down accordion-icon" style="font-size: 0.8rem;"></i>
                                 </div>
                             </div>
                             <div class="accordion-content" id="acc-content-pub-${eventCode}">
-                                <div style="padding: 1.5rem 2rem;">
+                                <div style="padding: 0.75rem 1rem;">
                                     <div class="table-responsive">
-                                        <table class="data-table">
+                                        <table class="data-table" style="font-size: 0.85rem;">
                                             <thead>
                                                 <tr>
                                                     <th>Rank</th>
@@ -2314,11 +2328,11 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                        <span style="font-size: 0.85rem; color: #16a34a; font-weight: 600;">
-                                            <i class="fa-solid fa-globe"></i> Live on Public Results & Actively Counted in Team Points Leaderboard
+                                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                        <span style="font-size: 0.75rem; color: #16a34a; font-weight: 600;">
+                                            <i class="fa-solid fa-globe"></i> Live on Public Results
                                         </span>
-                                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="unpublishEventResults('${eventCode}')">
+                                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="unpublishEventResults('${eventCode}')">
                                             <i class="fa-solid fa-rotate-left"></i> Unpublish / Revert to Pending
                                         </button>
                                     </div>
@@ -3062,12 +3076,27 @@
 
         function renderAttendanceTable(eventCode) {
             const tbody = document.getElementById('attendance-table-body');
+            const closeBtn = document.getElementById('btn-close-registration');
+            const scanBtn = document.getElementById('btn-scan-qr');
+            
             if (!tbody) return;
 
             if (!eventCode) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
+                if (closeBtn) closeBtn.disabled = true;
+                if (scanBtn) scanBtn.disabled = true;
                 return;
             }
+
+            const chosenEvent = Object.values(eventsCache).find(ev => ev.eventCode === eventCode || ev.eventName === eventCode);
+            const isClosed = chosenEvent && chosenEvent.isRegistrationClosed;
+            
+            if (closeBtn) {
+                closeBtn.disabled = isClosed;
+                closeBtn.innerHTML = isClosed ? '<i class="fa-solid fa-lock"></i> Registration Closed' : '<i class="fa-solid fa-lock"></i> Close Registration for this Event';
+                closeBtn.style.background = isClosed ? '#9ca3af' : '#ef4444';
+            }
+            if (scanBtn) scanBtn.disabled = isClosed;
 
             if (spotRegistrationParticipants.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No participants registered for this program.</td></tr>';
@@ -3080,26 +3109,28 @@
             let html = '';
             spotRegistrationParticipants.forEach(p => {
                 const att = currentAttendanceData[p.chestNo];
-                const isDone = !!att;
-                const statusBadge = isDone 
-                    ? `<span class="badge" style="background:#dcfce7; color:#15803d;"><i class="fa-solid fa-check"></i> Verified (Code: ${att.codeLetter})</span>`
-                    : `<span class="badge" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+                const isDone = att && att.status !== 'relegated';
+                const isRelegated = att && att.status === 'relegated';
+                
+                let statusBadge = `<span class="badge" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+                if (isDone) statusBadge = `<span class="badge" style="background:#dcfce7; color:#15803d;"><i class="fa-solid fa-check"></i> Verified (Code: ${att.codeLetter})</span>`;
+                else if (isRelegated) statusBadge = `<span class="badge" style="background:#fee2e2; color:#991b1b;"><i class="fa-solid fa-ban"></i> Relegated</span>`;
 
                 html += `
                     <tr>
                         <td><strong>${p.chestNo}</strong></td>
                         <td>
-                            <div style="font-weight:600; color:#0f172a;">${p.name || '-'}</div>
+                            <div style="font-weight:600; color:#0f172a;">${p.name || '-'} ${isRelegated ? '<span class="badge" style="background:#fee2e2; color:#b91c1c; font-size:0.7rem; padding: 2px 6px; margin-left: 5px;">Relegated</span>' : ''}</div>
                             <small style="color: #64748b;">${p.category || 'General'}</small>
                         </td>
                         <td>${p.team || '-'}</td>
                         <td>
-                            ${isDone ? `<span style="color:#16a34a; font-size:0.9rem;"><i class="fa-solid fa-check-circle"></i> Complete</span>` : `
+                            ${isDone ? `<span style="color:#16a34a; font-size:0.9rem;"><i class="fa-solid fa-check-circle"></i> Complete</span>` : (isRelegated ? `<span style="color:#991b1b; font-size:0.9rem;"><i class="fa-solid fa-times-circle"></i> Closed</span>` : `
                             <div style="display:flex; gap:10px; align-items:center;">
-                                <input type="text" id="att-input-${p.chestNo}" placeholder="Scan/Type Chest No" style="width:140px; padding:0.4rem; font-size:0.85rem;" onkeypress="if(event.key==='Enter') verifyParticipant('${eventCode}', '${p.chestNo}')">
-                                <button class="btn btn-sm" style="background:#1e3a8a;" onclick="verifyParticipant('${eventCode}', '${p.chestNo}')">Verify</button>
+                                <input type="text" id="att-input-${p.chestNo}" placeholder="Scan/Type Chest No" style="width:140px; padding:0.4rem; font-size:0.85rem;" onkeypress="if(event.key==='Enter') verifyParticipant('${eventCode}', '${p.chestNo}')" ${isClosed ? 'disabled' : ''}>
+                                <button class="btn btn-sm" style="background:#1e3a8a;" onclick="verifyParticipant('${eventCode}', '${p.chestNo}')" ${isClosed ? 'disabled' : ''}>Verify</button>
                             </div>
-                            `}
+                            `)}
                         </td>
                         <td>${statusBadge}</td>
                     </tr>
@@ -3108,6 +3139,89 @@
 
             tbody.innerHTML = html;
         }
+
+        window.closeEventRegistration = async () => {
+            const eventSelect = document.getElementById('attendance-event');
+            const selectedEventName = eventSelect ? eventSelect.value : null;
+            if (!selectedEventName) return;
+
+            const chosenEvent = Object.values(eventsCache).find(ev => ev.eventName === selectedEventName);
+            if (!chosenEvent) return;
+            const eventCode = chosenEvent.eventCode || selectedEventName;
+            
+            if (!confirm(`Are you sure you want to close registration for ${selectedEventName}? Unverified participants will be relegated.`)) return;
+
+            try {
+                // Update event flag
+                if (chosenEvent.id) {
+                    await updateDoc(doc(db, 'events', chosenEvent.id), { isRegistrationClosed: true });
+                }
+
+                // Loop through registered participants and mark unverified as relegated
+                for (const p of spotRegistrationParticipants) {
+                    if (!currentAttendanceData[p.chestNo]) {
+                        const docId = `${eventCode}_${p.chestNo}`;
+                        await setDoc(doc(db, 'attendance', docId), {
+                            eventCode,
+                            chestNo: p.chestNo,
+                            status: 'relegated',
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+                
+                showFeedback("Registration closed and absentees relegated.", "success");
+            } catch (err) {
+                console.error(err);
+                showFeedback("Error closing registration: " + err.message, "error");
+            }
+        };
+
+        let html5QrCode = null;
+        window.startQRScanner = () => {
+            const qrContainer = document.getElementById('qr-reader');
+            if (qrContainer.style.display === 'block') {
+                if (html5QrCode) {
+                    html5QrCode.stop().then(() => {
+                        qrContainer.style.display = 'none';
+                        html5QrCode.clear();
+                    }).catch(err => console.error(err));
+                }
+                return;
+            }
+
+            qrContainer.style.display = 'block';
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    const eventSelect = document.getElementById('attendance-event');
+                    const selectedEventName = eventSelect ? eventSelect.value : null;
+                    if (!selectedEventName) return;
+                    
+                    const chosenEvent = Object.values(eventsCache).find(ev => ev.eventName === selectedEventName);
+                    const internalEventCode = chosenEvent ? chosenEvent.eventCode : selectedEventName;
+                    
+                    verifyParticipant(internalEventCode, decodedText.trim());
+                    
+                    // Stop scanning after success
+                    html5QrCode.stop().then(() => {
+                        qrContainer.style.display = 'none';
+                    });
+                },
+                (errorMessage) => {
+                    // ignore scan errors
+                }
+            ).catch(err => {
+                console.error("Camera error:", err);
+                showFeedback("Failed to start camera. Please ensure permissions are granted.", "error");
+                qrContainer.style.display = 'none';
+            });
+        };
 
         async function verifyParticipant(eventCode, expectedChestNo) {
             const inputEl = document.getElementById(`att-input-${expectedChestNo}`);
@@ -3137,6 +3251,7 @@
                     eventCode,
                     chestNo: expectedChestNo,
                     codeLetter: codeLetter,
+                    status: 'present',
                     timestamp: Date.now()
                 });
                 showFeedback(`Participant verified! Code: ${codeLetter}`, "success");

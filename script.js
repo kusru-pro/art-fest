@@ -369,6 +369,17 @@ async function submitLogin() {
             }
         });
 
+        // Fetch attendance for this participant to check Relegated status
+        const attendanceQuery = query(collection(db, 'attendance'), where('chestNo', '==', String(chestNo)));
+        const attendanceSnap = await getDocs(attendanceQuery);
+        const attendanceMap = {};
+        attendanceSnap.forEach(snap => {
+            const data = snap.data();
+            if (data.eventCode) {
+                attendanceMap[data.eventCode] = data.status || 'present';
+            }
+        });
+
         // Parse events array from participant document
         let rawEvents = participantData.events;
         let eventList = [];
@@ -427,6 +438,11 @@ async function submitLogin() {
             let marks = null;
             let grade = null;
             let points = 0;
+
+            const attStatus = attendanceMap[matchedCode] || attendanceMap[evCodeOrName];
+            if (attStatus === 'relegated') {
+                status = 'relegated';
+            }
 
             if (res) {
                 if (res.status === 'published') {
@@ -573,6 +589,12 @@ function renderStudentPortal(profile) {
             statusBadge = `
                 <span class="portal-badge-status badge-pending">
                     <i class="fa-solid fa-clock"></i> Pending
+                </span>
+            `;
+        } else if (ev.status === 'relegated') {
+            statusBadge = `
+                <span class="portal-badge-status badge-relegated" style="background:#fee2e2; color:#991b1b;">
+                    <i class="fa-solid fa-ban"></i> Relegated
                 </span>
             `;
         } else {
