@@ -593,8 +593,8 @@ function renderStudentPortal(profile) {
             `;
         } else if (ev.status === 'relegated') {
             statusBadge = `
-                <span class="portal-badge-status badge-relegated" style="background:#fee2e2; color:#991b1b;">
-                    <i class="fa-solid fa-ban"></i> Relegated
+                <span class="portal-badge-status badge-relegated" style="background:#fee2e2; color:#991b1b; font-weight: 700;">
+                    <i class="fa-solid fa-ban"></i> Disqualified
                 </span>
             `;
         } else {

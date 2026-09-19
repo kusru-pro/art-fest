@@ -3206,7 +3206,7 @@
                     const chosenEvent = Object.values(eventsCache).find(ev => ev.eventName === selectedEventName);
                     const internalEventCode = chosenEvent ? chosenEvent.eventCode : selectedEventName;
                     
-                    verifyParticipant(internalEventCode, decodedText.trim());
+                    verifyParticipant(internalEventCode, decodedText.trim(), true);
                     
                     // Stop scanning after success
                     html5QrCode.stop().then(() => {
@@ -3223,11 +3223,11 @@
             });
         };
 
-        async function verifyParticipant(eventCode, expectedChestNo) {
+        async function verifyParticipant(eventCode, expectedChestNo, autoVerify = false) {
             const inputEl = document.getElementById(`att-input-${expectedChestNo}`);
             const scannedVal = inputEl ? inputEl.value.trim() : '';
 
-            if (scannedVal !== expectedChestNo) {
+            if (!autoVerify && scannedVal !== expectedChestNo) {
                 showFeedback("Scanned Chest Number does not match!", "error");
                 if (inputEl) {
                     inputEl.value = '';
