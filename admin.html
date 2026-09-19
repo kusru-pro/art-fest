@@ -981,7 +981,6 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Code</th>
                                     <th>Name</th>
                                     <th>Category</th>
                                     <th>Type</th>
@@ -989,7 +988,7 @@
                                 </tr>
                             </thead>
                             <tbody id="events-table-body">
-                                <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                                <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1687,6 +1686,19 @@
             });
         }
 
+        window.toggleParticipantEvents = function(chestNo) {
+            const tr = document.getElementById(`part-events-row-${chestNo}`);
+            const icon = document.getElementById(`part-expand-icon-${chestNo}`);
+            if (!tr) return;
+            if (tr.style.display === 'none') {
+                tr.style.display = 'table-row';
+                if (icon) icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                tr.style.display = 'none';
+                if (icon) icon.className = 'fa-solid fa-chevron-down';
+            }
+        };
+
         function renderParticipantsTable(list) {
             const tbody = document.getElementById('participants-table-body');
             if (!tbody) return;
@@ -1694,10 +1706,59 @@
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: #64748b;">No participants match the selected filter.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = list.map(p => `
+            tbody.innerHTML = list.map(p => {
+                // Parse events array from participant document
+                let rawEvents = p.events;
+                let eventList = [];
+
+                if (Array.isArray(rawEvents)) {
+                    rawEvents.forEach(evItem => {
+                        if (typeof evItem === 'string') {
+                            const parts = evItem.includes('|') ? evItem.split('|') : evItem.split(',');
+                            parts.forEach(pt => {
+                                const trimmed = pt.trim();
+                                if (trimmed) eventList.push(trimmed);
+                            });
+                        } else if (evItem) {
+                            eventList.push(String(evItem).trim());
+                        }
+                    });
+                } else if (typeof rawEvents === 'string') {
+                    const parts = rawEvents.includes('|') ? rawEvents.split('|') : rawEvents.split(',');
+                    parts.forEach(pt => {
+                        const trimmed = pt.trim();
+                        if (trimmed) eventList.push(trimmed);
+                    });
+                }
+
+                eventList = [...new Set(eventList)];
+
+                // Map to event names
+                const eventNamesHtml = eventList.length > 0 
+                    ? eventList.map(evCode => {
+                        let evInfo = eventsCache[evCode];
+                        if (!evInfo) {
+                            const foundCode = Object.keys(eventsCache).find(k => 
+                                eventsCache[k].eventName && eventsCache[k].eventName.toLowerCase() === evCode.toLowerCase()
+                            );
+                            if (foundCode) evInfo = eventsCache[foundCode];
+                        }
+                        return `<li><i class="fa-solid fa-check" style="color: #16a34a; margin-right: 6px;"></i> ${evInfo && evInfo.eventName ? evInfo.eventName : evCode}</li>`;
+                    }).join('')
+                    : '<li style="color:#94a3b8;">No registered programs</li>';
+
+                return `
                 <tr id="part-row-${p.chestNo}">
                     <td><strong>${p.chestNo}</strong></td>
-                    <td>${p.name} <br> <small style="color: #64748b;">${p.category || 'General'}</small></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${p.name} 
+                            <button class="btn btn-sm" style="padding: 2px 6px; background: transparent; color: #64748b; border: none; font-size: 0.9rem;" onclick="toggleParticipantEvents('${p.chestNo}')" title="View Registered Programs">
+                                <i id="part-expand-icon-${p.chestNo}" class="fa-solid fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <small style="color: #64748b;">${p.category || 'General'}</small>
+                    </td>
                     <td>${p.team}</td>
                     <td>
                         <div class="action-buttons">
@@ -1709,7 +1770,18 @@
                         </div>
                     </td>
                 </tr>
-            `).join('');
+                <tr id="part-events-row-${p.chestNo}" style="display: none; background: #f8fafc;">
+                    <td colspan="4" style="padding: 1rem 1.5rem; border-top: none;">
+                        <div style="font-size: 0.85rem; color: #334155;">
+                            <strong>Registered Programs:</strong>
+                            <ul style="list-style: none; padding-left: 0; margin-top: 0.5rem; margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;">
+                                ${eventNamesHtml}
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
         }
 
         let currentQRParticipant = null;
@@ -1924,13 +1996,12 @@
             const tbody = document.getElementById('events-table-body');
             if (!tbody) return;
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #64748b;">No events match the selected filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: #64748b;">No events match the selected filter.</td></tr>`;
                 return;
             }
             tbody.innerHTML = list.map(ev => `
                 <tr id="event-row-${ev.eventCode}">
-                    <td><strong>${ev.eventCode}</strong></td>
-                    <td>${ev.eventName}</td>
+                    <td><strong>${ev.eventName}</strong></td>
                     <td><span class="badge badge-category">${ev.category}</span></td>
                     <td>${ev.type}</td>
                     <td><button class="btn btn-sm btn-danger" onclick="deleteEvent('${ev.eventCode}')"><i class="fa-solid fa-trash"></i></button></td>
@@ -2776,7 +2847,7 @@
             filteredEvents.forEach(ev => {
                 const opt = document.createElement('option');
                 opt.value = ev.eventCode;
-                opt.textContent = `${ev.eventCode} - ${ev.eventName}`;
+                opt.textContent = ev.eventName || ev.eventCode;
                 eventSelect.appendChild(opt);
             });
             onAttendanceEventChanged();

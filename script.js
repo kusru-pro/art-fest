@@ -590,7 +590,7 @@ function renderStudentPortal(profile) {
                         </div>
                         <div>
                             <h4 class="portal-event-name">${ev.eventName}</h4>
-                            <div class="portal-event-meta">${ev.category} Category &bull; Code: ${ev.eventCode}</div>
+                            <div class="portal-event-meta">${ev.category} Category</div>
                         </div>
                     </div>
                     <div class="portal-event-status-wrap">
@@ -744,7 +744,6 @@ function renderLiveResults(resultsList) {
             <div class="accordion-item result-card" data-category="${eventInfo.category}" data-program="${eventInfo.eventName}">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
                     <div class="header-left">
-                        <div class="item-code">${evCode.replace(/[^0-9]/g, '') || '101'}</div>
                         <div class="item-title-group">
                             <span class="event-name">${eventInfo.eventName}</span>
                             <span class="event-category">${eventInfo.category} • Individual</span>

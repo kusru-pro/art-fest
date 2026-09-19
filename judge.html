@@ -687,7 +687,7 @@
             filteredEvents.forEach((ev, idx) => {
                 const opt = document.createElement('option');
                 opt.value = ev.eventCode;
-                opt.textContent = `${ev.eventCode} - ${ev.eventName}`;
+                opt.textContent = ev.eventName || ev.eventCode;
                 if (idx === 0) opt.selected = true;
                 progSelect.appendChild(opt);
             });
