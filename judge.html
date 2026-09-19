@@ -686,7 +686,7 @@
 
             filteredEvents.forEach((ev, idx) => {
                 const opt = document.createElement('option');
-                opt.value = ev.eventCode;
+                opt.value = ev.eventName || ev.eventCode;
                 opt.textContent = ev.eventName || ev.eventCode;
                 if (idx === 0) opt.selected = true;
                 progSelect.appendChild(opt);
@@ -700,22 +700,26 @@
             const progSelect = document.getElementById('judge-event-select');
             if (!progSelect || !progSelect.value) return;
 
-            currentEventCode = progSelect.value;
-            const chosenEvent = allEvents.find(ev => ev.eventCode === currentEventCode);
+            const selectedEventName = progSelect.value;
+            if (!selectedEventName) return;
+
+            const chosenEvent = allEvents.find(ev => ev.eventName === selectedEventName);
+            currentEventCode = chosenEvent ? chosenEvent.eventCode : null;
+            
             updateHeaderDetails(chosenEvent);
-            loadParticipantsForEvent(currentEventCode);
+            loadParticipantsForEvent(selectedEventName, currentEventCode);
         }
         window.onProgramChanged = onProgramChanged;
 
-        // 2. Load Participants for selected Event (strictly filtered by eventCode)
-        async function loadParticipantsForEvent(eventCode) {
+        // 2. Load Participants for selected Event (strictly filtered by Event Name)
+        async function loadParticipantsForEvent(eventName, eventCode) {
             const container = document.getElementById('judge-participants-list');
             if (!container) return;
             
             positionCount = 0;
-            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading participants for ' + eventCode + '...</p>';
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading participants for ' + eventName + '...</p>';
 
-            if (!eventCode) {
+            if (!eventName) {
                 container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">Please select a program.</p>';
                 return;
             }
@@ -723,9 +727,9 @@
             if (!isConfigured) {
                 // Mock preview participants
                 currentParticipants = [
-                    { chestNo: '104', name: 'Rashid K', team: 'Team 1', events: [eventCode], codeLetter: 'A' },
-                    { chestNo: '122', name: 'Aman M', team: 'Team 2', events: [eventCode], codeLetter: 'B' },
-                    { chestNo: '109', name: 'Sameer H', team: 'Team 3', events: [eventCode], codeLetter: 'C' }
+                    { chestNo: '104', name: 'Rashid K', team: 'Team 1', events: [eventName], codeLetter: 'A' },
+                    { chestNo: '122', name: 'Aman M', team: 'Team 2', events: [eventName], codeLetter: 'B' },
+                    { chestNo: '109', name: 'Sameer H', team: 'Team 3', events: [eventName], codeLetter: 'C' }
                 ];
                 container.innerHTML = '';
                 window.addPositionCard(1);
@@ -735,24 +739,13 @@
             }
 
             try {
-                // Query Firestore strictly for participants with this eventCode in their events array
-                const codeUpper = eventCode.toUpperCase();
-                const q = query(collection(db, 'participants'), where('events', 'array-contains', codeUpper));
+                // Query Firestore strictly for participants with this eventName in their events array
+                const q = query(collection(db, 'participants'), where('events', 'array-contains', eventName));
                 let snapshot = await getDocs(q);
 
-                // Fallback query if eventCode is stored in original casing and differs
-                if (snapshot.empty && codeUpper !== eventCode) {
-                    const qExact = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
-                    snapshot = await getDocs(qExact);
-                }
-
-                // Fetch Attendance / Spot Registration for this event
-                const attQ = query(collection(db, 'attendance'), where('eventCode', '==', codeUpper));
+                // Fetch Attendance / Spot Registration for this event (which still uses eventCode internally)
+                const attQ = query(collection(db, 'attendance'), where('eventCode', '==', eventCode || eventName));
                 let attSnapshot = await getDocs(attQ);
-                if (attSnapshot.empty && codeUpper !== eventCode) {
-                    const attQExact = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
-                    attSnapshot = await getDocs(attQExact);
-                }
 
                 const attendanceMap = {};
                 attSnapshot.forEach(doc => {
