@@ -401,10 +401,11 @@
                     <label for="judge-category-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Category</label>
                     <div class="select-wrapper">
                         <select id="judge-category-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
+                            <option value="" disabled selected>Select a Category</option>
                             <option value="Sub Junior">Sub Junior</option>
                             <option value="Junior">Junior</option>
                             <option value="Senior">Senior</option>
-                            <option value="General Open" selected>General Open</option>
+                            <option value="General Open">General Open</option>
                         </select>
                         <i class="fa-solid fa-chevron-down select-chevron" style="right: 0.65rem; font-size: 0.75rem;"></i>
                     </div>
@@ -413,7 +414,7 @@
                     <label for="judge-event-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Program</label>
                     <div class="select-wrapper">
                         <select id="judge-event-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
-                            <option value="EV-101" selected>EV-101 - Tech Hackathon</option>
+                            <option value="" disabled selected>Select an Event</option>
                         </select>
                         <i class="fa-solid fa-chevron-down select-chevron" style="right: 0.65rem; font-size: 0.75rem;"></i>
                     </div>
@@ -421,7 +422,6 @@
             </div>
 
             <div class="judge-info-bar">
-                <span>Session ID: <strong>#JK-2026-88</strong></span>
                 <span class="judge-status-pill">
                     <span class="status-dot"></span> Live Scoring
                 </span>
@@ -656,9 +656,21 @@
             const selectedCategory = catSelect ? catSelect.value.trim() : '';
             progSelect.innerHTML = '';
 
-            const filteredEvents = selectedCategory
-                ? allEvents.filter(ev => isCategoryMatch(ev.category, selectedCategory))
-                : allEvents;
+            if (!selectedCategory) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Select a Category First';
+                opt.disabled = true;
+                opt.selected = true;
+                progSelect.appendChild(opt);
+                currentEventCode = '';
+                updateHeaderDetails(null);
+                const container = document.getElementById('judge-participants-list');
+                if (container) container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">Please select a category and program to begin.</p>';
+                return;
+            }
+
+            const filteredEvents = allEvents.filter(ev => isCategoryMatch(ev.category, selectedCategory));
 
             if (filteredEvents.length === 0) {
                 const opt = document.createElement('option');
