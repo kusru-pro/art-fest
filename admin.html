@@ -948,8 +948,8 @@
                         </div>
                     </div>
                     <p style="font-size: 0.85rem; color: #475569; margin-top: 0.8rem;">
-                        <strong>Format:</strong> <code>EventCode, EventName, Category, Type</code> <br>
-                        (E.g. <i>EL-ENG, English Elocution, Senior, Single</i>)
+                        <strong>Format:</strong> <code>EventName, Category, Type</code> <br>
+                        (E.g. <i>English Elocution, Senior, Single</i>)
                     </p>
                 </div>
 
@@ -1470,11 +1470,13 @@
                     if (!line) continue;
 
                     const cols = line.split(',').map(c => c.trim());
-                    if (cols.length >= 4) {
-                        const eventCode = cols[0].toUpperCase();
-                        const eventName = cols[1];
-                        const category = cols[2];
-                        const type = cols[3];
+                    if (cols.length >= 3) {
+                        const eventName = cols[0];
+                        const category = cols[1];
+                        const type = cols[2];
+                        
+                        // Auto-generate Event Code from Event Name
+                        const eventCode = eventName.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-');
 
                         if (!eventCode || !eventName) continue;
 
@@ -1489,7 +1491,7 @@
                                     alreadyExists = true;
                                 }
                             } catch (err) {
-                                console.warn("Error checking existing event:", err);
+                                console.error(err);
                             }
                         }
 
