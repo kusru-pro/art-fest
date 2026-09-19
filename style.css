@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 /* === CSS Variables & Reset === */
 :root {
     --bg-primary: #a3987c;
@@ -7,7 +9,7 @@
     --accent: #5e4c3a;
     --highlight-gold: #b58500;
     --font-body: 'Poppins', sans-serif;
-    --font-heading: 'Playfair Display', serif;
+    --font-heading: 'Poppins', sans-serif;
 }
 
 * {
