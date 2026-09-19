@@ -1239,6 +1239,65 @@
                 </div>
             </section>
 
+            <!-- Tab 5.5: Star & Icon of the Fest -->
+            <section id="tab-star" class="tab-section">
+                <div class="content-header" style="margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: #0f172a; margin-bottom: 0.5rem;">
+                            <i class="fa-solid fa-star" style="color: #d4af37;"></i> Star & Pen of the Fest
+                        </h2>
+                        <p style="color: #64748b; font-size: 0.95rem;">
+                            Recognizing top individual performers. <strong>Star of the Fest</strong> calculates points from all Single on-stage events. <strong>Pen of the Fest</strong> calculates points from off-stage/writing events.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Overall Icon of the Fest -->
+                <div class="card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; border: none; margin-bottom: 2rem; padding: 2.5rem 1.5rem; text-align: center; border-radius: 12px; box-shadow: 0 10px 25px rgba(30, 58, 138, 0.25);">
+                    <h3 style="font-family: var(--font-heading); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: #bfdbfe; margin-bottom: 1rem;"><i class="fa-solid fa-crown" style="color: #fbbf24;"></i> Icon of the Fest (Overall Highest)</h3>
+                    <div id="icon-fest-container">
+                        <div style="font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 2rem; max-width: 300px;">
+                    <label for="star-category-select">Select Category</label>
+                    <select id="star-category-select" onchange="renderStarOfTheFest()" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%;">
+                        <option value="Sub Junior">Sub Junior</option>
+                        <option value="Junior">Junior</option>
+                        <option value="Senior">Senior</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                    <!-- Star of the Fest Column -->
+                    <div class="card" style="border-top: 4px solid #fbbf24; padding: 1.5rem;">
+                        <div class="card-header" style="border-bottom: 1px dashed #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                            <h2 class="card-title" style="color: #0f172a; font-size: 1.4rem;">
+                                <i class="fa-solid fa-star" style="color: #fbbf24;"></i> Star of the Fest <br>
+                                <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; font-family: var(--font-body);">(Single Events Only)</span>
+                            </h2>
+                        </div>
+                        <div id="star-fest-container">
+                            <p style="text-align: center; color: #94a3b8;">Loading data...</p>
+                        </div>
+                    </div>
+                    <!-- Pen of the Fest Column -->
+                    <div class="card" style="border-top: 4px solid #3b82f6; padding: 1.5rem;">
+                        <div class="card-header" style="border-bottom: 1px dashed #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                            <h2 class="card-title" style="color: #0f172a; font-size: 1.4rem;">
+                                <i class="fa-solid fa-pen-nib" style="color: #3b82f6;"></i> Pen of the Fest <br>
+                                <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; font-family: var(--font-body);">(Off-stage Events Only)</span>
+                            </h2>
+                        </div>
+                        <div id="pen-fest-container">
+                            <p style="text-align: center; color: #94a3b8;">Loading data...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Tab 6: Manage Gallery -->
             <section id="tab-gallery" class="tab-section">
                 <div class="card">
@@ -2558,6 +2617,7 @@
             const q = query(collection(db, 'results'), where('status', '==', 'published'));
             onSnapshot(q, (snapshot) => {
                 const teamScores = {};
+                const indScores = {};
 
                 snapshot.forEach(docSnap => {
                     const r = docSnap.data();
@@ -2565,52 +2625,88 @@
 
                     const participant = participantsCache[r.chestNo];
                     const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
-                    if (!team) return;
-
-                    if (!teamScores[team]) {
-                        teamScores[team] = {
-                            teamName: team,
-                            totalPoints: 0,
-                            firstCount: 0,
-                            secondCount: 0,
-                            thirdCount: 0,
-                            gradeACount: 0,
-                            gradeBCount: 0,
-                            gradeCCount: 0
-                        };
-                    }
+                    const eventInfo = eventsCache[r.eventCode] || {};
 
                     // Accurate Points allocation:
                     // Position: 1st = 5, 2nd = 3, 3rd = 1
+                    let pts = 0;
                     const pos = Number(r.position);
-                    if (pos === 1) {
-                        teamScores[team].totalPoints += 5;
-                        teamScores[team].firstCount++;
-                    } else if (pos === 2) {
-                        teamScores[team].totalPoints += 3;
-                        teamScores[team].secondCount++;
-                    } else if (pos === 3) {
-                        teamScores[team].totalPoints += 1;
-                        teamScores[team].thirdCount++;
-                    }
+                    if (pos === 1) pts += 5;
+                    else if (pos === 2) pts += 3;
+                    else if (pos === 3) pts += 1;
 
                     // Grade: A = 5, B = 3, C = 1
                     const g = (r.grade || '').trim().toUpperCase();
-                    if (g === 'A') {
-                        teamScores[team].totalPoints += 5;
-                        teamScores[team].gradeACount++;
-                    } else if (g === 'B') {
-                        teamScores[team].totalPoints += 3;
-                        teamScores[team].gradeBCount++;
-                    } else if (g === 'C') {
-                        teamScores[team].totalPoints += 1;
-                        teamScores[team].gradeCCount++;
+                    if (g === 'A') pts += 5;
+                    else if (g === 'B') pts += 3;
+                    else if (g === 'C') pts += 1;
+
+                    // 1. Update Team Leaderboard
+                    if (team) {
+                        if (!teamScores[team]) {
+                            teamScores[team] = {
+                                teamName: team,
+                                totalPoints: 0,
+                                firstCount: 0,
+                                secondCount: 0,
+                                thirdCount: 0,
+                                gradeACount: 0,
+                                gradeBCount: 0,
+                                gradeCCount: 0
+                            };
+                        }
+                        
+                        teamScores[team].totalPoints += pts;
+                        if (pos === 1) teamScores[team].firstCount++;
+                        else if (pos === 2) teamScores[team].secondCount++;
+                        else if (pos === 3) teamScores[team].thirdCount++;
+                        
+                        if (g === 'A') teamScores[team].gradeACount++;
+                        else if (g === 'B') teamScores[team].gradeBCount++;
+                        else if (g === 'C') teamScores[team].gradeCCount++;
+                    }
+
+                    // 2. Update Individual Leaderboard (Star / Pen of the Fest)
+                    if (pts > 0 && r.chestNo && r.chestNo.toLowerCase() !== 'none') {
+                        const isGroup = (eventInfo.type || '').toLowerCase() === 'group';
+                        
+                        // Define Off-stage by keywords
+                        const offStageKeywords = ['drawing', 'writing', 'poster', 'painting', 'calligraphy', 'sketch', 'essay', 'story', 'poem', 'versification', 'cartoon'];
+                        const eventNameLower = (eventInfo.eventName || '').toLowerCase().replace(/\s+/g, '');
+                        const isOffStage = offStageKeywords.some(kw => eventNameLower.includes(kw));
+
+                        if (!isGroup) {
+                            if (!indScores[r.chestNo]) {
+                                const cat = participant ? participant.category : (eventInfo.category || 'Unknown');
+                                indScores[r.chestNo] = {
+                                    chestNo: r.chestNo,
+                                    name: participant ? participant.name : 'Unknown',
+                                    category: cat,
+                                    team: team,
+                                    starPoints: 0,
+                                    penPoints: 0,
+                                    totalPoints: 0
+                                };
+                            }
+
+                            if (isOffStage) {
+                                indScores[r.chestNo].penPoints += pts;
+                            } else {
+                                indScores[r.chestNo].starPoints += pts;
+                            }
+                            indScores[r.chestNo].totalPoints += pts;
+                        }
                     }
                 });
 
-                    window.currentAdminLeaderboard = Object.values(teamScores)
-                        .sort((a, b) => b.totalPoints - a.totalPoints);
-                    const sortedTeams = window.currentAdminLeaderboard;
+                window.currentAdminLeaderboard = Object.values(teamScores)
+                    .sort((a, b) => b.totalPoints - a.totalPoints);
+                const sortedTeams = window.currentAdminLeaderboard;
+                
+                window.currentIndividualScores = Object.values(indScores);
+                if (typeof renderStarOfTheFest === 'function') {
+                    renderStarOfTheFest();
+                }
 
                 const tbody = document.getElementById('lb-admin-tbody');
                 if (tbody) {
@@ -2672,7 +2768,96 @@
         };
 
         // =========================================================================
-        // 6. GALLERY & NEWS MANAGEMENT (Using External Links)
+        // 6.5 STAR & PEN OF THE FEST
+        // =========================================================================
+        window.renderStarOfTheFest = function() {
+            if (!window.currentIndividualScores) return;
+
+            const category = document.getElementById('star-category-select').value;
+            
+            // Icon of the Fest (Overall top scorer from ANY category, single events total)
+            const overallSorted = [...window.currentIndividualScores].sort((a, b) => b.totalPoints - a.totalPoints);
+            const iconContainer = document.getElementById('icon-fest-container');
+            
+            if (overallSorted.length > 0 && overallSorted[0].totalPoints > 0) {
+                const icon = overallSorted[0];
+                iconContainer.innerHTML = `
+                    <div style="font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">${icon.name}</div>
+                    <div style="font-size: 1.1rem; color: #bfdbfe; font-weight: 500;">
+                        Chest No: ${icon.chestNo} | Team: ${icon.team} | Category: ${icon.category} <br>
+                        <span style="font-size: 1.5rem; color: #fbbf24; font-weight: 700; margin-top: 5px; display: inline-block;">${icon.totalPoints} pts</span>
+                    </div>
+                `;
+            } else {
+                iconContainer.innerHTML = `<div style="font-size: 1.2rem; color: #93c5fd;">No individual scores recorded yet.</div>`;
+            }
+
+            // Filter for current category
+            const catScores = window.currentIndividualScores.filter(s => {
+                const sCat = (s.category || '').toLowerCase().replace(/\s+/g, '');
+                const selCat = category.toLowerCase().replace(/\s+/g, '');
+                return sCat === selCat;
+            });
+
+            // Render Star of the Fest (On-stage)
+            const starSorted = [...catScores].filter(s => s.starPoints > 0).sort((a, b) => b.starPoints - a.starPoints);
+            const starContainer = document.getElementById('star-fest-container');
+            
+            if (starSorted.length > 0) {
+                let html = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Rank</th><th>Name</th><th>Chest No</th><th>Team</th><th style="text-align: right;">Points</th></tr></thead><tbody>';
+                starSorted.forEach((s, index) => {
+                    const rank = index + 1;
+                    const isFirst = rank === 1;
+                    const rankHtml = isFirst ? '<i class="fa-solid fa-medal" style="color: #fbbf24; font-size: 1.2rem;"></i> 1st' : `#${rank}`;
+                    const rowStyle = isFirst ? 'background: #fffbeb; font-weight: bold; border-left: 3px solid #fbbf24;' : '';
+                    
+                    html += `
+                        <tr style="${rowStyle}">
+                            <td style="font-weight: 700;">${rankHtml}</td>
+                            <td>${s.name}</td>
+                            <td>${s.chestNo}</td>
+                            <td>${s.team}</td>
+                            <td style="text-align: right; color: #0f172a; font-weight: 800;">${s.starPoints} pts</td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                starContainer.innerHTML = html;
+            } else {
+                starContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No on-stage scores for this category.</p>';
+            }
+
+            // Render Pen of the Fest (Off-stage)
+            const penSorted = [...catScores].filter(s => s.penPoints > 0).sort((a, b) => b.penPoints - a.penPoints);
+            const penContainer = document.getElementById('pen-fest-container');
+            
+            if (penSorted.length > 0) {
+                let html = '<div class="table-responsive"><table class="data-table"><thead><tr><th>Rank</th><th>Name</th><th>Chest No</th><th>Team</th><th style="text-align: right;">Points</th></tr></thead><tbody>';
+                penSorted.forEach((s, index) => {
+                    const rank = index + 1;
+                    const isFirst = rank === 1;
+                    const rankHtml = isFirst ? '<i class="fa-solid fa-medal" style="color: #3b82f6; font-size: 1.2rem;"></i> 1st' : `#${rank}`;
+                    const rowStyle = isFirst ? 'background: #eff6ff; font-weight: bold; border-left: 3px solid #3b82f6;' : '';
+                    
+                    html += `
+                        <tr style="${rowStyle}">
+                            <td style="font-weight: 700;">${rankHtml}</td>
+                            <td>${s.name}</td>
+                            <td>${s.chestNo}</td>
+                            <td>${s.team}</td>
+                            <td style="text-align: right; color: #0f172a; font-weight: 800;">${s.penPoints} pts</td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                penContainer.innerHTML = html;
+            } else {
+                penContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No off-stage scores for this category.</p>';
+            }
+        };
+
+        // =========================================================================
+        // 7. GALLERY & NEWS MANAGEMENT (Using External Links)
         // =========================================================================
         async function handleGalleryLinkUpload(event) {
             event.preventDefault();
