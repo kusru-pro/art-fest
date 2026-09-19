@@ -2671,11 +2671,7 @@
         window.deleteGalleryImage = deleteGalleryImage;
 
         function initGalleryListener() {
-            if (!isConfigured) {
-                renderNewGalleryImage({ id: 'mock-1', imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80' });
-                renderNewGalleryImage({ id: 'mock-2', imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&q=80' });
-                return;
-            }
+            if (!isConfigured) return;
             const q = query(collection(db, 'gallery'), orderBy('timestamp', 'desc'));
             onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('gallery-grid-container');

@@ -632,17 +632,7 @@
 
         // 1. Load Events from Firestore
         async function loadEvents() {
-            if (!isConfigured) {
-                allEvents = [
-                    { eventCode: "EV-101", eventName: "Tech Hackathon", category: "General Open", type: "Group" },
-                    { eventCode: "QIR-01", eventName: "Qira'at", category: "General Open", type: "Single" },
-                    { eventCode: "EL-ENG", eventName: "English Elocution", category: "Senior", type: "Single" },
-                    { eventCode: "DRA-01", eventName: "Arabic Drama", category: "Junior", type: "Group" },
-                    { eventCode: "ENG-01", eventName: "Pencil Drawing", category: "Sub Junior", type: "Single" }
-                ];
-                onCategoryChanged();
-                return;
-            }
+            if (!isConfigured) return;
 
             try {
                 const snapshot = await getDocs(collection(db, 'events'));
@@ -724,19 +714,7 @@
                 return;
             }
 
-            if (!isConfigured) {
-                // Mock preview participants
-                currentParticipants = [
-                    { chestNo: '104', name: 'Rashid K', team: 'Team 1', events: [eventName], codeLetter: 'A' },
-                    { chestNo: '122', name: 'Aman M', team: 'Team 2', events: [eventName], codeLetter: 'B' },
-                    { chestNo: '109', name: 'Sameer H', team: 'Team 3', events: [eventName], codeLetter: 'C' }
-                ];
-                container.innerHTML = '';
-                window.addPositionCard(1);
-                window.addPositionCard(2);
-                window.addPositionCard(3);
-                return;
-            }
+            if (!isConfigured) return;
 
             try {
                 // Query Firestore strictly for participants with this eventName in their events array
@@ -858,14 +836,9 @@
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting to Council...';
 
             if (!isConfigured) {
-                setTimeout(() => {
-                    feedback.style.display = 'block';
-                    feedback.style.background = '#dcfce7';
-                    feedback.style.color = '#15803d';
-                    feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Evaluations submitted in preview mode! (Add Firebase keys for cloud sync)';
-                    btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Submitted Successfully';
-                    btn.style.background = '#15803d';
-                }, 700);
+                alert("Database connection is not configured.");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to Council';
                 return;
             }
 

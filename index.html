@@ -112,41 +112,7 @@
                 </div>
 
                 <div class="mini-news-grid">
-                    <div class="mini-news-card" onclick="openNewsModal(1)">
-                        <div class="mini-news-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Chief Guest Arrives">
-                        </div>
-                        <div class="mini-news-body">
-                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 12, 2026</span>
-                            <h3 class="mini-news-title">Chief Guest Arrives</h3>
-                            <p class="mini-news-excerpt">Renowned artist Dr. Menon has arrived at the venue to inaugurate the grand festival...</p>
-                            <span class="mini-news-more">Read Story &rarr;</span>
-                        </div>
-                    </div>
-
-                    <div class="mini-news-card" onclick="openNewsModal(2)">
-                        <div class="mini-news-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Schedule Update">
-                        </div>
-                        <div class="mini-news-body">
-                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 12, 2026</span>
-                            <h3 class="mini-news-title">Schedule Update</h3>
-                            <p class="mini-news-excerpt">The English Debate for the senior category has been postponed by 30 minutes...</p>
-                            <span class="mini-news-more">Read Story &rarr;</span>
-                        </div>
-                    </div>
-
-                    <div class="mini-news-card" onclick="openNewsModal(3)">
-                        <div class="mini-news-img-wrap">
-                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Record Participation">
-                        </div>
-                        <div class="mini-news-body">
-                            <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> Nov 11, 2026</span>
-                            <h3 class="mini-news-title">Record Participation</h3>
-                            <p class="mini-news-excerpt">This year's Sahityotsav sees a record-breaking 2,500 participants across 150 events...</p>
-                            <span class="mini-news-more">Read Story &rarr;</span>
-                        </div>
-                    </div>
+                    <!-- Dynamically populated from Firestore news collection -->
                 </div>
 
                 <div class="section-action-center">
@@ -212,21 +178,7 @@
             <p class="section-subtitle">Moments from Kerala art 2026 at wayanad, Alappuzha, straight from the festival floor.</p>
             
             <div class="gallery-grid">
-               
-                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 2" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 3" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 4" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 5" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 6" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 7" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 8" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1533174000255-14f76269dfbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 9" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 10" class="gallery-item" onclick="openGalleryModal(this.src)">
-                
-                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 11" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 12" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 13" class="gallery-item" onclick="openGalleryModal(this.src)">
-                <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Gallery 14" class="gallery-item" onclick="openGalleryModal(this.src)">
+                <!-- Dynamically populated from Firestore gallery collection -->
             </div>
             
             <div class="gallery-actions">
@@ -239,44 +191,8 @@
             <h2 class="section-title">Latest Updates</h2>
             <p class="section-subtitle">Announcements and updates from the organizing team as the festival unfolds.</p>
             
-            <div class="news-hero-card">
-                <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Chief Guest Arrives" class="news-hero-img">
-                <div class="news-hero-content">
-                    <span class="news-date">Nov 12, 2026</span>
-                    <h3>Chief Guest Arrives</h3>
-                    <p>Renowned artist Dr. Menon has arrived at the venue to inaugurate the grand festival. The ceremony begins shortly at the main stage...</p>
-                    <a class="read-more" onclick="openNewsModal(1)">READ FULL STORY &rarr;</a>
-                </div>
-            </div>
-
-            <div class="news-grid-standard">
-                <div class="news-card">
-                    <img src="https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Schedule Update" class="news-img">
-                    <div class="news-content">
-                        <span class="news-date">Nov 12, 2026</span>
-                        <h3>Schedule Update</h3>
-                        <p>The English Debate for the senior category has been postponed by 30 minutes...</p>
-                        <a class="read-more" onclick="openNewsModal(2)">READ FULL STORY &rarr;</a>
-                    </div>
-                </div>
-                <div class="news-card">
-                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Record Participation" class="news-img">
-                    <div class="news-content">
-                        <span class="news-date">Nov 11, 2026</span>
-                        <h3>Record Participation</h3>
-                        <p>This year's Sahityotsav sees a record-breaking 2,500 participants across 150 events...</p>
-                        <a class="read-more" onclick="openNewsModal(3)">READ FULL STORY &rarr;</a>
-                    </div>
-                </div>
-                <div class="news-card">
-                    <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Culinary Arts Added" class="news-img">
-                    <div class="news-content">
-                        <span class="news-date">Nov 10, 2026</span>
-                        <h3>Culinary Arts Added</h3>
-                        <p>A brand new Culinary Arts competition has been added to the festival this year...</p>
-                        <a class="read-more" onclick="openNewsModal(4)">READ FULL STORY &rarr;</a>
-                    </div>
-                </div>
+            <div id="news-container">
+                <!-- Dynamically populated from Firestore news collection -->
             </div>
         </section>
     </main>

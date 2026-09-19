@@ -219,32 +219,7 @@ window.closeGalleryModal = closeGalleryModal;
 // =========================================================================
 // 6. NEWS DATA & MODAL LOGIC
 // =========================================================================
-let newsData = {
-    1: { 
-        title: "Chief Guest Arrives", 
-        date: "Nov 12, 2026", 
-        image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", 
-        content: "Renowned artist Dr. Menon has arrived at the venue to inaugurate the grand festival. The opening ceremony is scheduled to take place at the main stage, featuring traditional performances and the official lighting of the lamp." 
-    },
-    2: { 
-        title: "Schedule Update", 
-        date: "Nov 12, 2026", 
-        image: "https://images.unsplash.com/photo-1551818255-e6e10975bc17?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", 
-        content: "Please be advised that the English Debate for the senior category has been postponed by 30 minutes due to unexpected logistical delays. Participants are requested to report to Hall B at 11:00 AM instead of 10:30 AM." 
-    },
-    3: { 
-        title: "Record Participation", 
-        date: "Nov 11, 2026", 
-        image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", 
-        content: "We are thrilled to announce that this year's Sahityotsav sees a record-breaking 2,500 participants across 150 events. This marks a massive 20% increase from last year's festival, reflecting the growing passion for art and culture." 
-    },
-    4: { 
-        title: "Culinary Arts Added", 
-        date: "Nov 10, 2026", 
-        image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", 
-        content: "For the first time in the history of Sahityotsav, we are introducing a Culinary Arts competition! Open strictly to the Senior category, this unique event will test participants on their knowledge and execution of traditional Kerala recipes." 
-    }
-};
+let newsData = {};
 
 function openNewsModal(newsId) {
     const news = newsData[newsId];
@@ -305,25 +280,11 @@ async function submitLogin() {
     }
 
     if (!isConfigured) {
-        // Local simulation fallback
-        setTimeout(() => {
-            renderStudentPortal({
-                name: 'Student Contestant ' + chestNo,
-                chestNo: chestNo,
-                category: 'Senior',
-                team: 'Team 1',
-                events: [
-                    { eventCode: 'EV-1', eventName: 'English Elocution', category: 'Senior', status: 'published', rank: 1, marks: 95, grade: 'A', points: 5 },
-                    { eventCode: 'EV-2', eventName: 'Qira\'at', category: 'General', status: 'pending', rank: null, marks: null, grade: null, points: 0 },
-                    { eventCode: 'EV-3', eventName: 'Pencil Drawing', category: 'Senior', status: 'scheduled', rank: null, marks: null, grade: null, points: 0 }
-                ]
-            });
-            showStudentPortal();
-            if (loginBtn) {
-                loginBtn.innerText = originalText;
-                loginBtn.disabled = false;
-            }
-        }, 500);
+        alert("Database connection is not configured.");
+        if (loginBtn) {
+            loginBtn.innerText = originalText;
+            loginBtn.disabled = false;
+        }
         return;
     }
 
@@ -949,6 +910,7 @@ function renderMiniGallery(snapshot) {
     });
 
     if (photos.length === 0) {
+        miniGalleryGrid.innerHTML = '<div style="text-align: center; color: #64748b; padding: 2rem;">No festival moments available yet.</div>';
         return;
     }
 
@@ -982,13 +944,15 @@ function initGalleryRealtimeListener() {
             if (url) photos.push(url);
         });
 
-        if (photos.length === 0) return;
-
         const mainGalleryGrid = document.querySelector('#gallery .gallery-grid');
         if (mainGalleryGrid) {
-            mainGalleryGrid.innerHTML = photos.map((url, i) => `
-                <img src="${url}" alt="Gallery ${i + 1}" class="gallery-item" onclick="openGalleryModal('${url}')">
-            `).join('');
+            if (photos.length === 0) {
+                mainGalleryGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 2rem;">No gallery images available yet.</div>';
+            } else {
+                mainGalleryGrid.innerHTML = photos.map((url, i) => `
+                    <img src="${url}" alt="Gallery ${i + 1}" class="gallery-item" onclick="openGalleryModal('${url}')">
+                `).join('');
+            }
         }
     }, (err) => {
         console.error("Gallery real-time listener error:", err);
@@ -1014,7 +978,14 @@ function initNewsRealtimeListener() {
             };
         });
 
-        if (articles.length === 0) return;
+        if (articles.length === 0) {
+            const miniNewsGrid = document.querySelector('.mini-news-grid');
+            if (miniNewsGrid) miniNewsGrid.innerHTML = '<div style="text-align: center; color: #64748b; padding: 2rem;">No news updates available.</div>';
+            
+            const newsContainer = document.getElementById('news-container');
+            if (newsContainer) newsContainer.innerHTML = '<div style="text-align: center; color: #64748b; padding: 2rem;">No news updates available.</div>';
+            return;
+        }
 
         // 1. Update Home Mini News Preview (Top 3)
         const miniNewsGrid = document.querySelector('.mini-news-grid');
@@ -1022,7 +993,7 @@ function initNewsRealtimeListener() {
             miniNewsGrid.innerHTML = articles.slice(0, 3).map(art => `
                 <div class="mini-news-card" onclick="openNewsModal('${art.id}')">
                     <div class="mini-news-img-wrap">
-                        <img src="${art.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600'}" alt="${art.title}">
+                        <img src="${art.imageUrl || ''}" alt="${art.title}" onerror="this.style.display='none'">
                     </div>
                     <div class="mini-news-body">
                         <span class="mini-news-date"><i class="fa-regular fa-calendar"></i> ${art.date}</span>
@@ -1034,34 +1005,38 @@ function initNewsRealtimeListener() {
             `).join('');
         }
 
-        // 2. Update Main News Section (Hero Card + Grid)
-        const heroArt = articles[0];
-        const heroCard = document.querySelector('.news-hero-card');
-        if (heroCard && heroArt) {
-            heroCard.innerHTML = `
-                <img src="${heroArt.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'}" alt="${heroArt.title}" class="news-hero-img">
-                <div class="news-hero-content">
-                    <span class="news-date">${heroArt.date}</span>
-                    <h3>${heroArt.title}</h3>
-                    <p>${heroArt.content.substring(0, 150)}...</p>
-                    <a class="read-more" onclick="openNewsModal('${heroArt.id}')">READ FULL STORY &rarr;</a>
-                </div>
-            `;
-        }
-
-        const standardGrid = document.querySelector('.news-grid-standard');
-        if (standardGrid && articles.length > 1) {
-            standardGrid.innerHTML = articles.slice(1).map(art => `
-                <div class="news-card">
-                    <img src="${art.imageUrl || 'https://images.unsplash.com/photo-1551818255-e6e10975bc17?w=500'}" alt="${art.title}" class="news-img">
-                    <div class="news-content">
-                        <span class="news-date">${art.date}</span>
-                        <h3>${art.title}</h3>
-                        <p>${art.content.substring(0, 95)}...</p>
-                        <a class="read-more" onclick="openNewsModal('${art.id}')">READ FULL STORY &rarr;</a>
+        // 2. Update Main News Section (#news-container)
+        const newsContainer = document.getElementById('news-container');
+        if (newsContainer) {
+            const heroArt = articles[0];
+            let html = `
+                <div class="news-hero-card">
+                    <img src="${heroArt.imageUrl || ''}" alt="${heroArt.title}" class="news-hero-img" onerror="this.style.display='none'">
+                    <div class="news-hero-content">
+                        <span class="news-date">${heroArt.date}</span>
+                        <h3>${heroArt.title}</h3>
+                        <p>${heroArt.content.substring(0, 150)}...</p>
+                        <a class="read-more" onclick="openNewsModal('${heroArt.id}')">READ FULL STORY &rarr;</a>
                     </div>
                 </div>
-            `).join('');
+            `;
+
+            if (articles.length > 1) {
+                html += '<div class="news-grid-standard">';
+                html += articles.slice(1).map(art => `
+                    <div class="news-card">
+                        <img src="${art.imageUrl || ''}" alt="${art.title}" class="news-img" onerror="this.style.display='none'">
+                        <div class="news-content">
+                            <span class="news-date">${art.date}</span>
+                            <h3>${art.title}</h3>
+                            <p>${art.content.substring(0, 95)}...</p>
+                            <a class="read-more" onclick="openNewsModal('${art.id}')">READ FULL STORY &rarr;</a>
+                        </div>
+                    </div>
+                `).join('');
+                html += '</div>';
+            }
+            newsContainer.innerHTML = html;
         }
     }, (err) => {
         console.error("News real-time listener error:", err);
