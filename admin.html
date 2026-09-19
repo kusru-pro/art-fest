@@ -1423,7 +1423,7 @@
                         const category = cols[3].trim();
                         
                         const eventsString = cols.slice(4).join(','); 
-                        const events = eventsString.split('|').map(e => e.trim()).filter(e => e);
+                        const events = eventsString.split('|').map(e => e.trim()).filter(e => e !== "");
 
                         const participantData = { chestNo, name, category, team, events, updatedAt: Date.now() };
 
@@ -2880,36 +2880,43 @@
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching participants...</td></tr>';
             }
 
-            if (eventCode && isConfigured) {
+            if (eventCode && category && isConfigured) {
                 try {
                     const evObj = eventsCache[eventCode];
                     const eventName = evObj ? evObj.eventName : null;
+                    console.log(`Spot Registration: Selected EventCode='${eventCode}', EventName='${eventName}', Category='${category}'`);
 
-                    // Query the participants collection directly for eventCode
-                    const partsQuery = query(collection(db, 'participants'), where('events', 'array-contains', eventCode));
+                    // 1. Query Firestore for ALL participants in this category
+                    const partsQuery = query(collection(db, 'participants'), where('category', '==', category));
                     const partsSnap = await getDocs(partsQuery);
                     
+                    const fetchedParts = [];
                     partsSnap.forEach(docSnap => {
-                        spotRegistrationParticipants.push(docSnap.data());
+                        fetchedParts.push(docSnap.data());
+                    });
+                    
+                    // 2. Client-side filter: find students whose events list includes the selected event code (or name)
+                    spotRegistrationParticipants = fetchedParts.filter(p => {
+                        if (!p.events) return false;
+                        
+                        // Handle if p.events is a string (e.g. from old data) or an array
+                        let pEventsArray = [];
+                        if (Array.isArray(p.events)) {
+                            pEventsArray = p.events;
+                        } else if (typeof p.events === 'string') {
+                            pEventsArray = p.events.split('|');
+                        }
+                        
+                        // Case-insensitive match, ignore extra spaces
+                        return pEventsArray.some(e => {
+                            const trimmedE = String(e).trim().toLowerCase();
+                            const matchCode = trimmedE === String(eventCode).trim().toLowerCase();
+                            const matchName = eventName && trimmedE === String(eventName).trim().toLowerCase();
+                            return matchCode || matchName;
+                        });
                     });
 
-                    // Fallback: Check if they were saved using eventName instead (due to UI changes)
-                    if (eventName) {
-                        const nameQuery = query(collection(db, 'participants'), where('events', 'array-contains', eventName));
-                        const nameSnap = await getDocs(nameQuery);
-                        nameSnap.forEach(docSnap => {
-                            if (!spotRegistrationParticipants.find(p => p.chestNo === docSnap.id)) {
-                                spotRegistrationParticipants.push(docSnap.data());
-                            }
-                        });
-                    }
-
-                    // Enforce Category Match
-                    if (category) {
-                        spotRegistrationParticipants = spotRegistrationParticipants.filter(p => 
-                            normalizeCategory(p.category) === normalizeCategory(category)
-                        );
-                    }
+                    console.log("Matching Participants Found:", spotRegistrationParticipants);
                     
                     // Now listen to the attendance collection for real-time status updates
                     const q = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
