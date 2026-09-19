@@ -667,16 +667,18 @@
             background: #334155;
         }
 
-        /* @media print logic: Isolate only the ID Card Box */
+        /* @media print logic: Isolate only the ID Card Box or Batch Container */
         @media print {
             body * {
                 visibility: hidden !important;
             }
             #admin-qr-modal,
-            #admin-qr-modal * {
+            #admin-qr-modal *,
+            #batch-qr-modal,
+            #batch-qr-modal * {
                 visibility: visible !important;
             }
-            #admin-qr-modal {
+            #admin-qr-modal, #batch-qr-modal {
                 position: absolute !important;
                 left: 0 !important;
                 top: 0 !important;
@@ -685,16 +687,26 @@
                 background: none !important;
                 display: block !important;
                 padding: 0 !important;
+                overflow: visible !important;
             }
             .admin-modal-box {
                 box-shadow: none !important;
                 padding: 0 !important;
                 max-width: 100% !important;
                 margin: 0 auto !important;
+                overflow: visible !important;
+                max-height: none !important;
             }
             .admin-modal-close,
-            .id-card-actions {
+            .id-card-actions,
+            .batch-modal-header {
                 display: none !important;
+            }
+            #batch-qr-container {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 20px !important;
+                justify-content: center !important;
             }
             .participant-id-card {
                 width: 320px !important;
@@ -725,6 +737,9 @@
                 </div>
                 <div class="nav-item" data-tab="tab-events">
                     <i class="fa-solid fa-masks-theater"></i> Manage Events
+                </div>
+                <div class="nav-item" data-tab="tab-attendance">
+                    <i class="fa-solid fa-clipboard-user"></i> Spot Registration
                 </div>
                 <div class="nav-item" data-tab="tab-verify">
                     <i class="fa-solid fa-clipboard-check"></i> Result Verification
@@ -813,6 +828,9 @@
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="deleteAllParticipants()" style="background: #dc2626; color: #fff;">
                                 <i class="fa-solid fa-trash-can"></i> Delete All Participants
+                            </button>
+                            <button class="btn btn-sm" onclick="openBatchQRModal()" style="background: #0f172a; color: #fff;">
+                                <i class="fa-solid fa-qrcode"></i> View All Student QR Cards
                             </button>
                         </div>
                     </div>
@@ -972,6 +990,53 @@
                             </thead>
                             <tbody id="events-table-body">
                                 <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3.5: Spot Registration -->
+            <section id="tab-attendance" class="tab-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fa-solid fa-clipboard-user"></i> Spot Registration & Attendance</h2>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Select a program below to view its registered participants. Verify their chest number using a scanner or manual input to mark their attendance and generate their assigned Code Letter.
+                    </p>
+
+                    <div class="form-grid" style="margin-bottom: 2rem;">
+                        <div class="form-group">
+                            <label>Select Category</label>
+                            <select id="attendance-category" onchange="window.onAttendanceCategoryChanged()">
+                                <option value="">Select Category...</option>
+                                <option value="Sub Junior">Sub Junior</option>
+                                <option value="Junior">Junior</option>
+                                <option value="Senior">Senior</option>
+                                <option value="General Open">General Open</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Event/Program</label>
+                            <select id="attendance-event" onchange="window.onAttendanceEventChanged()">
+                                <option value="">Select Program...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Chest No</th>
+                                    <th>Participant / Team</th>
+                                    <th>Scanner / Manual Verify</th>
+                                    <th>Status & Code</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body">
+                                <tr><td colspan="4" style="text-align:center; color:#64748b;">Select a category and program to view participants.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1240,6 +1305,23 @@
                 <button class="btn-download-card" id="btn-download-qr" onclick="downloadQRCard()">
                     <i class="fa-solid fa-download"></i> Download Image
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Batch QR Cards Modal -->
+    <div id="batch-qr-modal" class="admin-modal-overlay" onclick="if(event.target===this) closeBatchQRModal()">
+        <div class="admin-modal-box" style="max-width: 90%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
+            <button class="admin-modal-close" onclick="closeBatchQRModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="batch-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <h2 style="font-family: var(--font-heading); color: #0f172a;">All Student QR Cards</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" style="background: #1e3a8a;" onclick="printBatchQRCards()"><i class="fa-solid fa-print"></i> Print All Cards</button>
+                    <button class="btn" style="background: #0f172a;" onclick="downloadBatchQRCards()"><i class="fa-solid fa-download"></i> Download All (Image)</button>
+                </div>
+            </div>
+            <div id="batch-qr-container" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                <!-- Cards will be injected here -->
             </div>
         </div>
     </div>
@@ -2578,6 +2660,240 @@
                 populateForm(defaults);
             });
         }
+
+        // =========================================================================
+        // 10. BATCH QR CARDS VIEW
+        // =========================================================================
+        function openBatchQRModal() {
+            const modal = document.getElementById('batch-qr-modal');
+            const container = document.getElementById('batch-qr-container');
+            if (!modal || !container) return;
+
+            const participants = Object.values(participantsCache);
+            if (participants.length === 0) {
+                container.innerHTML = '<p style="text-align:center; width:100%; color: #64748b;">No participants registered yet.</p>';
+            } else {
+                let html = '';
+                // Sort participants by chest number naturally
+                participants.sort((a, b) => {
+                    const ca = parseInt(a.chestNo) || 0;
+                    const cb = parseInt(b.chestNo) || 0;
+                    return ca - cb;
+                });
+
+                participants.forEach(p => {
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(p.chestNo)}&color=0f172a`;
+                    
+                    html += `
+                    <div class="participant-id-card">
+                        <div class="id-card-header">
+                            <div class="id-card-event-name">SAHITYOTSAV 2026</div>
+                            <div class="id-card-sub">Official Participant ID Pass</div>
+                        </div>
+
+                        <div class="id-card-qr-wrap">
+                            <img src="${qrUrl}" alt="QR Code" crossorigin="anonymous" />
+                        </div>
+
+                        <h3 class="id-card-name">${p.name || 'Unknown'}</h3>
+                        <div>
+                            <span class="id-card-chest">CHEST NO: ${p.chestNo || '-'}</span>
+                        </div>
+                        <div class="id-card-team">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>${p.team || '-'}</span> &bull; <span>${p.category || '-'}</span>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            modal.classList.add('active');
+        }
+        window.openBatchQRModal = openBatchQRModal;
+
+        function closeBatchQRModal() {
+            const modal = document.getElementById('batch-qr-modal');
+            if (modal) modal.classList.remove('active');
+        }
+        window.closeBatchQRModal = closeBatchQRModal;
+
+        function printBatchQRCards() {
+            window.print();
+        }
+        window.printBatchQRCards = printBatchQRCards;
+
+        async function downloadBatchQRCards() {
+            const container = document.getElementById('batch-qr-container');
+            if (!container) return;
+            showFeedback('Generating image... Please wait.', 'success');
+            
+            try {
+                // Ensure all images are fully loaded before rendering
+                const imgs = container.querySelectorAll('img');
+                const promises = Array.from(imgs).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                });
+                await Promise.all(promises);
+
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#f8fafc"
+                });
+                const link = document.createElement('a');
+                link.download = 'All_Student_QR_Cards.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error(err);
+                showFeedback('Error generating image: ' + err.message, 'error');
+            }
+        }
+        window.downloadBatchQRCards = downloadBatchQRCards;
+
+        // =========================================================================
+        // 11. SPOT REGISTRATION / ATTENDANCE
+        // =========================================================================
+        let attendanceSnapshotUnsub = null;
+        let currentAttendanceData = {};
+
+        function onAttendanceCategoryChanged() {
+            const catSelect = document.getElementById('attendance-category');
+            const eventSelect = document.getElementById('attendance-event');
+            if (!catSelect || !eventSelect) return;
+
+            const category = catSelect.value;
+            eventSelect.innerHTML = '<option value="">Select Program...</option>';
+            
+            if (!category) return;
+
+            const filteredEvents = Object.values(eventsCache).filter(ev => ev.category === category);
+            filteredEvents.forEach(ev => {
+                const opt = document.createElement('option');
+                opt.value = ev.eventCode;
+                opt.textContent = `${ev.eventCode} - ${ev.eventName}`;
+                eventSelect.appendChild(opt);
+            });
+            onAttendanceEventChanged();
+        }
+        window.onAttendanceCategoryChanged = onAttendanceCategoryChanged;
+
+        function onAttendanceEventChanged() {
+            const eventSelect = document.getElementById('attendance-event');
+            const eventCode = eventSelect ? eventSelect.value : null;
+            if (attendanceSnapshotUnsub) {
+                attendanceSnapshotUnsub();
+                attendanceSnapshotUnsub = null;
+            }
+            currentAttendanceData = {};
+            if (eventCode && isConfigured) {
+                const q = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
+                attendanceSnapshotUnsub = onSnapshot(q, (snapshot) => {
+                    currentAttendanceData = {};
+                    snapshot.forEach(doc => {
+                        currentAttendanceData[doc.data().chestNo] = doc.data();
+                    });
+                    renderAttendanceTable(eventCode);
+                });
+            } else {
+                renderAttendanceTable(eventCode);
+            }
+        }
+        window.onAttendanceEventChanged = onAttendanceEventChanged;
+
+        function renderAttendanceTable(eventCode) {
+            const tbody = document.getElementById('attendance-table-body');
+            if (!tbody) return;
+
+            if (!eventCode) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
+                return;
+            }
+
+            // Find participants for this event
+            const matchedParticipants = Object.values(participantsCache).filter(p => {
+                return p.events && p.events.includes(eventCode);
+            });
+
+            if (matchedParticipants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">No participants registered for this program.</td></tr>';
+                return;
+            }
+
+            matchedParticipants.sort((a, b) => (parseInt(a.chestNo) || 0) - (parseInt(b.chestNo) || 0));
+
+            let html = '';
+            matchedParticipants.forEach(p => {
+                const att = currentAttendanceData[p.chestNo];
+                const isDone = !!att;
+                const statusBadge = isDone 
+                    ? `<span class="badge" style="background:#dcfce7; color:#15803d;"><i class="fa-solid fa-check"></i> Verified (Code: ${att.codeLetter})</span>`
+                    : `<span class="badge" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+
+                html += `
+                    <tr>
+                        <td><strong>${p.chestNo}</strong></td>
+                        <td>
+                            <div style="font-weight:600; color:#0f172a;">${p.name || '-'}</div>
+                            <div style="font-size:0.8rem; color:#64748b;">${p.team}</div>
+                        </td>
+                        <td>
+                            ${isDone ? `<span style="color:#16a34a; font-size:0.9rem;"><i class="fa-solid fa-check-circle"></i> Complete</span>` : `
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="text" id="att-input-${p.chestNo}" placeholder="Scan/Type Chest No" style="width:140px; padding:0.4rem; font-size:0.85rem;" onkeypress="if(event.key==='Enter') verifyParticipant('${eventCode}', '${p.chestNo}')">
+                                <button class="btn btn-sm" style="background:#1e3a8a;" onclick="verifyParticipant('${eventCode}', '${p.chestNo}')">Verify</button>
+                            </div>
+                            `}
+                        </td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        async function verifyParticipant(eventCode, expectedChestNo) {
+            const inputEl = document.getElementById(`att-input-${expectedChestNo}`);
+            const scannedVal = inputEl ? inputEl.value.trim() : '';
+
+            if (scannedVal !== expectedChestNo) {
+                showFeedback("Scanned Chest Number does not match!", "error");
+                if (inputEl) {
+                    inputEl.value = '';
+                    inputEl.focus();
+                }
+                return;
+            }
+
+            if (!isConfigured) {
+                showFeedback("Verified (Preview Mode)", "success");
+                return;
+            }
+
+            // Generate a random Code Letter (e.g., A-Z, or a random string). Let's use A, B, C etc. based on how many are already verified.
+            const existingCount = Object.keys(currentAttendanceData).length;
+            const codeLetter = String.fromCharCode(65 + (existingCount % 26)) + (Math.floor(existingCount / 26) > 0 ? Math.floor(existingCount / 26) : '');
+            
+            const docId = `${eventCode}_${expectedChestNo}`;
+            try {
+                await setDoc(doc(db, 'attendance', docId), {
+                    eventCode,
+                    chestNo: expectedChestNo,
+                    codeLetter: codeLetter,
+                    timestamp: Date.now()
+                });
+                showFeedback(`Participant verified! Code: ${codeLetter}`, "success");
+            } catch (err) {
+                showFeedback("Error verifying: " + err.message, "error");
+            }
+        }
+        window.verifyParticipant = verifyParticipant;
 
         // Initialize All Listeners
         document.addEventListener('DOMContentLoaded', () => {

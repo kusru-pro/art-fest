@@ -540,7 +540,7 @@
             if (!container) return;
             
             const options = currentParticipants.map(p => 
-                `<option value="${p.chestNo}">${p.chestNo} - ${p.name || p.team}</option>`
+                `<option value="${p.chestNo}">Code ${p.codeLetter || '-'} - ${p.name || p.team}</option>`
             ).join('');
 
             const html = `
@@ -723,9 +723,9 @@
             if (!isConfigured) {
                 // Mock preview participants
                 currentParticipants = [
-                    { chestNo: '104', name: 'Rashid K', team: 'Team 1', events: [eventCode] },
-                    { chestNo: '122', name: 'Aman M', team: 'Team 2', events: [eventCode] },
-                    { chestNo: '109', name: 'Sameer H', team: 'Team 3', events: [eventCode] }
+                    { chestNo: '104', name: 'Rashid K', team: 'Team 1', events: [eventCode], codeLetter: 'A' },
+                    { chestNo: '122', name: 'Aman M', team: 'Team 2', events: [eventCode], codeLetter: 'B' },
+                    { chestNo: '109', name: 'Sameer H', team: 'Team 3', events: [eventCode], codeLetter: 'C' }
                 ];
                 container.innerHTML = '';
                 window.addPositionCard(1);
@@ -746,37 +746,52 @@
                     snapshot = await getDocs(qExact);
                 }
 
+                // Fetch Attendance / Spot Registration for this event
+                const attQ = query(collection(db, 'attendance'), where('eventCode', '==', codeUpper));
+                let attSnapshot = await getDocs(attQ);
+                if (attSnapshot.empty && codeUpper !== eventCode) {
+                    const attQExact = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
+                    attSnapshot = await getDocs(attQExact);
+                }
+
+                const attendanceMap = {};
+                attSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    attendanceMap[data.chestNo] = data.codeLetter;
+                });
+
                 currentParticipants = [];
                 const seenChestNos = new Set();
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     const cNo = String(data.chestNo || docSnap.id);
-                    if (!seenChestNos.has(cNo)) {
+                    // ONLY add if they have attended / completed spot registration
+                    if (!seenChestNos.has(cNo) && attendanceMap[cNo]) {
                         seenChestNos.add(cNo);
+                        data.codeLetter = attendanceMap[cNo];
                         currentParticipants.push(data);
                     }
                 });
 
                 container.innerHTML = '';
 
-                // Strictly do NOT load all participants if none are registered for this event
+                // Strictly do NOT load all participants if none are registered/attended for this event
                 if (currentParticipants.length === 0) {
                     container.innerHTML = `
                         <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 2.5rem 1.5rem; text-align: center; margin: 1rem 0;">
                             <i class="fa-solid fa-user-slash" style="font-size: 2rem; color: #94a3b8; margin-bottom: 0.75rem; display: block;"></i>
-                            <h3 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">No Participants Registered</h3>
-                            <p style="color: #64748b; font-size: 0.88rem; margin: 0;">No participants have registered for <strong>${eventCode}</strong> yet. Register candidates in the Admin Panel to evaluate.</p>
+                            <h3 style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem;">No Attended Participants</h3>
+                            <p style="color: #64748b; font-size: 0.88rem; margin: 0;">No participants have completed spot registration for <strong>${eventCode}</strong> yet. Verify candidates in the Admin Panel to evaluate.</p>
                         </div>
                     `;
                     return;
                 }
 
-                // Sort participants numerically by chestNo
+                // Sort participants numerically by chestNo (or alphabetically by code letter)
                 currentParticipants.sort((a, b) => {
-                    const numA = parseInt(a.chestNo, 10);
-                    const numB = parseInt(b.chestNo, 10);
-                    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-                    return String(a.chestNo).localeCompare(String(b.chestNo));
+                    const codeA = a.codeLetter || '';
+                    const codeB = b.codeLetter || '';
+                    return codeA.localeCompare(codeB);
                 });
 
                 // Populate initial cards up to number of participants (default max 3)
