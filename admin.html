@@ -710,10 +710,88 @@
             }
             .participant-id-card {
                 width: 320px !important;
-                margin: 20px auto !important;
-                box-shadow: none !important;
                 border: 2px solid #000000 !important;
                 page-break-inside: avoid;
+            }
+        }
+
+        /* --- Mobile Responsive Styles --- */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .content-header h1 {
+                font-size: 1.5rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .data-table th, .data-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+            .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            .card-header .btn {
+                width: 100%;
+                margin-top: 0.5rem;
             }
         }
     </style>
@@ -762,11 +840,19 @@
             </nav>
         </aside>
 
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- Main Content -->
         <main class="main-content">
             
             <header class="content-header">
-                <h1 id="page-title">Dashboard Overview</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="mobile-menu-btn" class="mobile-menu-btn" onclick="toggleSidebar()">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 id="page-title">Dashboard Overview</h1>
+                </div>
             </header>
 
             <div id="global-feedback" class="feedback-banner"></div>
@@ -1390,6 +1476,14 @@
                 });
                 const target = document.getElementById(targetId);
                 if (target) target.classList.add('active');
+
+                // Close sidebar on mobile after clicking
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (sidebar && sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                    if (overlay) overlay.classList.remove('active');
+                }
 
                 if((targetId === 'tab-verify' || targetId === 'tab-published') && typeof window.fetchPendingResults === 'function') {
                     window.fetchPendingResults();

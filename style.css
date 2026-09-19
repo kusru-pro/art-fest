@@ -1790,7 +1790,7 @@ h2.section-title {
 }
 
 @media (max-width: 768px) {
-    .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-primary); flex-direction: column; padding: 2rem 0; border-bottom: 1px solid var(--text-dark); }
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-primary); flex-direction: column; padding: 2rem 0; border-bottom: 1px solid var(--text-dark); z-index: 1000; }
     .nav-links.active { display: flex; }
     .mobile-menu-btn { display: block; }
     .hero-title { font-size: 3rem; }
@@ -1798,12 +1798,27 @@ h2.section-title {
     .el-2, .el-4 { display: none; }
     .watermark-icon { font-size: 200px; }
     
-    .podium-container { flex-direction: column; align-items: center; gap: 1.5rem; }
+    /* Grids & Cards */
+    .mini-news-grid, .mini-gallery-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .mini-gallery-item.item-large, .mini-gallery-item.item-small { grid-column: span 1; height: 220px; }
+    .mini-podium, .podium-container { flex-direction: column; align-items: center; gap: 1.5rem; }
     .podium-card.rank-1 { order: -1; margin-bottom: 0; }
+    .mini-podium-card.rank-1 { padding: 2rem 1.5rem; transform: none; }
+    .mini-podium-card.rank-1:hover { transform: translateY(-5px); }
     
     .news-grid-standard { grid-template-columns: 1fr; }
     .news-modal-content { padding: 1.5rem; }
     .news-modal-content h3 { font-size: 1.8rem; }
 
     .event-item { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+    .filter-container { flex-direction: column; width: 100%; }
+    .custom-select-wrapper { width: 100%; }
+    
+    /* Layout Scaling */
+    section { padding: 2.5rem 1rem; }
+    h2.section-title { font-size: 2.2rem; margin-bottom: 2rem; }
+    .section-subtitle { margin-top: -1.5rem; margin-bottom: 2.5rem; font-size: 1rem; }
+    .theme-card { padding: 2.5rem 1.5rem; }
+    .theme-title { font-size: 2.5rem; }
+    .hero-banner-wrapper { padding: 2rem 0; min-height: 80vh; }
 }
