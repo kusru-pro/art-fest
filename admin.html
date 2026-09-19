@@ -3118,6 +3118,14 @@
         }
         window.verifyParticipant = verifyParticipant;
 
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('active');
+        }
+        window.toggleSidebar = toggleSidebar;
+
         // Initialize All Listeners
         document.addEventListener('DOMContentLoaded', () => {
             initEventsListener();
