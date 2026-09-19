@@ -688,7 +688,7 @@ function initMetadataListeners() {
     });
 }
 
-// B. Real-time Results & Leaderboard Listener (Always Visible & Live)
+// B. Real-time Results Listener
 function initResultsRealtimeListener() {
     if (!isConfigured) return;
 
@@ -701,9 +701,23 @@ function initResultsRealtimeListener() {
 
         publishedResultsCache = resultsList;
         renderLiveResults(resultsList);
-        calculateAndRenderLeaderboard(resultsList);
     }, (err) => {
         console.error("Results real-time listener error:", err);
+    });
+}
+
+function initPublicLeaderboardListener() {
+    if (!isConfigured) return;
+    
+    onSnapshot(doc(db, 'settings', 'public_leaderboard'), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            renderPublicLeaderboard(data.standings || []);
+        } else {
+            renderPublicLeaderboard([]);
+        }
+    }, (err) => {
+        console.error("Public leaderboard listener error:", err);
     });
 }
 
@@ -792,35 +806,7 @@ function renderLiveResults(resultsList) {
     updateProgramFilter();
 }
 
-function calculateAndRenderLeaderboard(resultsList) {
-    const teamScores = {};
-
-    resultsList.forEach(r => {
-        if (r.status && r.status !== 'published') return;
-
-        const p = participantsCache[r.chestNo];
-        const team = (p && p.team) ? p.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
-        if (!team) return;
-
-        if (!teamScores[team]) teamScores[team] = 0;
-
-        // Accurate Points Calculation based on exact positions and grades:
-        // Position: 1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt
-        const pos = Number(r.position);
-        if (pos === 1) teamScores[team] += 5;
-        else if (pos === 2) teamScores[team] += 3;
-        else if (pos === 3) teamScores[team] += 1;
-
-        // Grade: A Grade = 5 pts, B Grade = 3 pts, C Grade = 1 pt
-        const g = (r.grade || '').trim().toUpperCase();
-        if (g === 'A') teamScores[team] += 5;
-        else if (g === 'B') teamScores[team] += 3;
-        else if (g === 'C') teamScores[team] += 1;
-    });
-
-    const sortedTeams = Object.entries(teamScores)
-        .map(([team, pts]) => ({ teamName: team, totalPoints: pts }))
-        .sort((a, b) => b.totalPoints - a.totalPoints);
+function renderPublicLeaderboard(sortedTeams) {
 
     const miniPodium = document.getElementById('public-mini-podium');
     const mainPodium = document.getElementById('public-main-podium');
@@ -1198,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isConfigured) {
         initMetadataListeners();
         initResultsRealtimeListener();
+        initPublicLeaderboardListener();
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
         initHomepageSettingsListener();

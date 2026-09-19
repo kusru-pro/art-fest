@@ -1193,15 +1193,14 @@
                         <h2 class="card-title"><i class="fa-solid fa-trophy"></i> Team Points Leaderboard</h2>
                         
                         <div style="display: flex; align-items: center; gap: 1rem;">
-                            <span class="badge" style="background: #dcfce7; color: #15803d; font-weight: 700; padding: 6px 14px; border-radius: 20px;">
-                                <i class="fa-solid fa-globe"></i> Always Live to Public
-                            </span>
+                            <button id="btn-sync-leaderboard" class="btn btn-primary" onclick="window.syncPublicLeaderboard()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Publish / Update Public Leaderboard
+                            </button>
                         </div>
                     </div>
                     <p style="color: #64748b; margin-bottom: 1.5rem;">
-                        The team points leaderboard is permanently visible to the public. Points are accurately calculated <strong>ONLY from published results</strong>.
-                        <br>
-                        <strong>Point Allocation System:</strong> Positions (1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt) + Grades (A Grade = 5 pts, B Grade = 3 pts, C Grade = 1 pt).
+                        The team points leaderboard below shows the current internal administrative points. 
+                        Click the 'Publish / Update' button above to push these standings to the public website.
                     </p>
                     
                     <div class="table-responsive">
@@ -2595,8 +2594,9 @@
                     }
                 });
 
-                const sortedTeams = Object.values(teamScores)
-                    .sort((a, b) => b.totalPoints - a.totalPoints);
+                    window.currentAdminLeaderboard = Object.values(teamScores)
+                        .sort((a, b) => b.totalPoints - a.totalPoints);
+                    const sortedTeams = window.currentAdminLeaderboard;
 
                 const tbody = document.getElementById('lb-admin-tbody');
                 if (tbody) {
@@ -2624,6 +2624,38 @@
                 }
             });
         }
+
+        window.syncPublicLeaderboard = async () => {
+            const btn = document.getElementById('btn-sync-leaderboard');
+            if (!window.currentAdminLeaderboard) {
+                alert("No leaderboard data available to sync.");
+                return;
+            }
+            if (!isConfigured) {
+                alert("Database not configured. Cannot sync leaderboard.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
+            
+            try {
+                await setDoc(doc(db, 'settings', 'public_leaderboard'), {
+                    standings: window.currentAdminLeaderboard,
+                    lastUpdated: Date.now()
+                });
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Synced Successfully';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Publish / Update Public Leaderboard';
+                }, 2000);
+            } catch (err) {
+                console.error("Error syncing leaderboard:", err);
+                alert("Failed to sync leaderboard.");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Publish / Update Public Leaderboard';
+            }
+        };
 
         // =========================================================================
         // 6. GALLERY & NEWS MANAGEMENT (Using External Links)
