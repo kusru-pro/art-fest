@@ -402,10 +402,6 @@
                     <div class="select-wrapper">
                         <select id="judge-category-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
                             <option value="" disabled selected>Select a Category</option>
-                            <option value="Sub Junior">Sub Junior</option>
-                            <option value="Junior">Junior</option>
-                            <option value="Senior">Senior</option>
-                            <option value="General Open">General Open</option>
                         </select>
                         <i class="fa-solid fa-chevron-down select-chevron" style="right: 0.65rem; font-size: 0.75rem;"></i>
                     </div>
@@ -629,6 +625,39 @@
             }
         }
         window.updateHeaderDetails = updateHeaderDetails;
+
+        async function loadCategories() {
+            if (!isConfigured) return;
+            try {
+                const snapshot = await getDocs(collection(db, 'participants'));
+                const categories = new Set();
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.category) {
+                        categories.add(data.category.trim());
+                    }
+                });
+
+                const catSelect = document.getElementById('judge-category-select');
+                if (catSelect) {
+                    // Keep the first disabled option
+                    const defaultOpt = catSelect.options[0];
+                    catSelect.innerHTML = '';
+                    catSelect.appendChild(defaultOpt);
+
+                    // Add unique categories alphabetically
+                    Array.from(categories).sort().forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat;
+                        opt.textContent = cat;
+                        catSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading categories for judge:", err);
+            }
+        }
+        window.loadCategories = loadCategories;
 
         // 1. Load Events from Firestore
         async function loadEvents() {
@@ -890,6 +919,7 @@
                 progSelect.addEventListener('change', onProgramChanged);
             }
 
+            loadCategories();
             loadEvents();
         });
     </script>

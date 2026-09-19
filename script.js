@@ -156,6 +156,47 @@ function toggleAccordion(headerElement) {
 window.toggleAccordion = toggleAccordion;
 
 // =========================================================================
+// 3.5. DYNAMIC CATEGORY DROPDOWNS
+// =========================================================================
+async function populateDynamicCategories() {
+    if (!isConfigured) return;
+    try {
+        const snapshot = await getDocs(collection(db, 'participants'));
+        const categories = new Set();
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.category) {
+                categories.add(data.category.trim());
+            }
+        });
+        
+        // Target dropdowns (like the one in judge.html or admin filters if needed)
+        const categoryDropdowns = [
+            document.getElementById('judge-category-select'),
+            document.getElementById('category-filter')
+        ];
+
+        categoryDropdowns.forEach(selectEl => {
+            if (selectEl) {
+                const defaultOpt = selectEl.options[0];
+                selectEl.innerHTML = '';
+                if (defaultOpt) selectEl.appendChild(defaultOpt);
+
+                Array.from(categories).sort().forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat;
+                    opt.textContent = cat;
+                    selectEl.appendChild(opt);
+                });
+            }
+        });
+    } catch (err) {
+        console.error("Error populating dynamic categories:", err);
+    }
+}
+window.populateDynamicCategories = populateDynamicCategories;
+
+// =========================================================================
 // 4. COUNTER ANIMATION FOR LEADERBOARD
 // =========================================================================
 function animateCounters() {
@@ -1160,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
         initHomepageSettingsListener();
+        populateDynamicCategories();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");
     }
