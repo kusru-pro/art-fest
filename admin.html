@@ -1423,7 +1423,7 @@
                         const category = cols[3].trim();
                         
                         const eventsString = cols.slice(4).join(','); 
-                        const events = eventsString.split('|').map(e => e.trim()).filter(e => e !== "");
+                        const events = eventsString.split(/[|,]/).map(e => e.trim()).filter(e => e !== "");
 
                         const participantData = { chestNo, name, category, team, events, updatedAt: Date.now() };
 
