@@ -2849,8 +2849,9 @@
             const filteredEvents = Object.values(eventsCache).filter(ev => normalizeCategory(ev.category) === normalizeCategory(category));
             filteredEvents.forEach(ev => {
                 const opt = document.createElement('option');
-                opt.value = ev.eventCode;
-                opt.textContent = ev.eventName || ev.eventCode;
+                // The dropdown value MUST exactly be EventName
+                opt.value = ev.eventName;
+                opt.textContent = ev.eventName;
                 eventSelect.appendChild(opt);
             });
             onAttendanceEventChanged();
@@ -2862,8 +2863,8 @@
         async function onAttendanceEventChanged() {
             const eventSelect = document.getElementById('attendance-event');
             const catSelect = document.getElementById('attendance-category');
-            const eventCode = eventSelect ? eventSelect.value : null;
-            const category = catSelect ? catSelect.value : null;
+            const selectedEventName = eventSelect ? eventSelect.value : null;
+            const selectedCategory = catSelect ? catSelect.value : null;
             
             if (attendanceSnapshotUnsub) {
                 attendanceSnapshotUnsub();
@@ -2875,21 +2876,23 @@
             
             const tbody = document.getElementById('attendance-table-body');
             if (tbody) {
-                if (!eventCode) {
+                if (!selectedEventName) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">Select a program to view participants.</td></tr>';
                     return;
                 }
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching participants...</td></tr>';
             }
 
-            if (eventCode && category && isConfigured) {
-                try {
-                    const evObj = eventsCache[eventCode];
-                    const eventName = evObj ? evObj.eventName : null;
-                    console.log(`Spot Registration: Selected EventCode='${eventCode}', EventName='${eventName}', Category='${category}'`);
+            // Find internal eventCode for attendance saving
+            const chosenEvent = Object.values(eventsCache).find(ev => ev.eventName === selectedEventName);
+            const internalEventCode = chosenEvent ? chosenEvent.eventCode : selectedEventName;
 
-                    // 1. Query Firestore for ALL participants in this category
-                    const partsQuery = query(collection(db, 'participants'), where('category', '==', category));
+            if (selectedEventName && selectedCategory && isConfigured) {
+                try {
+                    console.log('Selected Event:', selectedEventName);
+
+                    // 1. Query Firestore for participants in category
+                    const partsQuery = query(collection(db, 'participants'), where('category', '==', selectedCategory));
                     const partsSnap = await getDocs(partsQuery);
                     
                     const fetchedParts = [];
@@ -2897,37 +2900,31 @@
                         fetchedParts.push(docSnap.data());
                     });
                     
-                    // 2. Client-side filter: find students whose events list includes the selected event code (or name)
+                    // Format selected event name: lowercase and remove ALL spaces
+                    const formattedSelectedEvent = String(selectedEventName).toLowerCase().replace(/\s+/g, '');
+
+                    // 2. Bulletproof Array Matching
                     spotRegistrationParticipants = fetchedParts.filter(p => {
                         if (!p.events) return false;
                         
-                        // Handle if p.events is a string (e.g. from old data) or an array
-                        let pEventsArray = [];
-                        if (Array.isArray(p.events)) {
-                            pEventsArray = p.events;
-                        } else if (typeof p.events === 'string') {
-                            pEventsArray = p.events.split('|');
-                        }
+                        let pEventsArray = Array.isArray(p.events) ? p.events : String(p.events).split('|');
                         
-                        // Case-insensitive match, ignore extra spaces
                         return pEventsArray.some(e => {
-                            const trimmedE = String(e).trim().toLowerCase();
-                            const matchCode = trimmedE === String(eventCode).trim().toLowerCase();
-                            const matchName = eventName && trimmedE === String(eventName).trim().toLowerCase();
-                            return matchCode || matchName;
+                            const formattedE = String(e).toLowerCase().replace(/\s+/g, '');
+                            return formattedE === formattedSelectedEvent;
                         });
                     });
 
                     console.log("Matching Participants Found:", spotRegistrationParticipants);
                     
-                    // Now listen to the attendance collection for real-time status updates
-                    const q = query(collection(db, 'attendance'), where('eventCode', '==', eventCode));
+                    // Now listen to the attendance collection
+                    const q = query(collection(db, 'attendance'), where('eventCode', '==', internalEventCode));
                     attendanceSnapshotUnsub = onSnapshot(q, (snapshot) => {
                         currentAttendanceData = {};
                         snapshot.forEach(doc => {
                             currentAttendanceData[doc.data().chestNo] = doc.data();
                         });
-                        renderAttendanceTable(eventCode);
+                        renderAttendanceTable(internalEventCode);
                     });
                 } catch (err) {
                     console.error("Error fetching spot registration data:", err);
@@ -2935,12 +2932,8 @@
                 }
             } else if (!isConfigured) {
                 // Mock behavior
-                spotRegistrationParticipants = Object.values(participantsCache).filter(p => {
-                    const hasEvent = p.events && (p.events.includes(eventCode) || (eventsCache[eventCode] && p.events.includes(eventsCache[eventCode].eventName)));
-                    const matchCat = category ? normalizeCategory(p.category) === normalizeCategory(category) : true;
-                    return hasEvent && matchCat;
-                });
-                renderAttendanceTable(eventCode);
+                spotRegistrationParticipants = Object.values(participantsCache).filter(p => p.events && p.events.includes(selectedEventName));
+                renderAttendanceTable(internalEventCode);
             }
         }
         window.onAttendanceEventChanged = onAttendanceEventChanged;
