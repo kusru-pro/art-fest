@@ -562,9 +562,12 @@
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
-                        <label class="input-label" style="margin-bottom: 0.35rem;" for="participant-pos-${posNumber}">Select Participant</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <label class="input-label" style="margin: 0;" for="participant-pos-${posNumber}">Select Participant</label>
+                            <span id="live-position-score-${posNumber}" class="live-position-score" style="color: #3730a3; font-size: 0.85rem; font-weight: 700;"></span>
+                        </div>
                         <div class="select-wrapper">
-                            <select id="participant-pos-${posNumber}" class="grade-select" style="height: 48px; font-size: 0.95rem; padding-left: 1rem;">
+                            <select id="participant-pos-${posNumber}" class="grade-select" style="height: 48px; font-size: 0.95rem; padding-left: 1rem;" onchange="updatePositionPoints(${posNumber})">
                                 <option value="" selected disabled>Select Participant for Position ${posNumber}</option>
                                 ${options}
                             </select>
@@ -621,6 +624,49 @@
 
         let allEvents = [];
 
+        window.updatePositionPoints = function(posNumber) {
+            const pSelect = document.getElementById(`participant-pos-${posNumber}`);
+            if (!pSelect) return;
+            
+            const livePosScore = document.getElementById(`live-position-score-${posNumber}`);
+            const posBadge = document.getElementById(`pos-points-display-${posNumber}`);
+
+            if (!pSelect.value) {
+                if (livePosScore) livePosScore.textContent = '';
+                if (posBadge) posBadge.textContent = '+0 pts';
+                return;
+            }
+
+            if (!window.scoringRules) {
+                alert("Scoring rules are still loading or could not be fetched. Please check connection or reload.");
+                pSelect.value = ""; // Reset interaction
+                return;
+            }
+
+            let posPts = 0;
+            if (window.scoringRules) {
+                const eventCode = document.getElementById('judge-event-select').value;
+                const eventData = allEvents.find(e => e.eventCode === eventCode) || {};
+                const isGroup = (eventData.type && eventData.type.toLowerCase() === 'group');
+                const rules = isGroup ? window.scoringRules.group : window.scoringRules.individual;
+                if (rules) {
+                    if (posNumber === 1) posPts = rules.pos1 || 0;
+                    if (posNumber === 2) posPts = rules.pos2 || 0;
+                    if (posNumber === 3) posPts = rules.pos3 || 0;
+                }
+            }
+            
+            if (livePosScore) {
+                livePosScore.textContent = `+${posPts} pts`;
+            }
+            if (posBadge) {
+                posBadge.textContent = `+${posPts} pts`;
+            }
+            
+            // Trigger total score recalculation if grade is already selected
+            calculateTotalScore(posNumber);
+        };
+
         window.calculateTotalScore = function(posNumber) {
             const gradeSelect = document.getElementById(`grade-pos-${posNumber}`);
             if (!gradeSelect) return;
@@ -631,9 +677,15 @@
             const gradePointsSpan = document.getElementById(`grade-points-display-${posNumber}`);
             const posPointsSpan = document.getElementById(`pos-points-display-${posNumber}`);
             
-            if (!grade || grade === 'None' || !window.scoringRules) {
+            if (!grade || grade === 'None') {
                 displayDiv.style.display = 'none';
                 if (gradePointsSpan) gradePointsSpan.textContent = '';
+                return;
+            }
+            
+            if (!window.scoringRules) {
+                alert("Scoring rules are still loading. Please wait.");
+                gradeSelect.value = "";
                 return;
             }
 
