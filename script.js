@@ -814,7 +814,7 @@ function renderLiveResults(resultsList) {
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <button class="btn-download-poster" style="background: none; border: none; color: #212861; font-size: 1.2rem; cursor: pointer; padding: 5px;" onclick="event.stopPropagation(); downloadPoster('${evCode}');" title="Download Poster">
+                        <button class="btn-download-poster" style="background: none; border: none; color: #212861; font-size: 1.2rem; cursor: pointer; padding: 5px;" onclick="event.stopPropagation(); downloadPoster('${evCode}', ${publishSequence});" title="Download Poster">
                             <i class="fa-solid fa-download"></i>
                         </button>
                         <i class="fa-solid fa-chevron-down accordion-arrow"></i>
@@ -1293,12 +1293,17 @@ document.addEventListener('mousemove', function(e) {
 // =========================================================================
 // 9.5. POSTER DOWNLOAD (HTML2CANVAS)
 // =========================================================================
-async function downloadPoster(resultId) {
+async function downloadPoster(resultId, resultNumber = 1) {
     const template = document.getElementById('poster-template');
     if (!template) {
         alert("Poster template not found.");
         return;
     }
+
+    // Dynamic Number Injection
+    const formattedNumber = String(resultNumber).padStart(2, '0');
+    const numberEl = document.getElementById('poster-result-number');
+    if (numberEl) numberEl.textContent = formattedNumber;
 
     // 1. Get Event Data
     const eventInfo = eventsCache[resultId] || { eventName: resultId, category: 'General' };
