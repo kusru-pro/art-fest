@@ -1128,6 +1128,68 @@ function initHomepageSettingsListener() {
 }
 window.initHomepageSettingsListener = initHomepageSettingsListener;
 
+// Visibility Settings (settings/homepage_visibility)
+function initVisibilitySettingsListener() {
+    if (!isConfigured) return;
+
+    onSnapshot(doc(db, 'settings', 'homepage_visibility'), (docSnap) => {
+        if (!docSnap.exists()) return;
+        applyVisibilitySettings(docSnap.data());
+    }, (err) => {
+        console.warn("Visibility settings listener error:", err);
+    });
+}
+window.initVisibilitySettingsListener = initVisibilitySettingsListener;
+
+function applyVisibilitySettings(data) {
+    if (!data) return;
+    
+    const applyDisplay = (selector, isVisible) => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            if (isVisible) {
+                el.style.display = ''; // Clear inline styles to revert to CSS stylesheet defaults
+            } else {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+    };
+
+    // Published Results
+    if (data.results !== undefined) {
+        applyDisplay('#results', data.results);
+        applyDisplay('#nav-results-link', data.results);
+    }
+    
+    // Team Points
+    if (data.teamPoints !== undefined) {
+        applyDisplay('#team-points', data.teamPoints);
+        applyDisplay('#nav-team-points-link', data.teamPoints);
+        applyDisplay('#home-mini-leaderboard', data.teamPoints);
+    }
+    
+    // Gallery
+    if (data.gallery !== undefined) {
+        applyDisplay('#gallery', data.gallery);
+        applyDisplay('#nav-gallery-link', data.gallery);
+        applyDisplay('.mini-gallery-section', data.gallery);
+    }
+    
+    // News
+    if (data.news !== undefined) {
+        applyDisplay('#news', data.news);
+        applyDisplay('#nav-news-link', data.news);
+        applyDisplay('.mini-news-section', data.news);
+    }
+    
+    // Student Portal
+    if (data.studentPortal !== undefined) {
+        applyDisplay('#nav-student-portal-link', data.studentPortal);
+        applyDisplay('#mobile-student-portal-link', data.studentPortal);
+    }
+}
+window.applyVisibilitySettings = applyVisibilitySettings;
+
 function applyHomepageSettings(data) {
     if (!data) return;
 
@@ -1231,6 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initGalleryRealtimeListener();
         initNewsRealtimeListener();
         initHomepageSettingsListener();
+        initVisibilitySettingsListener();
         populateDynamicCategories();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");

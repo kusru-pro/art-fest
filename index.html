@@ -23,11 +23,11 @@
         <div class="logo" id="site-logo" onclick="navigateTo('hero')">Sahityotsav</div>
         <div class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></div>
         <ul class="nav-links" id="nav-links">
-            <li><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
-            <li id="nav-team-points"><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
-            <li><a class="nav-link" onclick="navigateTo('gallery')">Gallery</a></li>
-            <li><a class="nav-link" onclick="navigateTo('news')">News</a></li>
-            <li><button class="btn-login" onclick="openLoginModal()">Participant Login</button></li>
+            <li id="nav-results-link"><a class="nav-link" onclick="navigateTo('results')">Results</a></li>
+            <li id="nav-team-points-link"><a class="nav-link" onclick="navigateTo('team-points')">Team Points</a></li>
+            <li id="nav-gallery-link"><a class="nav-link" onclick="navigateTo('gallery')">Gallery</a></li>
+            <li id="nav-news-link"><a class="nav-link" onclick="navigateTo('news')">News</a></li>
+            <li id="nav-student-portal-link"><button class="btn-login" onclick="openLoginModal()">Participant Login</button></li>
         </ul>
     </header>
 
@@ -310,7 +310,7 @@
         </div>
     </div>
     <!-- Mobile Sticky Login Button -->
-    <div class="mobile-sticky-login" onclick="openLoginModal()">
+    <div class="mobile-sticky-login" id="mobile-student-portal-link" onclick="openLoginModal()">
         <i class="fa-regular fa-user"></i> Student Portal
     </div>
 

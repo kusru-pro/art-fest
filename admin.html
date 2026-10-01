@@ -1384,6 +1384,85 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- Public Visibility Settings -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fa-solid fa-eye"></i> Public Visibility Settings</h2>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Toggle which sections are visible to the public on the main website.
+                    </p>
+                    <form id="visibility-settings-form" onsubmit="saveVisibilitySettings(event)">
+                        <div class="form-grid" style="grid-template-columns: 1fr; max-width: 400px; gap: 1rem;">
+                            
+                            <!-- Toggle: Published Results -->
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
+                                <label for="vis-results" style="margin-bottom: 0; font-weight: 600; color: #334155;">Published Results</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                                    <input type="checkbox" id="vis-results" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: Team Points -->
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
+                                <label for="vis-team-points" style="margin-bottom: 0; font-weight: 600; color: #334155;">Team Points (Leaderboard)</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                                    <input type="checkbox" id="vis-team-points" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: Gallery -->
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
+                                <label for="vis-gallery" style="margin-bottom: 0; font-weight: 600; color: #334155;">Gallery Section</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                                    <input type="checkbox" id="vis-gallery" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: News -->
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
+                                <label for="vis-news" style="margin-bottom: 0; font-weight: 600; color: #334155;">News Section</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                                    <input type="checkbox" id="vis-news" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: Student Portal -->
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
+                                <label for="vis-student-portal" style="margin-bottom: 0; font-weight: 600; color: #334155;">Student Portal (Login)</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                                    <input type="checkbox" id="vis-student-portal" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                </label>
+                            </div>
+
+                        </div>
+                        <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 15px;">
+                            <button type="submit" class="btn" style="background: #212861;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Visibility Settings
+                            </button>
+                            <span id="visibility-save-status" style="font-size: 0.85rem; color: #16a34a; font-weight: 600; display: none;">
+                                <i class="fa-solid fa-circle-check"></i> Visibility saved!
+                            </span>
+                        </div>
+                    </form>
+                </div>
+                
+                <style>
+                .switch input:checked + .slider { background-color: #212861; }
+                .switch input:focus + .slider { box-shadow: 0 0 1px #212861; }
+                .switch input:checked + .slider:before { transform: translateX(16px); }
+                .slider:before {
+                    position: absolute; content: ""; height: 18px; width: 18px;
+                    left: 3px; bottom: 3px; background-color: white;
+                    transition: .4s; border-radius: 50%;
+                }
+                </style>
             </section>
 
         </main>
@@ -2915,6 +2994,53 @@
             });
         }
 
+        async function saveVisibilitySettings(event) {
+            event.preventDefault();
+            const data = {
+                results: document.getElementById('vis-results').checked,
+                teamPoints: document.getElementById('vis-team-points').checked,
+                gallery: document.getElementById('vis-gallery').checked,
+                news: document.getElementById('vis-news').checked,
+                studentPortal: document.getElementById('vis-student-portal').checked,
+                updatedAt: Date.now()
+            };
+
+            if (!isConfigured) {
+                showFeedback("Visibility settings saved in local preview mode!");
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, 'settings', 'homepage_visibility'), data, { merge: true });
+                showFeedback("Visibility settings saved to Firestore successfully!");
+                const statusSpan = document.getElementById('visibility-save-status');
+                if (statusSpan) {
+                    statusSpan.style.display = 'inline-flex';
+                    setTimeout(() => { statusSpan.style.display = 'none'; }, 3500);
+                }
+            } catch (err) {
+                console.error("Failed to save visibility settings:", err);
+                showFeedback("Failed to save visibility settings: " + err.message, "error");
+            }
+        }
+        window.saveVisibilitySettings = saveVisibilitySettings;
+
+        function initVisibilitySettingsListener() {
+            if (!isConfigured) return;
+            onSnapshot(doc(db, 'settings', 'homepage_visibility'), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.results !== undefined) document.getElementById('vis-results').checked = data.results;
+                    if (data.teamPoints !== undefined) document.getElementById('vis-team-points').checked = data.teamPoints;
+                    if (data.gallery !== undefined) document.getElementById('vis-gallery').checked = data.gallery;
+                    if (data.news !== undefined) document.getElementById('vis-news').checked = data.news;
+                    if (data.studentPortal !== undefined) document.getElementById('vis-student-portal').checked = data.studentPortal;
+                }
+            }, (err) => {
+                console.warn("Could not listen to visibility settings:", err);
+            });
+        }
+
         // =========================================================================
         // 10. BATCH QR CARDS VIEW
         // =========================================================================
@@ -3321,6 +3447,7 @@
             initGalleryListener();
             initResultsListener();
             initHomepageSettingsListener();
+            initVisibilitySettingsListener();
         });
     </script>
 </body>
