@@ -1202,6 +1202,9 @@ window.applyVisibilitySettings = applyVisibilitySettings;
 
 function applyHomepageSettings(data) {
     if (!data) return;
+    
+    // Store poster background globally for downloadPoster
+    window.currentPosterBackground = data.posterBackground || '';
 
     // 1. Website Logo & Title in Header (.logo)
     const siteLogo = document.getElementById('site-logo') || document.querySelector('.logo');
@@ -1304,6 +1307,13 @@ async function downloadPoster(resultId, resultNumber = 1) {
     const formattedNumber = String(resultNumber).padStart(2, '0');
     const numberEl = document.getElementById('poster-result-number');
     if (numberEl) numberEl.textContent = formattedNumber;
+
+    // Dynamic Background Injection
+    if (window.currentPosterBackground) {
+        template.style.backgroundImage = `url('${window.currentPosterBackground}')`;
+    } else {
+        template.style.backgroundImage = 'none'; // Fallback to CSS gradient if empty
+    }
 
     // 1. Get Event Data
     const eventInfo = eventsCache[resultId] || { eventName: resultId, category: 'General' };

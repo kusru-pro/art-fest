@@ -1876,3 +1876,11 @@ h2.section-title {
     color: #1e3a8a !important;
     transform: scale(1.15);
 }
+
+/* === Poster Template Styling === */
+#poster-template {
+    background: linear-gradient(135deg, #1a204d 0%, #0a0e27 100%);
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
