@@ -855,6 +855,9 @@
                 <div class="nav-item" data-tab="tab-news">
                     <i class="fa-solid fa-bullhorn"></i> Manage News
                 </div>
+                <div class="nav-item" data-tab="tab-scoring">
+                    <i class="fa-solid fa-star-half-stroke"></i> Scoring Settings
+                </div>
                 <div class="nav-item" data-tab="tab-homepage">
                     <i class="fa-solid fa-sliders"></i> Home Page Settings
                 </div>
@@ -1343,6 +1346,73 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </section>
+
+            <!-- Tab: Scoring Settings -->
+            <section id="tab-scoring" class="tab-section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-star-half-stroke" style="color: #ca8a04;"></i>
+                            Dynamic Scoring Configuration
+                        </div>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Define the point structure for Positions and Grades. These rules will be fetched by the Judge Panel for live score calculations.
+                    </p>
+                    <form id="scoring-settings-form" onsubmit="saveScoringSettings(event)">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <!-- Individual Events Column -->
+                            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <h3 style="margin-bottom: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;"><i class="fa-solid fa-user"></i> Individual Events</h3>
+                                
+                                <h4 style="margin-bottom: 0.5rem; color: #475569; font-size: 0.9rem;">Position Points</h4>
+                                <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                                    <div class="form-group"><label>1st Place</label><input type="number" id="score-ind-pos1" value="5" required></div>
+                                    <div class="form-group"><label>2nd Place</label><input type="number" id="score-ind-pos2" value="3" required></div>
+                                    <div class="form-group"><label>3rd Place</label><input type="number" id="score-ind-pos3" value="1" required></div>
+                                </div>
+                                
+                                <h4 style="margin-bottom: 0.5rem; color: #475569; font-size: 0.9rem;">Grade Points</h4>
+                                <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                    <div class="form-group"><label>A+ Grade</label><input type="number" id="score-ind-gradeAplus" value="0" required></div>
+                                    <div class="form-group"><label>A Grade</label><input type="number" id="score-ind-gradeA" value="5" required></div>
+                                    <div class="form-group"><label>B Grade</label><input type="number" id="score-ind-gradeB" value="3" required></div>
+                                    <div class="form-group"><label>C Grade</label><input type="number" id="score-ind-gradeC" value="1" required></div>
+                                </div>
+                            </div>
+
+                            <!-- Group Events Column -->
+                            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <h3 style="margin-bottom: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;"><i class="fa-solid fa-users"></i> Group Events</h3>
+                                
+                                <h4 style="margin-bottom: 0.5rem; color: #475569; font-size: 0.9rem;">Position Points</h4>
+                                <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                                    <div class="form-group"><label>1st Place</label><input type="number" id="score-grp-pos1" value="10" required></div>
+                                    <div class="form-group"><label>2nd Place</label><input type="number" id="score-grp-pos2" value="6" required></div>
+                                    <div class="form-group"><label>3rd Place</label><input type="number" id="score-grp-pos3" value="2" required></div>
+                                </div>
+                                
+                                <h4 style="margin-bottom: 0.5rem; color: #475569; font-size: 0.9rem;">Grade Points</h4>
+                                <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                    <div class="form-group"><label>A+ Grade</label><input type="number" id="score-grp-gradeAplus" value="0" required></div>
+                                    <div class="form-group"><label>A Grade</label><input type="number" id="score-grp-gradeA" value="10" required></div>
+                                    <div class="form-group"><label>B Grade</label><input type="number" id="score-grp-gradeB" value="6" required></div>
+                                    <div class="form-group"><label>C Grade</label><input type="number" id="score-grp-gradeC" value="2" required></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; display: flex; align-items: center; gap: 15px;">
+                            <button type="submit" class="btn" style="background: #212861; padding: 0.8rem 2rem;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Scoring Rules
+                            </button>
+                            <span id="scoring-save-status" style="font-size: 0.85rem; color: #16a34a; font-weight: 600; display: none;">
+                                <i class="fa-solid fa-circle-check"></i> Rules saved successfully!
+                            </span>
+                        </div>
+                    </form>
                 </div>
             </section>
 
@@ -2709,19 +2779,23 @@
                         const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
                         const eventInfo = eventsCache[r.eventCode] || {};
 
-                        // Accurate Points allocation:
-                        // Position: 1st = 5, 2nd = 3, 3rd = 1
+                        // Use dynamically calculated points from Judge Panel if available
                         let pts = 0;
                         const pos = Number(r.position);
-                        if (pos === 1) pts += 5;
-                        else if (pos === 2) pts += 3;
-                        else if (pos === 3) pts += 1;
-
-                        // Grade: A = 5, B = 3, C = 1
                         const g = String(r.grade || '').trim().toUpperCase();
-                        if (g === 'A') pts += 5;
-                        else if (g === 'B') pts += 3;
-                        else if (g === 'C') pts += 1;
+
+                        if (r.calculatedPoints !== undefined) {
+                            pts = Number(r.calculatedPoints);
+                        } else {
+                            // Fallback for older records
+                            if (pos === 1) pts += 5;
+                            else if (pos === 2) pts += 3;
+                            else if (pos === 3) pts += 1;
+                            
+                            if (g === 'A') pts += 5;
+                            else if (g === 'B') pts += 3;
+                            else if (g === 'C') pts += 1;
+                        }
 
                         // 1. Update Team Leaderboard
                         if (team) {
@@ -2998,7 +3072,76 @@
         }
 
         // =========================================================================
-        // 9. HOME PAGE SETTINGS (settings/homepage)
+        // 9. SCORING SETTINGS (settings/scoring_rules)
+        // =========================================================================
+        async function saveScoringSettings(event) {
+            event.preventDefault();
+            if (!isConfigured) {
+                showFeedback("Scoring rules saved in preview mode!");
+                return;
+            }
+
+            const payload = {
+                individual: {
+                    pos1: Number(document.getElementById('score-ind-pos1').value) || 0,
+                    pos2: Number(document.getElementById('score-ind-pos2').value) || 0,
+                    pos3: Number(document.getElementById('score-ind-pos3').value) || 0,
+                    gradeAplus: Number(document.getElementById('score-ind-gradeAplus').value) || 0,
+                    gradeA: Number(document.getElementById('score-ind-gradeA').value) || 0,
+                    gradeB: Number(document.getElementById('score-ind-gradeB').value) || 0,
+                    gradeC: Number(document.getElementById('score-ind-gradeC').value) || 0
+                },
+                group: {
+                    pos1: Number(document.getElementById('score-grp-pos1').value) || 0,
+                    pos2: Number(document.getElementById('score-grp-pos2').value) || 0,
+                    pos3: Number(document.getElementById('score-grp-pos3').value) || 0,
+                    gradeAplus: Number(document.getElementById('score-grp-gradeAplus').value) || 0,
+                    gradeA: Number(document.getElementById('score-grp-gradeA').value) || 0,
+                    gradeB: Number(document.getElementById('score-grp-gradeB').value) || 0,
+                    gradeC: Number(document.getElementById('score-grp-gradeC').value) || 0
+                }
+            };
+
+            try {
+                await setDoc(doc(db, 'settings', 'scoring_rules'), payload);
+                const statusSpan = document.getElementById('scoring-save-status');
+                statusSpan.style.display = 'inline-block';
+                setTimeout(() => { statusSpan.style.display = 'none'; }, 3000);
+            } catch (err) {
+                showFeedback("Error saving scoring settings: " + err.message, "error");
+            }
+        }
+        window.saveScoringSettings = saveScoringSettings;
+
+        function initScoringSettingsListener() {
+            if (!isConfigured) return;
+            onSnapshot(doc(db, 'settings', 'scoring_rules'), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.individual) {
+                        document.getElementById('score-ind-pos1').value = data.individual.pos1 ?? 5;
+                        document.getElementById('score-ind-pos2').value = data.individual.pos2 ?? 3;
+                        document.getElementById('score-ind-pos3').value = data.individual.pos3 ?? 1;
+                        document.getElementById('score-ind-gradeAplus').value = data.individual.gradeAplus ?? 0;
+                        document.getElementById('score-ind-gradeA').value = data.individual.gradeA ?? 5;
+                        document.getElementById('score-ind-gradeB').value = data.individual.gradeB ?? 3;
+                        document.getElementById('score-ind-gradeC').value = data.individual.gradeC ?? 1;
+                    }
+                    if (data.group) {
+                        document.getElementById('score-grp-pos1').value = data.group.pos1 ?? 10;
+                        document.getElementById('score-grp-pos2').value = data.group.pos2 ?? 6;
+                        document.getElementById('score-grp-pos3').value = data.group.pos3 ?? 2;
+                        document.getElementById('score-grp-gradeAplus').value = data.group.gradeAplus ?? 0;
+                        document.getElementById('score-grp-gradeA').value = data.group.gradeA ?? 10;
+                        document.getElementById('score-grp-gradeB').value = data.group.gradeB ?? 6;
+                        document.getElementById('score-grp-gradeC').value = data.group.gradeC ?? 2;
+                    }
+                }
+            });
+        }
+
+        // =========================================================================
+        // 10. HOME PAGE SETTINGS (settings/homepage)
         // =========================================================================
         async function saveHomepageSettings(event) {
             event.preventDefault();
@@ -3544,6 +3687,7 @@
             initResultsListener();
             initHomepageSettingsListener();
             initVisibilitySettingsListener();
+            initScoringSettingsListener();
             initAdminNewsListener();
         });
     </script>

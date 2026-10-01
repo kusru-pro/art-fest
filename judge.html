@@ -579,8 +579,9 @@
                                 <i class="fa-solid fa-award"></i> Grade
                             </label>
                             <div class="select-wrapper">
-                                <select id="grade-pos-${posNumber}" class="grade-select">
+                                <select id="grade-pos-${posNumber}" class="grade-select" onchange="calculateTotalScore(${posNumber})">
                                     <option value="" selected disabled>Select</option>
+                                    <option value="A+">Grade A+</option>
                                     <option value="A">Grade A</option>
                                     <option value="B">Grade B</option>
                                     <option value="C">Grade C</option>
@@ -590,6 +591,11 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div id="score-display-${posNumber}" style="margin-top: 1rem; padding: 0.75rem; background: #e0e7ff; border-radius: 8px; color: #3730a3; font-weight: 600; display: none; align-items: center; justify-content: space-between;">
+                        <span><i class="fa-solid fa-calculator"></i> Calculated Score</span>
+                        <span id="score-value-${posNumber}" style="font-size: 1.1rem;">0 pts</span>
+                    </div>
                 </article>
             `;
             
@@ -597,6 +603,48 @@
         }
 
         let allEvents = [];
+
+        window.calculateTotalScore = function(posNumber) {
+            const gradeSelect = document.getElementById(`grade-pos-${posNumber}`);
+            if (!gradeSelect) return;
+            const grade = gradeSelect.value;
+            
+            const displayDiv = document.getElementById(`score-display-${posNumber}`);
+            const valueSpan = document.getElementById(`score-value-${posNumber}`);
+            
+            if (!grade || grade === 'None' || !window.scoringRules) {
+                displayDiv.style.display = 'none';
+                return;
+            }
+
+            // Determine if group or individual
+            const eventCode = document.getElementById('judge-event-select').value;
+            const eventData = allEvents.find(e => e.eventCode === eventCode) || {};
+            const isGroup = (eventData.type && eventData.type.toLowerCase() === 'group');
+            const rules = isGroup ? window.scoringRules.group : window.scoringRules.individual;
+            
+            if (!rules) return;
+
+            // Calculate Position Points
+            let posPts = 0;
+            if (posNumber === 1) posPts = rules.pos1 || 0;
+            if (posNumber === 2) posPts = rules.pos2 || 0;
+            if (posNumber === 3) posPts = rules.pos3 || 0;
+
+            // Calculate Grade Points
+            let gradePts = 0;
+            if (grade === 'A+') gradePts = rules.gradeAplus || 0;
+            else if (grade === 'A') gradePts = rules.gradeA || 0;
+            else if (grade === 'B') gradePts = rules.gradeB || 0;
+            else if (grade === 'C') gradePts = rules.gradeC || 0;
+
+            const total = posPts + gradePts;
+            valueSpan.innerHTML = `+${posPts} (Pos) &nbsp;+${gradePts} (Grade) &nbsp;&nbsp;= <span style="font-size:1.3rem; margin-left:0.5rem;">${total} pts</span>`;
+            displayDiv.style.display = 'flex';
+            
+            // Store total on the select element for easy access during submission
+            gradeSelect.dataset.calculatedPoints = total;
+        };
 
         function updateHeaderDetails(eventData) {
             const titleEl = document.getElementById('judge-event-title');
@@ -854,6 +902,8 @@
                 const gradeVal = gradeSelect ? gradeSelect.value : 'None';
                 const pObj = currentParticipants.find(p => String(p.chestNo) === String(chestNo));
 
+                const calculatedPts = gradeSelect && gradeSelect.dataset.calculatedPoints ? Number(gradeSelect.dataset.calculatedPoints) : 0;
+
                 scores.push({
                     chestNo: chestNo,
                     participantName: pObj ? (pObj.name || '') : '',
@@ -862,6 +912,7 @@
                     totalMark: num,
                     grade: gradeVal || 'None',
                     position: i,
+                    calculatedPoints: calculatedPts,
                     status: 'pending',
                     timestamp: Date.now()
                 });
@@ -911,6 +962,21 @@
         }
         window.submitJudgeEvaluations = submitJudgeEvaluations;
 
+        window.scoringRules = null;
+        async function loadScoringRules() {
+            if (!isConfigured) return;
+            try {
+                const docSnap = await getDoc(doc(db, 'settings', 'scoring_rules'));
+                if (docSnap.exists()) {
+                    window.scoringRules = docSnap.data();
+                } else {
+                    console.log("No scoring rules found, using defaults.");
+                }
+            } catch (err) {
+                console.error("Error loading scoring rules:", err);
+            }
+        }
+
         // Init
         document.addEventListener('DOMContentLoaded', () => {
             const catSelect = document.getElementById('judge-category-select');
@@ -923,6 +989,7 @@
                 progSelect.addEventListener('change', onProgramChanged);
             }
 
+            loadScoringRules();
             loadCategories();
             loadEvents();
         });
