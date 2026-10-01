@@ -56,8 +56,8 @@
         /* Sidebar Navigation */
         .sidebar {
             width: 280px;
-            background-color: var(--bg-outer);
-            color: var(--text-dark);
+            background-color: #212861;
+            color: #FFFFFF;
             display: flex;
             flex-direction: column;
             box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
@@ -67,7 +67,7 @@
         .sidebar-header {
             padding: 2rem 1.5rem;
             text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-header h2 {
@@ -75,12 +75,13 @@
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
             line-height: 1.2;
-            color: var(--accent-council);
+            color: #FFFFFF;
         }
 
         .sidebar-header p {
             font-size: 0.85rem;
             opacity: 0.7;
+            color: #FFFFFF;
         }
 
         .sidebar-nav {
@@ -99,7 +100,7 @@
             gap: 1rem;
             font-size: 0.95rem;
             font-weight: 500;
-            color: var(--text-dark);
+            color: #FFFFFF;
             cursor: pointer;
             transition: all 0.2s;
             border-left: 4px solid transparent;
@@ -107,14 +108,14 @@
         }
 
         .nav-item:hover {
-            background-color: #f1f5f9;
+            background-color: rgba(255, 255, 255, 0.1);
             opacity: 1;
         }
 
         .nav-item.active {
-            background-color: #e2e8f0;
-            color: var(--accent-council);
-            border-left-color: var(--accent-council);
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+            border-left-color: #FFFFFF;
             font-weight: 600;
             opacity: 1;
         }
@@ -1240,16 +1241,14 @@
                                 <tr>
                                     <th>Rank</th>
                                     <th>Team Name</th>
-                                    <th style="text-align: center;">1st (5pts)</th>
-                                    <th style="text-align: center;">2nd (3pts)</th>
-                                    <th style="text-align: center;">3rd (1pt)</th>
-                                    <th style="text-align: center;">A (5pts)</th>
-                                    <th style="text-align: center;">B (3pts)</th>
+                                    <th style="text-align: center;">1st Place count</th>
+                                    <th style="text-align: center;">2nd Place count</th>
+                                    <th style="text-align: center;">3rd Place count</th>
                                     <th style="text-align: right;">Total Points</th>
                                 </tr>
                             </thead>
                             <tbody id="lb-admin-tbody">
-                                <tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading leaderboard standings...</td></tr>
+                                <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 2rem;">Loading leaderboard standings...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1296,6 +1295,7 @@
                     </div>
 
                     <form id="news-form" onsubmit="publishNews(event)">
+                        <input type="hidden" id="news-id" value="">
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="news-title">Article Headline *</label>
@@ -1313,10 +1313,36 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn">
+                        <button type="submit" class="btn" id="news-submit-btn">
                             <i class="fa-solid fa-paper-plane"></i> Publish Live
                         </button>
+                        <button type="button" class="btn" id="news-cancel-btn" style="background: #94a3b8; display: none;" onclick="cancelEditNews()">
+                            <i class="fa-solid fa-xmark"></i> Cancel Edit
+                        </button>
                     </form>
+                </div>
+                
+                <div class="card" style="margin-top: 2rem;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-list-ul" style="color: #0f172a;"></i>
+                            Manage Existing News
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Headline</th>
+                                    <th>Date</th>
+                                    <th style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-news-list">
+                                <tr><td colspan="3" style="text-align: center; padding: 2rem; color: #64748b;">Loading news...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -1394,56 +1420,56 @@
                         Toggle which sections are visible to the public on the main website.
                     </p>
                     <form id="visibility-settings-form" onsubmit="saveVisibilitySettings(event)">
-                        <div class="form-grid" style="grid-template-columns: 1fr; max-width: 400px; gap: 1rem;">
+                        <div class="form-grid" style="grid-template-columns: 1fr; max-width: 500px; gap: 1.5rem;">
                             
                             <!-- Toggle: Published Results -->
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
-                                <label for="vis-results" style="margin-bottom: 0; font-weight: 600; color: #334155;">Published Results</label>
-                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0;">
+                                <label for="vis-results" style="margin-bottom: 0; font-weight: 600; color: #334155; font-size: 1.05rem;">Published Results</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 26px;">
                                     <input type="checkbox" id="vis-results" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 26px;"></span>
                                 </label>
                             </div>
 
                             <!-- Toggle: Team Points -->
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
-                                <label for="vis-team-points" style="margin-bottom: 0; font-weight: 600; color: #334155;">Team Points (Leaderboard)</label>
-                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0;">
+                                <label for="vis-team-points" style="margin-bottom: 0; font-weight: 600; color: #334155; font-size: 1.05rem;">Team Points (Leaderboard)</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 26px;">
                                     <input type="checkbox" id="vis-team-points" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 26px;"></span>
                                 </label>
                             </div>
 
                             <!-- Toggle: Gallery -->
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
-                                <label for="vis-gallery" style="margin-bottom: 0; font-weight: 600; color: #334155;">Gallery Section</label>
-                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0;">
+                                <label for="vis-gallery" style="margin-bottom: 0; font-weight: 600; color: #334155; font-size: 1.05rem;">Gallery Section</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 26px;">
                                     <input type="checkbox" id="vis-gallery" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 26px;"></span>
                                 </label>
                             </div>
 
                             <!-- Toggle: News -->
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
-                                <label for="vis-news" style="margin-bottom: 0; font-weight: 600; color: #334155;">News Section</label>
-                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0;">
+                                <label for="vis-news" style="margin-bottom: 0; font-weight: 600; color: #334155; font-size: 1.05rem;">News Section</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 26px;">
                                     <input type="checkbox" id="vis-news" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 26px;"></span>
                                 </label>
                             </div>
 
                             <!-- Toggle: Student Portal -->
-                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 10px 15px; border-radius: 8px;">
-                                <label for="vis-student-portal" style="margin-bottom: 0; font-weight: 600; color: #334155;">Student Portal (Login)</label>
-                                <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 24px;">
+                            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin: 0;">
+                                <label for="vis-student-portal" style="margin-bottom: 0; font-weight: 600; color: #334155; font-size: 1.05rem;">Student Portal (Login)</label>
+                                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 26px;">
                                     <input type="checkbox" id="vis-student-portal" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px;"></span>
+                                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 26px;"></span>
                                 </label>
                             </div>
 
                         </div>
-                        <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 15px;">
-                            <button type="submit" class="btn" style="background: #212861;">
+                        <div style="margin-top: 2rem; display: flex; align-items: center; gap: 15px;">
+                            <button type="submit" class="btn" style="background: #212861; padding: 0.8rem 2rem;">
                                 <i class="fa-solid fa-floppy-disk"></i> Save Visibility Settings
                             </button>
                             <span id="visibility-save-status" style="font-size: 0.85rem; color: #16a34a; font-weight: 600; display: none;">
@@ -1454,11 +1480,11 @@
                 </div>
                 
                 <style>
-                .switch input:checked + .slider { background-color: #212861; }
-                .switch input:focus + .slider { box-shadow: 0 0 1px #212861; }
-                .switch input:checked + .slider:before { transform: translateX(16px); }
+                .switch input:checked + .slider { background-color: #22c55e; } /* Green for ON */
+                .switch input:focus + .slider { box-shadow: 0 0 2px #22c55e; }
+                .switch input:checked + .slider:before { transform: translateX(18px); }
                 .slider:before {
-                    position: absolute; content: ""; height: 18px; width: 18px;
+                    position: absolute; content: ""; height: 20px; width: 20px;
                     left: 3px; bottom: 3px; background-color: white;
                     transition: .4s; border-radius: 50%;
                 }
@@ -2736,7 +2762,7 @@
                 const tbody = document.getElementById('lb-admin-tbody');
                 if (tbody) {
                     if (sortedTeams.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 2.5rem;">No published results yet. Publish event evaluations in Result Verification to see live standings.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 2.5rem;">No published results yet. Publish event evaluations in Result Verification to see live standings.</td></tr>';
                     } else {
                         tbody.innerHTML = sortedTeams.map((item, index) => {
                             const rank = index + 1;
@@ -2749,9 +2775,7 @@
                                 <td style="text-align: center;"><span class="badge" style="background:#fef3c7; color:#92400e; font-weight:700;">${item.firstCount}</span></td>
                                 <td style="text-align: center;"><span class="badge" style="background:#f1f5f9; color:#475569; font-weight:700;">${item.secondCount}</span></td>
                                 <td style="text-align: center;"><span class="badge" style="background:#ffedd5; color:#9a3412; font-weight:700;">${item.thirdCount}</span></td>
-                                <td style="text-align: center;"><span class="badge" style="background:#dcfce7; color:#166534; font-weight:700;">${item.gradeACount}</span></td>
-                                <td style="text-align: center;"><span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${item.gradeBCount}</span></td>
-                                <td style="text-align: right; font-weight: 800; font-size: 1.2rem; color: var(--accent-council);">${item.totalPoints} pts</td>
+                                <td style="text-align: right; font-weight: 800; font-size: 1.2rem; color: var(--accent-council);">${item.totalPoints}</td>
                             </tr>
                             `;
                         }).join('');
@@ -2876,30 +2900,102 @@
 
         async function publishNews(event) {
             event.preventDefault();
+            const id = document.getElementById('news-id').value;
             const title = document.getElementById('news-title').value.trim();
             const content = document.getElementById('news-content').value.trim();
             const imageUrl = document.getElementById('news-image').value.trim();
 
-            showFeedback('Publishing article... (Please wait)');
+            showFeedback(id ? 'Updating article...' : 'Publishing article... (Please wait)');
 
             if (!isConfigured) {
-                showFeedback(`News announcement "${title}" published in preview!`);
-                event.target.reset();
+                showFeedback(`News announcement "${title}" ${id ? 'updated' : 'published'} in preview!`);
+                cancelEditNews();
                 return;
             }
 
             try {
-                const formattedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                await addDoc(collection(db, 'news'), {
-                    title, content, imageUrl, date: formattedDate, timestamp: Date.now()
-                });
-                showFeedback(`News announcement "${title}" published live!`);
-                event.target.reset();
+                if (id) {
+                    await setDoc(doc(db, 'news', id), {
+                        title, content, imageUrl, timestamp: Date.now()
+                    }, { merge: true });
+                    showFeedback(`News announcement "${title}" updated live!`);
+                } else {
+                    const formattedDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    await addDoc(collection(db, 'news'), {
+                        title, content, imageUrl, date: formattedDate, timestamp: Date.now()
+                    });
+                    showFeedback(`News announcement "${title}" published live!`);
+                }
+                cancelEditNews();
             } catch (err) {
-                showFeedback("Error publishing news: " + err.message, "error");
+                showFeedback("Error saving news: " + err.message, "error");
             }
         }
         window.publishNews = publishNews;
+
+        window.editNews = function(id, title, content, imageUrl) {
+            document.getElementById('news-id').value = id;
+            document.getElementById('news-title').value = title;
+            document.getElementById('news-content').value = content;
+            document.getElementById('news-image').value = imageUrl || '';
+            document.getElementById('news-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
+            document.getElementById('news-cancel-btn').style.display = 'inline-block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.cancelEditNews = function() {
+            document.getElementById('news-form').reset();
+            document.getElementById('news-id').value = '';
+            document.getElementById('news-submit-btn').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Live';
+            document.getElementById('news-cancel-btn').style.display = 'none';
+        };
+
+        window.deleteNews = async function(id) {
+            if (!confirm("Are you sure you want to delete this news announcement?")) return;
+            if (!isConfigured) {
+                showFeedback("Deleted in preview mode.");
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, 'news', id));
+                showFeedback("News deleted successfully.");
+            } catch (err) {
+                showFeedback("Error deleting news: " + err.message, "error");
+            }
+        };
+
+        function initAdminNewsListener() {
+            if (!isConfigured) return;
+            const q = query(collection(db, 'news'), orderBy('timestamp', 'desc'));
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('admin-news-list');
+                if (!tbody) return;
+                
+                if (snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 2rem;">No news published yet.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const titleEsc = data.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const contentEsc = data.content.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const imgEsc = (data.imageUrl || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    html += `
+                    <tr>
+                        <td><strong>${data.title}</strong></td>
+                        <td>${data.date}</td>
+                        <td>
+                            <button class="btn btn-sm" style="background:#3b82f6; padding:4px 8px; font-size:0.8rem; margin-right:4px;" onclick="editNews('${docSnap.id}', '${titleEsc}', '${contentEsc}', '${imgEsc}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="btn btn-sm" style="background:#ef4444; padding:4px 8px; font-size:0.8rem;" onclick="deleteNews('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            });
+        }
 
         // =========================================================================
         // 9. HOME PAGE SETTINGS (settings/homepage)
@@ -3448,6 +3544,7 @@
             initResultsListener();
             initHomepageSettingsListener();
             initVisibilitySettingsListener();
+            initAdminNewsListener();
         });
     </script>
 </body>
