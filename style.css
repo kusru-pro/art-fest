@@ -2,12 +2,12 @@
 
 /* === CSS Variables & Reset === */
 :root {
-    --bg-primary: #a3987c;
-    --bg-secondary: #8e8369;
-    --text-dark: #2c241b;
-    --text-light: #fdfbf7;
-    --accent: #5e4c3a;
-    --highlight-gold: #b58500;
+    --bg-primary: #F8F9FA;
+    --bg-secondary: #FFFFFF;
+    --text-dark: #1e293b;
+    --text-light: #FFFFFF;
+    --accent: #212861;
+    --highlight-gold: #d4af37;
     --font-body: 'Poppins', sans-serif;
     --font-heading: 'Poppins', sans-serif;
 }
@@ -35,17 +35,17 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(163, 152, 124, 0.95);
+    background: rgba(33, 40, 97, 0.95);
     backdrop-filter: blur(10px);
     z-index: 100;
-    border-bottom: 1px solid rgba(44, 36, 27, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo {
     font-family: var(--font-heading);
     font-size: 1.8rem;
     font-weight: 800;
-    color: var(--text-dark);
+    color: #ffffff;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -67,7 +67,7 @@ header {
 
 .nav-link {
     text-decoration: none;
-    color: var(--text-dark);
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.9rem;
@@ -77,12 +77,12 @@ header {
 }
 
 .nav-link:hover, .nav-link.active {
-    color: var(--text-light);
+    color: #ffffff;
 }
 
 .btn-login {
-    background: var(--text-dark);
-    color: var(--bg-primary);
+    background: #ffffff;
+    color: var(--accent);
     padding: 0.6rem 1.5rem;
     border-radius: 30px;
     text-decoration: none;
@@ -94,7 +94,7 @@ header {
 }
 
 .btn-login:hover {
-    background: var(--text-light);
+    background: #e2e8f0;
     color: var(--text-dark);
 }
 
@@ -102,7 +102,7 @@ header {
     display: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--text-dark);
+    color: #ffffff;
 }
 
 /* === Main Container & SPA Logic === */
@@ -212,7 +212,7 @@ h2.section-title {
     margin-top: 25px;
     padding: 12px 30px;
     border-radius: 30px;
-    background: var(--text-dark);
+    background: var(--accent);
     color: #ffffff;
     font-family: var(--font-body);
     font-weight: 700;
@@ -224,14 +224,14 @@ h2.section-title {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(44, 36, 27, 0.2);
+    box-shadow: 0 4px 15px rgba(33, 40, 97, 0.2);
 }
 
 .btn-hero-results:hover {
-    background: #44372b;
+    background: #1a204d;
     color: #ffffff;
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(44, 36, 27, 0.3);
+    box-shadow: 0 6px 20px rgba(33, 40, 97, 0.3);
 }
 
 /* Floating Vintage Elements */
@@ -610,9 +610,9 @@ h2.section-title {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    background: rgba(44, 36, 27, 0.08);
-    border: 2px solid var(--text-dark);
-    color: var(--text-dark);
+    background: var(--accent);
+    border: none;
+    color: #ffffff;
     font-family: var(--font-body);
     font-weight: 600;
     font-size: 0.95rem;
@@ -620,14 +620,14 @@ h2.section-title {
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.25s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(33, 40, 97, 0.2);
 }
 
 .btn-preview-link:hover {
-    background: var(--text-dark);
+    background: #1a204d;
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(44, 36, 27, 0.22);
+    box-shadow: 0 8px 20px rgba(33, 40, 97, 0.4);
 }
 
 @media (max-width: 900px) {
@@ -1037,9 +1037,9 @@ h2.section-title {
 .btn-view-all {
     padding: 0.8rem 2.5rem;
     border-radius: 30px;
-    border: 2px solid var(--text-dark);
-    background: transparent;
-    color: var(--text-dark);
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
@@ -1048,9 +1048,9 @@ h2.section-title {
 }
 
 .btn-view-all:hover {
-    background: var(--text-dark);
-    color: var(--text-light);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: #1a204d;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(33, 40, 97, 0.3);
     transform: translateY(-2px);
 }
 
@@ -1586,7 +1586,7 @@ h2.section-title {
 
 /* View Result Button */
 .btn-view-result {
-    background: #2563eb;
+    background: var(--accent);
     color: #ffffff;
     border: none;
     padding: 0.45rem 1rem;
@@ -1601,7 +1601,7 @@ h2.section-title {
 }
 
 .btn-view-result:hover {
-    background: #1d4ed8;
+    background: #1a204d;
     transform: translateY(-1px);
 }
 
@@ -1792,7 +1792,7 @@ h2.section-title {
 }
 
 @media (max-width: 768px) {
-    .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-primary); flex-direction: column; padding: 2rem 0; border-bottom: 1px solid var(--text-dark); z-index: 1000; }
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(33, 40, 97, 0.98); flex-direction: column; padding: 2rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); z-index: 1000; }
     .nav-links.active { display: flex; }
     .mobile-menu-btn { display: block; }
     .hero-title { font-size: 3rem; }
