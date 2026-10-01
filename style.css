@@ -772,6 +772,21 @@ h2.section-title {
     gap: 1.2rem;
 }
 
+.publish-sequence-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #212861;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(33, 40, 97, 0.2);
+    flex-shrink: 0;
+}
+
 .item-code {
     background: var(--text-dark);
     color: var(--text-light);

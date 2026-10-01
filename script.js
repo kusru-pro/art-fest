@@ -774,14 +774,35 @@ function renderLiveResults(resultsList) {
         });
     });
 
-    container.innerHTML = Object.keys(grouped).map(evCode => {
+    // Convert grouped events into an array to compute sequence and sort
+    const eventsArray = Object.keys(grouped).map(evCode => {
         const eventResults = grouped[evCode];
+        const publishedAt = eventResults.find(r => r.publishedAt)?.publishedAt || 0;
+        return {
+            evCode,
+            eventResults,
+            publishedAt
+        };
+    });
+
+    // Sort ascending by publish time to assign sequence numbers (1 = earliest)
+    eventsArray.sort((a, b) => a.publishedAt - b.publishedAt);
+    eventsArray.forEach((ev, index) => {
+        ev.publishSequence = index + 1;
+    });
+
+    // Sort descending by publish time so newest shows at top
+    eventsArray.sort((a, b) => b.publishedAt - a.publishedAt);
+
+    container.innerHTML = eventsArray.map(evData => {
+        const { evCode, eventResults, publishSequence } = evData;
         const eventInfo = eventsCache[evCode] || { eventName: evCode, category: 'General' };
 
         return `
             <div class="accordion-item result-card" data-category="${eventInfo.category}" data-program="${eventInfo.eventName}">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
                     <div class="header-left">
+                        <div class="publish-sequence-number">#${publishSequence}</div>
                         <div class="item-title-group">
                             <span class="event-name">${eventInfo.eventName}</span>
                             <span class="event-category">${eventInfo.category} • Individual</span>
