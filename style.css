@@ -1867,3 +1867,12 @@ h2.section-title {
     .theme-title { font-size: 2.5rem; }
     .hero-banner-wrapper { padding: 2rem 0; min-height: 80vh; }
 }
+
+.btn-download-poster {
+    transition: transform 0.2s, color 0.2s;
+}
+
+.btn-download-poster:hover {
+    color: #1e3a8a !important;
+    transform: scale(1.15);
+}

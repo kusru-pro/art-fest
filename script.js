@@ -808,7 +808,12 @@ function renderLiveResults(resultsList) {
                             <span class="event-category">${eventInfo.category} • Individual</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button class="btn-download-poster" style="background: none; border: none; color: #212861; font-size: 1.2rem; cursor: pointer; padding: 5px;" onclick="event.stopPropagation(); downloadPoster('${evCode}');" title="Download Poster">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                        <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                    </div>
                 </div>
                 <div class="accordion-body">
                     <div class="table-container">
@@ -1279,6 +1284,69 @@ document.addEventListener('mousemove', function(e) {
         el.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
     });
 });
+
+// =========================================================================
+// 9.5. POSTER DOWNLOAD (HTML2CANVAS)
+// =========================================================================
+async function downloadPoster(eventCode) {
+    const template = document.getElementById('poster-template');
+    if (!template) {
+        alert("Poster template not found.");
+        return;
+    }
+
+    // 1. Get Event Data
+    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+    const evResults = (resultsMap[eventCode] || []).filter(r => r.status === 'published');
+    if (evResults.length === 0) {
+        alert("No published results available for this event.");
+        return;
+    }
+    const sortedResults = evResults.sort((a,b) => (Number(a.position) || 99) - (Number(b.position) || 99));
+
+    // 2. Populate Template
+    document.getElementById('poster-event-name').textContent = eventInfo.eventName;
+    document.getElementById('poster-category').textContent = eventInfo.category;
+
+    ['1st', '2nd', '3rd'].forEach((posStr, idx) => {
+        const el = document.getElementById(`poster-${posStr}`);
+        const result = sortedResults[idx];
+        if (result && Number(result.position) === (idx + 1)) {
+            const p = participantsCache[result.chestNo] || { name: 'Contestant ' + result.chestNo, team: 'Independent' };
+            document.getElementById(`poster-${posStr}-name`).textContent = p.name;
+            document.getElementById(`poster-${posStr}-team`).textContent = p.team || 'Independent';
+            el.style.display = 'flex';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+
+    // 3. Render and Download
+    try {
+        // Temporarily move on-screen for html2canvas to render reliably
+        template.style.left = '0px';
+        template.style.zIndex = '-9999';
+        
+        const canvas = await html2canvas(template, {
+            scale: 2, // High resolution
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+        
+        template.style.left = '-9999px'; // Hide again
+
+        // Trigger Download
+        const link = document.createElement('a');
+        link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (err) {
+        console.error("Poster generation failed:", err);
+        alert("Failed to generate poster.");
+        template.style.left = '-9999px';
+    }
+}
+window.downloadPoster = downloadPoster;
 
 // =========================================================================
 // 10. INITIALIZATION
