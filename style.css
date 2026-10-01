@@ -747,11 +747,11 @@ h2.section-title {
 }
 
 .accordion-item {
-    border: 1px solid rgba(44, 36, 27, 0.2);
+    border: 2px solid #212861;
     border-radius: 10px;
     background: rgba(253, 251, 247, 0.6);
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transition: background 0.3s, opacity 0.3s;
 }
 
