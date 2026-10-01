@@ -1679,6 +1679,19 @@
         </div>
     </div>
 
+
+    <!-- Poster Preview Modal -->
+    <div id="poster-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div class="poster-preview-content" style="background: var(--bg-white, #ffffff); padding: 30px; border-radius: 12px; text-align: center; max-width: 95%; max-height: 95vh; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h3 style="margin-bottom: 15px; color: var(--primary-color, #212861); font-family: 'Poppins', sans-serif;">Poster Preview</h3>
+            <img id="preview-image-element" src="" alt="Poster Preview" style="max-width: 90vw; max-height: 70vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px;">
+            <div class="poster-preview-actions" style="display: flex; gap: 15px; justify-content: center; width: 100%;">
+                <button id="btn-close-preview" class="btn-cancel" style="padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; background: #e2e8f0; color: #475569;">Close</button>
+                <button id="btn-confirm-download" class="btn-primary" style="padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; background: #212861; color: white;">Confirm Download</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase Modular SDK Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -3763,13 +3776,41 @@
                 const canvas = await html2canvas(template, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: null
                 });
                 
-                const link = document.createElement('a');
-                link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const dataUrl = canvas.toDataURL('image/png');
+                
+                // Show Modal Preview
+                const previewImg = document.getElementById('preview-image-element');
+                const modal = document.getElementById('poster-preview-modal');
+                
+                if (previewImg && modal) {
+                    previewImg.src = dataUrl;
+                    modal.style.display = 'flex';
+                    
+                    // Set up Confirm button
+                    const confirmBtn = document.getElementById('btn-confirm-download');
+                    confirmBtn.onclick = () => {
+                        const link = document.createElement('a');
+                        link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
+                        link.href = dataUrl;
+                        link.click();
+                        modal.style.display = 'none';
+                    };
+                    
+                    // Set up Close button
+                    const closeBtn = document.getElementById('btn-close-preview');
+                    closeBtn.onclick = () => {
+                        modal.style.display = 'none';
+                    };
+                } else {
+                    // Fallback
+                    const link = document.createElement('a');
+                    link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                }
             } catch (err) {
                 console.error("Poster generation failed:", err);
                 alert("Failed to generate poster.");

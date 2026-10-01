@@ -1332,14 +1332,41 @@ async function downloadPoster(resultId) {
         const canvas = await html2canvas(template, {
             scale: 2, // High resolution
             useCORS: true,
-            backgroundColor: '#ffffff'
+            backgroundColor: null
         });
         
-        // Trigger Download
-        const link = document.createElement('a');
-        link.download = `Result_Poster_${resultId.replace(/\s+/g, '_')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Show Modal Preview
+        const previewImg = document.getElementById('preview-image-element');
+        const modal = document.getElementById('poster-preview-modal');
+        
+        if (previewImg && modal) {
+            previewImg.src = dataUrl;
+            modal.style.display = 'flex';
+            
+            // Set up Confirm button
+            const confirmBtn = document.getElementById('btn-confirm-download');
+            confirmBtn.onclick = () => {
+                const link = document.createElement('a');
+                link.download = `Result_Poster_${resultId.replace(/\s+/g, '_')}.png`;
+                link.href = dataUrl;
+                link.click();
+                modal.style.display = 'none';
+            };
+            
+            // Set up Close button
+            const closeBtn = document.getElementById('btn-close-preview');
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+        } else {
+            // Fallback if modal not present
+            const link = document.createElement('a');
+            link.download = `Result_Poster_${resultId.replace(/\s+/g, '_')}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
     } catch (err) {
         console.error("Poster generation failed:", err);
         alert("Failed to generate poster.");
