@@ -2219,155 +2219,156 @@
             }
             
             onSnapshot(collection(db, 'results'), (snapshot) => {
-                const verifyContainer = document.getElementById('verify-cards-container');
-                const publishedContainer = document.getElementById('published-cards-container');
-                const countBadge = document.getElementById('pending-count');
-                const btnPendingCount = document.getElementById('btn-pending-count');
-                const btnPubCount = document.getElementById('btn-pub-count');
-                const pubBadge = document.getElementById('published-count-badge');
-                const statPending = document.getElementById('stat-pending');
-                const statResults = document.getElementById('stat-results');
+                try {
+                    const verifyContainer = document.getElementById('verify-cards-container');
+                    const publishedContainer = document.getElementById('published-cards-container');
+                    const countBadge = document.getElementById('pending-count');
+                    const btnPendingCount = document.getElementById('btn-pending-count');
+                    const btnPubCount = document.getElementById('btn-pub-count');
+                    const pubBadge = document.getElementById('published-count-badge');
+                    const statPending = document.getElementById('stat-pending');
+                    const statResults = document.getElementById('stat-results');
 
-                if (snapshot.empty) {
-                    if (verifyContainer) verifyContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No evaluations submitted by judges yet.</p></div>`;
-                    if (publishedContainer) publishedContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No published results in archive.</p></div>`;
-                    if (countBadge) countBadge.textContent = '0 Pending';
-                    if (btnPendingCount) btnPendingCount.textContent = '0';
-                    if (btnPubCount) btnPubCount.textContent = '0';
-                    if (pubBadge) pubBadge.textContent = '0 Published Programs';
-                    if (statPending) statPending.textContent = '0';
-                    if (statResults) statResults.textContent = '0';
-                    return;
-                }
+                    if (snapshot.empty) {
+                        if (verifyContainer) verifyContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No evaluations submitted by judges yet.</p></div>`;
+                        if (publishedContainer) publishedContainer.innerHTML = `<div class="card"><p style="text-align:center; color: #64748b;">No published results in archive.</p></div>`;
+                        if (countBadge) countBadge.textContent = '0 Pending';
+                        if (btnPendingCount) btnPendingCount.textContent = '0';
+                        if (btnPubCount) btnPubCount.textContent = '0';
+                        if (pubBadge) pubBadge.textContent = '0 Published Programs';
+                        if (statPending) statPending.textContent = '0';
+                        if (statResults) statResults.textContent = '0';
+                        return;
+                    }
 
-                // Group results by eventCode
-                const grouped = {};
-                snapshot.forEach(docSnap => {
-                    const res = docSnap.data();
-                    res.id = docSnap.id;
-                    if (!grouped[res.eventCode]) grouped[res.eventCode] = [];
-                    grouped[res.eventCode].push(res);
-                });
-
-                let pendingEventsCount = 0;
-                let publishedEventsCount = 0;
-                let pendingHtml = '';
-                let publishedHtml = '';
-
-                // Process Pending Verification Events
-                Object.entries(grouped).forEach(([eventCode, results]) => {
-                    // Sort scores by rank/position, then mark descending
-                    results.sort((a, b) => {
-                        if (a.position && b.position) return a.position - b.position;
-                        return (b.totalMark || 0) - (a.totalMark || 0);
+                    // Group results by eventCode
+                    const grouped = {};
+                    snapshot.forEach(docSnap => {
+                        const res = docSnap.data();
+                        res.id = docSnap.id;
+                        if (!grouped[res.eventCode]) grouped[res.eventCode] = [];
+                        grouped[res.eventCode].push(res);
                     });
 
-                    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
-                    const hasPending = results.some(r => r.status === 'pending');
+                    let pendingEventsCount = 0;
+                    let publishedEventsCount = 0;
+                    let pendingHtml = '';
+                    let publishedHtml = '';
 
-                    if (hasPending) {
-                        pendingEventsCount++;
-                        pendingHtml += `
-                        <div class="accordion-card">
-                            <div class="accordion-header" id="acc-header-${eventCode}" onclick="toggleAccordion('${eventCode}')">
-                                <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
-                                    <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
-                                    <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(${eventInfo.category})</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 15px;">
-                                    <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
-                                    <i class="fa-solid fa-chevron-down accordion-icon"></i>
-                                </div>
-                            </div>
-                            <div class="accordion-content" id="acc-content-${eventCode}">
-                                <div style="padding: 1.5rem 2rem;">
-                                    <div class="table-responsive">
-                                        <table class="data-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Position</th>
-                                                    <th>Chest No</th>
-                                                    <th>Participant</th>
-                                                    <th>Team</th>
-                                                    <th>Marks</th>
-                                                    <th>Grade</th>
-                                                    <th>Point Value</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${results.map(res => {
-                                                    const participant = participantsCache[res.chestNo] || {};
-                                                    const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
-                                                    const team = participant.team || res.team || 'Independent';
-
-                                                    const pos = Number(res.position);
-                                                    let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
-                                                    const g = (res.grade || '').trim().toUpperCase();
-                                                    let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
-                                                    const totalPts = posPts + grdPts;
-
-                                                    return `
-                                                        <tr>
-                                                            <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
-                                                            <td><strong>${res.chestNo}</strong></td>
-                                                            <td>${name}</td>
-                                                            <td><strong>${team}</strong></td>
-                                                            <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
-                                                            <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
-                                                            <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}, Grd: ${grdPts})</span></td>
-                                                        </tr>
-                                                    `;
-                                                }).join('')}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
-                                        <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="deletePendingEventResults('${eventCode}')">
-                                            <i class="fa-solid fa-trash-can"></i> Delete Evaluation
-                                        </button>
-                                        <button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')">
-                                            <i class="fa-solid fa-bullhorn"></i> Publish Results
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    }
-                });
-
-                // Process Published Results History Card with sequencing
-                const publishedGroups = Object.entries(grouped)
-                    .filter(([evCode, results]) => results.every(r => r.status === 'published'))
-                    .map(([evCode, results]) => {
+                    // Process Pending Verification Events
+                    Object.entries(grouped).forEach(([eventCode, results]) => {
+                        // Sort scores by rank/position, then mark descending
                         results.sort((a, b) => {
                             if (a.position && b.position) return a.position - b.position;
                             return (b.totalMark || 0) - (a.totalMark || 0);
                         });
-                        const publishedAt = results.find(r => r.publishedAt)?.publishedAt || 0;
-                        return { eventCode: evCode, results, publishedAt };
+
+                        const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+                        const hasPending = results.some(r => r.status === 'pending');
+
+                        if (hasPending) {
+                            pendingEventsCount++;
+                            pendingHtml += `
+                            <div class="accordion-card">
+                                <div class="accordion-header" id="acc-header-${eventCode}" onclick="toggleAccordion('${eventCode}')">
+                                    <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-masks-theater" style="color: var(--accent-council);"></i>
+                                        <span style="font-weight: 700; color: #0f172a;">${eventCode} - ${eventInfo.eventName}</span>
+                                        <span style="font-size: 0.9rem; font-weight: 500; color: #64748b; margin-left: 4px;">(${eventInfo.category})</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <span class="badge badge-pending"><i class="fa-solid fa-clock"></i> Pending Verification</span>
+                                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                                    </div>
+                                </div>
+                                <div class="accordion-content" id="acc-content-${eventCode}">
+                                    <div style="padding: 1.5rem 2rem;">
+                                        <div class="table-responsive">
+                                            <table class="data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Position</th>
+                                                        <th>Chest No</th>
+                                                        <th>Participant</th>
+                                                        <th>Team</th>
+                                                        <th>Marks</th>
+                                                        <th>Grade</th>
+                                                        <th>Point Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${results.map(res => {
+                                                        const participant = participantsCache[res.chestNo] || {};
+                                                        const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
+                                                        const team = participant.team || res.team || 'Independent';
+
+                                                        const pos = Number(res.position);
+                                                        let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
+                                                        const g = String(res.grade || '').trim().toUpperCase();
+                                                        let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
+                                                        const totalPts = posPts + grdPts;
+
+                                                        return `
+                                                            <tr>
+                                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
+                                                                <td><strong>${res.chestNo}</strong></td>
+                                                                <td>${name}</td>
+                                                                <td><strong>${team}</strong></td>
+                                                                <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
+                                                                <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
+                                                                <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}, Grd: ${grdPts})</span></td>
+                                                            </tr>
+                                                        `;
+                                                    }).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
+                                            <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="deletePendingEventResults('${eventCode}')">
+                                                <i class="fa-solid fa-trash-can"></i> Delete Evaluation
+                                            </button>
+                                            <button class="btn" id="btn-pub-${eventCode}" onclick="publishEventResults('${eventCode}')">
+                                                <i class="fa-solid fa-bullhorn"></i> Publish Results
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }
                     });
 
-                // Sort ascending to get sequence number
-                publishedGroups.sort((a, b) => a.publishedAt - b.publishedAt);
-                publishedGroups.forEach((group, idx) => {
-                    group.publishSequence = idx + 1;
-                });
+                    // Process Published Results History Card with sequencing
+                    const publishedGroups = Object.entries(grouped)
+                        .filter(([evCode, results]) => results.every(r => r.status === 'published'))
+                        .map(([evCode, results]) => {
+                            results.sort((a, b) => {
+                                if (a.position && b.position) return a.position - b.position;
+                                return (b.totalMark || 0) - (a.totalMark || 0);
+                            });
+                            const publishedAt = results.find(r => r.publishedAt)?.publishedAt || 0;
+                            return { eventCode: evCode, results, publishedAt };
+                        });
 
-                // Sort descending so newest is at the top
-                publishedGroups.sort((a, b) => b.publishedAt - a.publishedAt);
+                    // Sort ascending to get sequence number
+                    publishedGroups.sort((a, b) => a.publishedAt - b.publishedAt);
+                    publishedGroups.forEach((group, idx) => {
+                        group.publishSequence = idx + 1;
+                    });
 
-                publishedGroups.forEach(({ eventCode, results, publishSequence }) => {
-                    publishedEventsCount++;
-                    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+                    // Sort descending so newest is at the top
+                    publishedGroups.sort((a, b) => b.publishedAt - a.publishedAt);
 
-                    publishedHtml += `
-                        <div class="accordion-card" style="border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: none; margin-bottom: 0.5rem;">
-                            <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')" style="padding: 0.75rem 1rem; background: #ffffff;">
-                                <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <div style="background-color: #212861; color: #ffffff; font-weight: 700; font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(33, 40, 97, 0.2);">#${publishSequence}</div>
-                                    <span style="font-weight: 600; color: #334155; font-size: 0.95rem;">${eventCode} - ${eventInfo.eventName}</span>
+                    publishedGroups.forEach(({ eventCode, results, publishSequence }) => {
+                        publishedEventsCount++;
+                        const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+
+                        publishedHtml += `
+                            <div class="accordion-card" style="border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: none; margin-bottom: 0.5rem;">
+                                <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')" style="padding: 0.75rem 1rem; background: #ffffff;">
+                                    <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <div style="background-color: #212861; color: #ffffff; font-weight: 700; font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(33, 40, 97, 0.2);">#${publishSequence}</div>
+                                        <span style="font-weight: 600; color: #334155; font-size: 0.95rem;">${eventCode} - ${eventInfo.eventName}</span>
                                     <span style="font-size: 0.8rem; font-weight: 500; color: #94a3b8;">(${eventInfo.category})</span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2474,6 +2475,7 @@
                 if (pubBadge) pubBadge.textContent = publishedEventsCount + ' Published Programs';
                 if (statPending) statPending.textContent = pendingEventsCount;
                 if (statResults) statResults.textContent = publishedEventsCount;
+                } catch(err) { console.error("Error processing live results:", err); }
             });
         }
 
@@ -2651,85 +2653,89 @@
                 const teamScores = {};
                 const indScores = {};
 
-                snapshot.forEach(docSnap => {
-                    const r = docSnap.data();
-                    if (r.status !== 'published') return;
+                try {
+                    snapshot.forEach(docSnap => {
+                        const r = docSnap.data();
+                        if (r.status !== 'published') return;
 
-                    const participant = participantsCache[r.chestNo];
-                    const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
-                    const eventInfo = eventsCache[r.eventCode] || {};
+                        const participant = participantsCache[r.chestNo];
+                        const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
+                        const eventInfo = eventsCache[r.eventCode] || {};
 
-                    // Accurate Points allocation:
-                    // Position: 1st = 5, 2nd = 3, 3rd = 1
-                    let pts = 0;
-                    const pos = Number(r.position);
-                    if (pos === 1) pts += 5;
-                    else if (pos === 2) pts += 3;
-                    else if (pos === 3) pts += 1;
+                        // Accurate Points allocation:
+                        // Position: 1st = 5, 2nd = 3, 3rd = 1
+                        let pts = 0;
+                        const pos = Number(r.position);
+                        if (pos === 1) pts += 5;
+                        else if (pos === 2) pts += 3;
+                        else if (pos === 3) pts += 1;
 
-                    // Grade: A = 5, B = 3, C = 1
-                    const g = (r.grade || '').trim().toUpperCase();
-                    if (g === 'A') pts += 5;
-                    else if (g === 'B') pts += 3;
-                    else if (g === 'C') pts += 1;
+                        // Grade: A = 5, B = 3, C = 1
+                        const g = String(r.grade || '').trim().toUpperCase();
+                        if (g === 'A') pts += 5;
+                        else if (g === 'B') pts += 3;
+                        else if (g === 'C') pts += 1;
 
-                    // 1. Update Team Leaderboard
-                    if (team) {
-                        if (!teamScores[team]) {
-                            teamScores[team] = {
-                                teamName: team,
-                                totalPoints: 0,
-                                firstCount: 0,
-                                secondCount: 0,
-                                thirdCount: 0,
-                                gradeACount: 0,
-                                gradeBCount: 0,
-                                gradeCCount: 0
-                            };
-                        }
-                        
-                        teamScores[team].totalPoints += pts;
-                        if (pos === 1) teamScores[team].firstCount++;
-                        else if (pos === 2) teamScores[team].secondCount++;
-                        else if (pos === 3) teamScores[team].thirdCount++;
-                        
-                        if (g === 'A') teamScores[team].gradeACount++;
-                        else if (g === 'B') teamScores[team].gradeBCount++;
-                        else if (g === 'C') teamScores[team].gradeCCount++;
-                    }
-
-                    // 2. Update Individual Leaderboard (Star / Pen of the Fest)
-                    if (pts > 0 && r.chestNo && r.chestNo.toLowerCase() !== 'none') {
-                        const isGroup = (eventInfo.type || '').toLowerCase() === 'group';
-                        
-                        // Define Off-stage by keywords
-                        const offStageKeywords = ['drawing', 'writing', 'poster', 'painting', 'calligraphy', 'sketch', 'essay', 'story', 'poem', 'versification', 'cartoon'];
-                        const eventNameLower = (eventInfo.eventName || '').toLowerCase().replace(/\s+/g, '');
-                        const isOffStage = offStageKeywords.some(kw => eventNameLower.includes(kw));
-
-                        if (!isGroup) {
-                            if (!indScores[r.chestNo]) {
-                                const cat = participant ? participant.category : (eventInfo.category || 'Unknown');
-                                indScores[r.chestNo] = {
-                                    chestNo: r.chestNo,
-                                    name: participant ? participant.name : 'Unknown',
-                                    category: cat,
-                                    team: team,
-                                    starPoints: 0,
-                                    penPoints: 0,
-                                    totalPoints: 0
+                        // 1. Update Team Leaderboard
+                        if (team) {
+                            if (!teamScores[team]) {
+                                teamScores[team] = {
+                                    teamName: team,
+                                    totalPoints: 0,
+                                    firstCount: 0,
+                                    secondCount: 0,
+                                    thirdCount: 0,
+                                    gradeACount: 0,
+                                    gradeBCount: 0,
+                                    gradeCCount: 0
                                 };
                             }
-
-                            if (isOffStage) {
-                                indScores[r.chestNo].penPoints += pts;
-                            } else {
-                                indScores[r.chestNo].starPoints += pts;
-                            }
-                            indScores[r.chestNo].totalPoints += pts;
+                            
+                            teamScores[team].totalPoints += pts;
+                            if (pos === 1) teamScores[team].firstCount++;
+                            else if (pos === 2) teamScores[team].secondCount++;
+                            else if (pos === 3) teamScores[team].thirdCount++;
+                            
+                            if (g === 'A') teamScores[team].gradeACount++;
+                            else if (g === 'B') teamScores[team].gradeBCount++;
+                            else if (g === 'C') teamScores[team].gradeCCount++;
                         }
-                    }
-                });
+
+                        // 2. Update Individual Leaderboard (Star / Pen of the Fest)
+                        if (pts > 0 && r.chestNo && String(r.chestNo).toLowerCase() !== 'none') {
+                            const isGroup = String(eventInfo.type || '').toLowerCase() === 'group';
+                            
+                            // Define Off-stage by keywords
+                            const offStageKeywords = ['drawing', 'writing', 'poster', 'painting', 'calligraphy', 'sketch', 'essay', 'story', 'poem', 'versification', 'cartoon'];
+                            const eventNameLower = String(eventInfo.eventName || '').toLowerCase().replace(/\s+/g, '');
+                            const isOffStage = offStageKeywords.some(kw => eventNameLower.includes(kw));
+
+                            if (!isGroup) {
+                                if (!indScores[r.chestNo]) {
+                                    const cat = participant ? participant.category : (eventInfo.category || 'Unknown');
+                                    indScores[r.chestNo] = {
+                                        chestNo: r.chestNo,
+                                        name: participant ? participant.name : 'Unknown',
+                                        category: cat,
+                                        team: team,
+                                        starPoints: 0,
+                                        penPoints: 0,
+                                        totalPoints: 0
+                                    };
+                                }
+
+                                if (isOffStage) {
+                                    indScores[r.chestNo].penPoints += pts;
+                                } else {
+                                    indScores[r.chestNo].starPoints += pts;
+                                }
+                                indScores[r.chestNo].totalPoints += pts;
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error processing leaderboard snapshot:", e);
+                }
 
                 window.currentAdminLeaderboard = Object.values(teamScores)
                     .sort((a, b) => b.totalPoints - a.totalPoints);

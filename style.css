@@ -1825,8 +1825,8 @@ h2.section-title {
         right: 20px;
         width: auto;
         z-index: 9999;
-        background: linear-gradient(90deg, #84f2e7, #f7f3a8);
-        color: #1e293b;
+        background-color: #212861;
+        color: #ffffff;
         padding: 10px 24px;
         font-weight: 700;
         font-family: var(--font-body);
