@@ -2506,7 +2506,6 @@
                                                     <th>Team</th>
                                                     <th>Mark</th>
                                                     <th>Grade</th>
-                                                    <th>Points</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2516,10 +2515,7 @@
                                                     const team = participant.team || res.team || 'Independent';
 
                                                     const pos = Number(res.position);
-                                                    let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
                                                     const g = (res.grade || '').trim().toUpperCase();
-                                                    let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
-                                                    const totalPts = posPts + grdPts;
 
                                                     const medal = pos === 1 ? '🥇 1st Place' : pos === 2 ? '🥈 2nd Place' : pos === 3 ? '🥉 3rd Place' : `#${pos}`;
 
@@ -2531,7 +2527,6 @@
                                                             <td><strong>${team}</strong></td>
                                                             <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
                                                             <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
-                                                            <td><strong style="color: #16a34a; font-size: 1.05rem;">+${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts} + Grd: ${grdPts})</span></td>
                                                         </tr>
                                                     `;
                                                 }).join('')}
@@ -2779,23 +2774,10 @@
                         const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
                         const eventInfo = eventsCache[r.eventCode] || {};
 
-                        // Use dynamically calculated points from Judge Panel if available
-                        let pts = 0;
+                        // Rely strictly on final 'MARK' for total score accumulation
+                        let markPts = Number(r.totalMark) || 0;
                         const pos = Number(r.position);
                         const g = String(r.grade || '').trim().toUpperCase();
-
-                        if (r.calculatedPoints !== undefined) {
-                            pts = Number(r.calculatedPoints);
-                        } else {
-                            // Fallback for older records
-                            if (pos === 1) pts += 5;
-                            else if (pos === 2) pts += 3;
-                            else if (pos === 3) pts += 1;
-                            
-                            if (g === 'A') pts += 5;
-                            else if (g === 'B') pts += 3;
-                            else if (g === 'C') pts += 1;
-                        }
 
                         // 1. Update Team Leaderboard
                         if (team) {
@@ -2812,7 +2794,7 @@
                                 };
                             }
                             
-                            teamScores[team].totalPoints += pts;
+                            teamScores[team].totalPoints += markPts;
                             if (pos === 1) teamScores[team].firstCount++;
                             else if (pos === 2) teamScores[team].secondCount++;
                             else if (pos === 3) teamScores[team].thirdCount++;
