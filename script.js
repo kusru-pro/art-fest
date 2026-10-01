@@ -1315,7 +1315,7 @@ async function downloadPoster(eventCode) {
             const p = participantsCache[result.chestNo] || { name: 'Contestant ' + result.chestNo, team: 'Independent' };
             document.getElementById(`poster-${posStr}-name`).textContent = p.name;
             document.getElementById(`poster-${posStr}-team`).textContent = p.team || 'Independent';
-            el.style.display = 'flex';
+            el.style.display = 'block';
         } else {
             el.style.display = 'none';
         }
