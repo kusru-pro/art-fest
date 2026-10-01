@@ -48,6 +48,7 @@ try {
 let participantsCache = {};
 let eventsCache = {};
 let publishedResultsCache = [];
+let resultsMap = {};
 
 // =========================================================================
 // 2. SPA NAVIGATION LOGIC
@@ -359,13 +360,13 @@ async function submitLogin() {
         // Fetch all results for this participant from Firestore
         const resultsQuery = query(collection(db, 'results'), where('chestNo', '==', String(chestNo)));
         const resultsSnap = await getDocs(resultsQuery);
-        const resultsMap = {};
+        const studentResultsMap = {};
 
         resultsSnap.forEach(snap => {
             const data = snap.data();
             // Store by eventCode
             if (data.eventCode) {
-                resultsMap[data.eventCode] = data;
+                studentResultsMap[data.eventCode] = data;
             }
         });
 
@@ -430,8 +431,8 @@ async function submitLogin() {
             const eventName = (evInfo && evInfo.eventName) ? evInfo.eventName : evCodeOrName;
             const category = (evInfo && evInfo.category) ? evInfo.category : (participantData.category || 'General');
 
-            // Find matching result in resultsMap (by matchedCode or original evCodeOrName)
-            const res = resultsMap[matchedCode] || resultsMap[evCodeOrName];
+            // Find matching result in studentResultsMap (by matchedCode or original evCodeOrName)
+            const res = studentResultsMap[matchedCode] || studentResultsMap[evCodeOrName];
 
             let status = 'scheduled';
             let rank = null;
@@ -787,8 +788,12 @@ function renderLiveResults(resultsList) {
 
     // Sort ascending by publish time to assign sequence numbers (1 = earliest)
     eventsArray.sort((a, b) => a.publishedAt - b.publishedAt);
+    
+    // Clear and populate global resultsMap
+    resultsMap = {};
     eventsArray.forEach((ev, index) => {
         ev.publishSequence = index + 1;
+        resultsMap[ev.evCode] = ev.eventResults;
     });
 
     // Sort descending by publish time so newest shows at top
@@ -1288,7 +1293,7 @@ document.addEventListener('mousemove', function(e) {
 // =========================================================================
 // 9.5. POSTER DOWNLOAD (HTML2CANVAS)
 // =========================================================================
-async function downloadPoster(eventCode) {
+async function downloadPoster(resultId) {
     const template = document.getElementById('poster-template');
     if (!template) {
         alert("Poster template not found.");
@@ -1296,8 +1301,9 @@ async function downloadPoster(eventCode) {
     }
 
     // 1. Get Event Data
-    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
-    const evResults = (resultsMap[eventCode] || []).filter(r => r.status === 'published');
+    const eventInfo = eventsCache[resultId] || { eventName: resultId, category: 'General' };
+    const resultData = resultsMap[resultId];
+    const evResults = (resultData || []).filter(r => r.status === 'published');
     if (evResults.length === 0) {
         alert("No published results available for this event.");
         return;
@@ -1331,7 +1337,7 @@ async function downloadPoster(eventCode) {
         
         // Trigger Download
         const link = document.createElement('a');
-        link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
+        link.download = `Result_Poster_${resultId.replace(/\s+/g, '_')}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (err) {
