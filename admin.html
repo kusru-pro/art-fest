@@ -2254,6 +2254,7 @@
                 let pendingHtml = '';
                 let publishedHtml = '';
 
+                // Process Pending Verification Events
                 Object.entries(grouped).forEach(([eventCode, results]) => {
                     // Sort scores by rank/position, then mark descending
                     results.sort((a, b) => {
@@ -2262,10 +2263,8 @@
                     });
 
                     const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
-                    const isPublished = results.every(r => r.status === 'published');
                     const hasPending = results.some(r => r.status === 'pending');
 
-                    // 1. Pending Verification Card
                     if (hasPending) {
                         pendingEventsCount++;
                         pendingHtml += `
@@ -2336,24 +2335,40 @@
                         </div>
                         `;
                     }
+                });
 
-                    // 2. Published Results History Card
-                    if (isPublished) {
-                        publishedEventsCount++;
-                        const winner = results[0];
-                        const winnerPart = participantsCache[winner.chestNo] || {};
-                        const winnerName = winnerPart.name || winner.participantName || ('Chest ' + winner.chestNo);
-                        const winnerTeam = winnerPart.team || winner.team || 'Independent';
+                // Process Published Results History Card with sequencing
+                const publishedGroups = Object.entries(grouped)
+                    .filter(([evCode, results]) => results.every(r => r.status === 'published'))
+                    .map(([evCode, results]) => {
+                        results.sort((a, b) => {
+                            if (a.position && b.position) return a.position - b.position;
+                            return (b.totalMark || 0) - (a.totalMark || 0);
+                        });
+                        const publishedAt = results.find(r => r.publishedAt)?.publishedAt || 0;
+                        return { eventCode: evCode, results, publishedAt };
+                    });
 
-                        publishedHtml += `
+                // Sort ascending to get sequence number
+                publishedGroups.sort((a, b) => a.publishedAt - b.publishedAt);
+                publishedGroups.forEach((group, idx) => {
+                    group.publishSequence = idx + 1;
+                });
+
+                // Sort descending so newest is at the top
+                publishedGroups.sort((a, b) => b.publishedAt - a.publishedAt);
+
+                publishedGroups.forEach(({ eventCode, results, publishSequence }) => {
+                    publishedEventsCount++;
+                    const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
+
+                    publishedHtml += `
                         <div class="accordion-card" style="border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: none; margin-bottom: 0.5rem;">
                             <div class="accordion-header" id="acc-header-pub-${eventCode}" onclick="toggleAccordion('pub-${eventCode}')" style="padding: 0.75rem 1rem; background: #ffffff;">
                                 <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <div style="background-color: #212861; color: #ffffff; font-weight: 700; font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(33, 40, 97, 0.2);">#${publishSequence}</div>
                                     <span style="font-weight: 600; color: #334155; font-size: 0.95rem;">${eventCode} - ${eventInfo.eventName}</span>
                                     <span style="font-size: 0.8rem; font-weight: 500; color: #94a3b8;">(${eventInfo.category})</span>
-                                    <span style="font-size: 0.75rem; color: #15803d; background: #f0fdf4; padding: 1px 6px; border-radius: 4px; font-weight: 600;">
-                                        🥇 1st: ${winnerName} (${winnerTeam})
-                                    </span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span class="badge" style="background: transparent; color: #64748b; font-size: 0.75rem; border: 1px solid #cbd5e1;"><i class="fa-solid fa-check"></i> Published</span>
