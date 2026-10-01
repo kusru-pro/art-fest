@@ -1323,18 +1323,12 @@ async function downloadPoster(eventCode) {
 
     // 3. Render and Download
     try {
-        // Temporarily move on-screen for html2canvas to render reliably
-        template.style.left = '0px';
-        template.style.zIndex = '-9999';
-        
         const canvas = await html2canvas(template, {
             scale: 2, // High resolution
             useCORS: true,
             backgroundColor: '#ffffff'
         });
         
-        template.style.left = '-9999px'; // Hide again
-
         // Trigger Download
         const link = document.createElement('a');
         link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
@@ -1343,7 +1337,6 @@ async function downloadPoster(eventCode) {
     } catch (err) {
         console.error("Poster generation failed:", err);
         alert("Failed to generate poster.");
-        template.style.left = '-9999px';
     }
 }
 window.downloadPoster = downloadPoster;

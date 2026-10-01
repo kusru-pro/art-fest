@@ -1620,52 +1620,54 @@
     </div>
 
     <!-- Hidden Poster Template for Result Downloads -->
-    <div id="poster-template" style="position: absolute; left: -9999px; top: 0; width: 1080px; height: 1080px; background: #ffffff; font-family: 'Poppins', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; z-index: -1;">
-        <!-- Header Section -->
-        <div style="background: linear-gradient(135deg, #1a204d 0%, #212861 100%); color: #ffffff; text-align: center; padding: 60px 40px; box-shadow: 0 10px 30px rgba(33,40,97,0.3);">
-            <div style="font-size: 1.5rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 600; color: #cbd5e1; margin-bottom: 15px;">Sahityotsav Art Fest</div>
-            <h1 id="poster-event-name" style="margin: 0; font-size: 4rem; font-weight: 800; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.2);">Event Name</h1>
-            <div id="poster-category" style="display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 8px 24px; border-radius: 50px; font-size: 1.6rem; font-weight: 500; margin-top: 25px; backdrop-filter: blur(4px);">Category</div>
-        </div>
+    <div id="poster-template" style="position: absolute; left: -9999px; top: 0; width: 1080px; height: 1080px; background: #ffffff; z-index: -1; display: block !important; padding: 40px; text-align: center; font-family: 'Poppins', sans-serif; box-sizing: border-box; overflow: hidden;">
+        <div style="display: flex; flex-direction: column; height: 100%;">
+            <!-- Header Section -->
+            <div style="background: linear-gradient(135deg, #1a204d 0%, #212861 100%); color: #ffffff; text-align: center; padding: 60px 40px; box-shadow: 0 10px 30px rgba(33,40,97,0.3); border-radius: 12px 12px 0 0;">
+                <div style="font-size: 1.5rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 600; color: #cbd5e1; margin-bottom: 15px;">Sahityotsav Art Fest</div>
+                <h1 id="poster-event-name" style="margin: 0; font-size: 4rem; font-weight: 800; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.2);">Event Name</h1>
+                <div id="poster-category" style="display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 8px 24px; border-radius: 50px; font-size: 1.6rem; font-weight: 500; margin-top: 25px; backdrop-filter: blur(4px);">Category</div>
+            </div>
 
-        <!-- Winners Section -->
-        <div style="flex: 1; padding: 50px 60px; background: #F8F9FA; display: flex; flex-direction: column; justify-content: center; gap: 30px;">
-            <!-- 1st Place -->
-            <div id="poster-1st" style="display: none; background: #ffffff; border-radius: 20px; padding: 30px 40px; display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #eab308; position: relative; overflow: hidden;">
-                <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">1</div>
-                <div style="font-size: 3.5rem; margin-right: 30px;">🥇</div>
-                <div>
-                    <div style="font-size: 1.4rem; color: #eab308; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">First Place</div>
-                    <div id="poster-1st-name" style="font-size: 2.8rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
-                    <div id="poster-1st-team" style="font-size: 1.6rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
+            <!-- Winners Section -->
+            <div style="flex: 1; padding: 50px 60px; background: #F8F9FA; display: flex; flex-direction: column; justify-content: center; gap: 30px; text-align: left;">
+                <!-- 1st Place -->
+                <div id="poster-1st" style="display: none; background: #ffffff; border-radius: 20px; padding: 30px 40px; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #eab308; position: relative; overflow: hidden;">
+                    <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">1</div>
+                    <div style="font-size: 3.5rem; margin-right: 30px;">🥇</div>
+                    <div>
+                        <div style="font-size: 1.4rem; color: #eab308; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">First Place</div>
+                        <div id="poster-1st-name" style="font-size: 2.8rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
+                        <div id="poster-1st-team" style="font-size: 1.6rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
+                    </div>
+                </div>
+                <!-- 2nd Place -->
+                <div id="poster-2nd" style="display: none; background: #ffffff; border-radius: 20px; padding: 25px 40px; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #94a3b8; position: relative; overflow: hidden;">
+                    <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">2</div>
+                    <div style="font-size: 3rem; margin-right: 30px;">🥈</div>
+                    <div>
+                        <div style="font-size: 1.3rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Second Place</div>
+                        <div id="poster-2nd-name" style="font-size: 2.4rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
+                        <div id="poster-2nd-team" style="font-size: 1.4rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
+                    </div>
+                </div>
+                <!-- 3rd Place -->
+                <div id="poster-3rd" style="display: none; background: #ffffff; border-radius: 20px; padding: 25px 40px; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #d97706; position: relative; overflow: hidden;">
+                    <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">3</div>
+                    <div style="font-size: 3rem; margin-right: 30px;">🥉</div>
+                    <div>
+                        <div style="font-size: 1.3rem; color: #d97706; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Third Place</div>
+                        <div id="poster-3rd-name" style="font-size: 2.4rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
+                        <div id="poster-3rd-team" style="font-size: 1.4rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
+                    </div>
                 </div>
             </div>
-            <!-- 2nd Place -->
-            <div id="poster-2nd" style="display: none; background: #ffffff; border-radius: 20px; padding: 25px 40px; display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #94a3b8; position: relative; overflow: hidden;">
-                <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">2</div>
-                <div style="font-size: 3rem; margin-right: 30px;">🥈</div>
-                <div>
-                    <div style="font-size: 1.3rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Second Place</div>
-                    <div id="poster-2nd-name" style="font-size: 2.4rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
-                    <div id="poster-2nd-team" style="font-size: 1.4rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
-                </div>
+            
+            <!-- Footer -->
+            <div style="background: #212861; padding: 25px 50px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 12px 12px;">
+                <div style="color: #cbd5e1; font-size: 1.2rem; font-weight: 500;">Official Results</div>
+                <div style="color: #ffffff; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px;">#Sahityotsav26</div>
             </div>
-            <!-- 3rd Place -->
-            <div id="poster-3rd" style="display: none; background: #ffffff; border-radius: 20px; padding: 25px 40px; display: flex; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); border-left: 12px solid #d97706; position: relative; overflow: hidden;">
-                <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.03; font-weight: 900; line-height: 1;">3</div>
-                <div style="font-size: 3rem; margin-right: 30px;">🥉</div>
-                <div>
-                    <div style="font-size: 1.3rem; color: #d97706; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Third Place</div>
-                    <div id="poster-3rd-name" style="font-size: 2.4rem; color: #1e293b; font-weight: 800; line-height: 1.2;">Name</div>
-                    <div id="poster-3rd-team" style="font-size: 1.4rem; color: #64748b; font-weight: 500; margin-top: 5px;">Team</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div style="background: #212861; padding: 25px 50px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="color: #cbd5e1; font-size: 1.2rem; font-weight: 500;">Official Results</div>
-            <div style="color: #ffffff; font-size: 1.2rem; font-weight: 700; letter-spacing: 1px;">#Sahityotsav26</div>
         </div>
     </div>
 
@@ -3750,17 +3752,12 @@
 
             // 3. Render and Download
             try {
-                template.style.left = '0px';
-                template.style.zIndex = '-9999';
-                
                 const canvas = await html2canvas(template, {
                     scale: 2,
                     useCORS: true,
                     backgroundColor: '#ffffff'
                 });
                 
-                template.style.left = '-9999px';
-
                 const link = document.createElement('a');
                 link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
                 link.href = canvas.toDataURL('image/png');
@@ -3768,7 +3765,6 @@
             } catch (err) {
                 console.error("Poster generation failed:", err);
                 alert("Failed to generate poster.");
-                template.style.left = '-9999px';
             }
         }
         window.downloadPoster = downloadPoster;
