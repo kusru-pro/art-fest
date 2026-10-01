@@ -16,15 +16,15 @@
     <style>
         /* === CSS Reset & Base Variables === */
         :root {
-            --bg-outer: #a3987c;
+            --bg-outer: #F8F9FA;
             --card-bg: #ffffff;
-            --text-dark: #000000;
-            --text-muted: #555555;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
             --border-light: #e2e8f0;
-            --primary-accent: #2e7d32;
-            --primary-accent-hover: #256628;
-            --badge-bg: rgba(44, 36, 27, 0.12);
-            --badge-text: #2c241b;
+            --primary-accent: #212861;
+            --primary-accent-hover: #1a204d;
+            --badge-bg: #e2e8f0;
+            --badge-text: #1e293b;
             --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-heading: 'Poppins', sans-serif;
         }
@@ -61,20 +61,20 @@
 
         /* === Top Header Bar === */
         .panel-header {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(10px);
+            background: var(--primary-accent);
             border-radius: 16px;
             padding: 1.25rem 1.25rem 1.1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(33, 40, 97, 0.2);
+            border: none;
+            color: #ffffff;
         }
 
         .panel-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: var(--badge-bg);
-            color: var(--badge-text);
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -86,14 +86,14 @@
 
         .panel-badge i {
             font-size: 0.7rem;
-            color: #b58500;
+            color: #fbbf24;
         }
 
         .event-title {
             font-family: var(--font-heading);
             font-size: 1.65rem;
             font-weight: 800;
-            color: #1a1a1a;
+            color: #ffffff;
             line-height: 1.2;
             margin-bottom: 0.35rem;
         }
@@ -101,7 +101,7 @@
         .event-category {
             font-size: 0.9rem;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #cbd5e1;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -111,19 +111,19 @@
         .event-category-dot {
             width: 4px;
             height: 4px;
-            background: var(--text-muted);
+            background: #cbd5e1;
             border-radius: 50%;
         }
 
         .judge-info-bar {
             margin-top: 1rem;
             padding-top: 0.75rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.8rem;
-            color: #444;
+            color: #e2e8f0;
             font-weight: 500;
         }
 
@@ -163,7 +163,7 @@
         .section-lead-title {
             font-size: 1rem;
             font-weight: 700;
-            color: #2c241b;
+            color: var(--text-dark);
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
@@ -185,8 +185,8 @@
         }
 
         .participant-card:focus-within {
-            border-color: #2e7d32;
-            box-shadow: 0 6px 22px rgba(46, 125, 50, 0.15);
+            border-color: var(--primary-accent);
+            box-shadow: 0 6px 22px rgba(33, 40, 97, 0.15);
         }
 
         .card-top {
@@ -270,7 +270,7 @@
             outline: none;
             background-color: #ffffff;
             border-color: var(--primary-accent);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+            box-shadow: 0 0 0 3px rgba(33, 40, 97, 0.15);
         }
 
         .select-wrapper {
@@ -299,7 +299,7 @@
             outline: none;
             background-color: #ffffff;
             border-color: var(--primary-accent);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+            box-shadow: 0 0 0 3px rgba(33, 40, 97, 0.15);
         }
 
         .select-chevron {
@@ -336,13 +336,13 @@
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.35);
+            box-shadow: 0 6px 20px rgba(33, 40, 97, 0.35);
             transition: all 0.2s ease;
         }
 
         .btn-submit:hover {
             background-color: var(--primary-accent-hover);
-            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.45);
+            box-shadow: 0 8px 25px rgba(33, 40, 97, 0.45);
             transform: translateY(-1px);
         }
 
@@ -351,7 +351,7 @@
             align-items: flex-start;
             gap: 0.5rem;
             padding: 0.5rem 0.25rem;
-            color: #2c241b;
+            color: var(--text-dark);
             font-size: 0.78rem;
             line-height: 1.45;
             font-weight: 500;
@@ -398,7 +398,7 @@
             <!-- Two side-by-side select boxes: Select Category & Select Program -->
             <div style="margin-top: 0.9rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                 <div>
-                    <label for="judge-category-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Category</label>
+                    <label for="judge-category-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #e2e8f0; display: block; margin-bottom: 0.35rem;">Select Category</label>
                     <div class="select-wrapper">
                         <select id="judge-category-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
                             <option value="" disabled selected>Select a Category</option>
@@ -407,7 +407,7 @@
                     </div>
                 </div>
                 <div>
-                    <label for="judge-event-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #555; display: block; margin-bottom: 0.35rem;">Select Program</label>
+                    <label for="judge-event-select" style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #e2e8f0; display: block; margin-bottom: 0.35rem;">Select Program</label>
                     <div class="select-wrapper">
                         <select id="judge-event-select" class="grade-select" style="height: 44px; font-size: 0.85rem; font-weight: 600; padding: 0.4rem 1.8rem 0.4rem 0.7rem; border-radius: 8px;">
                             <option value="" disabled selected>Select an Event</option>
@@ -428,7 +428,7 @@
         <div class="section-lead">
             <span class="section-lead-title">Ranked Results</span>
             <!-- PLUS BUTTON -->
-            <button type="button" onclick="window.addPositionCard()" style="background: none; border: none; color: #2e7d32; font-weight: 700; cursor: pointer; font-size: 0.9rem; padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+            <button type="button" onclick="window.addPositionCard()" style="background: none; border: none; color: var(--primary-accent); font-weight: 700; cursor: pointer; font-size: 0.9rem; padding: 0.2rem 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <i class="fa-solid fa-plus"></i> Add Position
             </button>
         </div>
@@ -543,7 +543,7 @@
                 <article class="participant-card" id="pos-card-${posNumber}">
                     <div class="card-top">
                         <div class="chest-badge">
-                            <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #b58500; margin-right: 0.5rem; font-size: 1rem;"></i>Position ${posNumber}</span>
+                            <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #fbbf24; margin-right: 0.5rem; font-size: 1rem;"></i>Position ${posNumber}</span>
                         </div>
                     </div>
                     
