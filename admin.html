@@ -967,7 +967,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Category *</label>
-                                <select id="part-category" required>
+                                <select id="part-category" required onchange="window.onPartCategoryChanged()">
                                     <option value="">Select category</option>
                                     <option value="Sub Junior">Sub Junior</option>
                                     <option value="Junior">Junior</option>
@@ -1919,7 +1919,7 @@
 
                 if (!isConfigured) {
                     renderEventsTable(Object.values(eventsCache));
-                    renderEventCheckboxes(Object.values(eventsCache));
+                    onPartCategoryChanged();
                 }
 
                 let msg = `Successfully imported ${successCount} events!`;
@@ -2032,6 +2032,8 @@
             document.getElementById('part-name').value = p.name;
             document.getElementById('part-category').value = p.category || '';
             document.getElementById('part-team').value = p.team || '';
+
+            onPartCategoryChanged();
 
             const cbs = document.querySelectorAll('#part-events-list input[type="checkbox"]');
             cbs.forEach(cb => { cb.checked = Array.isArray(p.events) && p.events.includes(cb.value); });
@@ -2379,7 +2381,7 @@
                     "QIR-01": { eventCode: "QIR-01", eventName: "Qira'at", category: "General Open", type: "Single" }
                 };
                 applyEventFilters();
-                renderEventCheckboxes(Object.values(eventsCache));
+                onPartCategoryChanged();
                 return;
             }
 
@@ -2390,7 +2392,7 @@
                     eventsCache[data.eventCode] = data;
                 });
                 applyEventFilters();
-                renderEventCheckboxes(Object.values(eventsCache));
+                onPartCategoryChanged();
                 document.getElementById('stat-events').textContent = Object.keys(eventsCache).length;
             });
         }
@@ -2425,6 +2427,27 @@
                 </label>
             `).join('');
         }
+
+        function onPartCategoryChanged() {
+            const catSelect = document.getElementById('part-category');
+            if (!catSelect) return;
+            const category = catSelect.value;
+            
+            if (!category) {
+                renderEventCheckboxes([]);
+                return;
+            }
+
+            const reqCat = category.toString().toLowerCase().trim();
+            const filteredEvents = Object.values(eventsCache).filter(ev => {
+                const evCat = (ev.category || '').toString().toLowerCase().trim();
+                const evType = (ev.type || '').toString().toLowerCase().trim();
+                return evCat === reqCat || evCat === 'general' || evType === 'general';
+            });
+            
+            renderEventCheckboxes(filteredEvents);
+        }
+        window.onPartCategoryChanged = onPartCategoryChanged;
 
         // =========================================================================
         // 5. RESULT VERIFICATION & PUBLISHED RESULTS VIEWS
@@ -3574,7 +3597,13 @@
             
             if (!category) return;
 
-            const filteredEvents = Object.values(eventsCache).filter(ev => normalizeCategory(ev.category) === normalizeCategory(category));
+            const reqCat = category.toString().toLowerCase().trim();
+            const filteredEvents = Object.values(eventsCache).filter(ev => {
+                const evCat = (ev.category || '').toString().toLowerCase().trim();
+                const evType = (ev.type || '').toString().toLowerCase().trim();
+                return evCat === reqCat || evCat === 'general' || evType === 'general';
+            });
+            
             filteredEvents.forEach(ev => {
                 const opt = document.createElement('option');
                 // The dropdown value MUST exactly be EventName
