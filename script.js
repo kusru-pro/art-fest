@@ -50,6 +50,7 @@ let eventsCache = {};
 let publishedResultsCache = [];
 let resultsMap = {};
 let publishSequenceMap = {};
+window.publishSequenceMap = publishSequenceMap;
 
 // =========================================================================
 // 2. SPA NAVIGATION LOGIC
@@ -586,7 +587,7 @@ function renderStudentPortal(profile) {
                         </div>
                     </div>
                     <div style="margin-top: 15px; text-align: center;">
-                        <button class="btn btn-secondary" style="font-size: 0.85rem;" onclick="downloadPoster('${ev.eventCode}', publishSequenceMap['${ev.eventCode}'] || 1)">
+                        <button class="btn btn-secondary" style="font-size: 0.85rem;" onclick="downloadPoster('${ev.eventCode}', ${publishSequenceMap[ev.eventCode] || 1})">
                             <i class="fa-solid fa-download"></i> Download Poster
                         </button>
                     </div>
@@ -803,6 +804,7 @@ function renderLiveResults(resultsList) {
         resultsMap[ev.evCode] = ev.eventResults;
         publishSequenceMap[ev.evCode] = ev.publishSequence;
     });
+    window.publishSequenceMap = publishSequenceMap;
 
     // Sort descending by publish time so newest shows at top
     eventsArray.sort((a, b) => b.publishedAt - a.publishedAt);
