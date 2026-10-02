@@ -1952,12 +1952,12 @@
                         
                         uniqueCategories.add(category);
 
-                        // Use a combination of Program Name and Category for unique document ID
-                        const baseCode = (eventName + '_' + category).toUpperCase();
-                        const eventCode = baseCode.replace(/[^A-Z0-9_]/g, '-').replace(/-+/g, '-').replace(/^_|_$/g, '');
+                        // Auto-generate random unique ID for EVERY row
+                        const newEventRef = doc(collection(db, 'events'));
+                        const eventCode = newEventRef.id;
 
                         const eventData = { eventCode, eventName, category, type, updatedAt: Date.now() };
-                        eventsToBatch.push(eventData);
+                        eventsToBatch.push({ ref: newEventRef, data: eventData });
                     }
                 }
 
@@ -1987,10 +1987,9 @@
                             }
 
                             // Batch the Events
-                            for (const eventData of chunk) {
-                                const ref = doc(db, 'events', eventData.eventCode);
-                                batch.set(ref, eventData, { merge: true });
-                                eventsCache[eventData.eventCode] = eventData;
+                            for (const item of chunk) {
+                                batch.set(item.ref, item.data);
+                                eventsCache[item.data.eventCode] = item.data;
                             }
                             await batch.commit();
                             successCount += chunk.length;
@@ -2001,8 +2000,8 @@
                         return;
                     }
                 } else {
-                    eventsToBatch.forEach(eventData => {
-                        eventsCache[eventData.eventCode] = eventData;
+                    eventsToBatch.forEach(item => {
+                        eventsCache[item.data.eventCode] = item.data;
                         successCount++;
                     });
                 }
@@ -2459,6 +2458,51 @@
             renderEventsTable(filtered);
         }
         window.applyEventFilters = applyEventFilters;
+
+        let globalCategories = [];
+
+        function initGlobalConfigListener() {
+            if (!isConfigured) return;
+            const docRef = doc(db, 'settings', 'global_config');
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.categories && Array.isArray(data.categories)) {
+                        globalCategories = data.categories;
+                        populateCategoryDropdowns(globalCategories);
+                    }
+                }
+            });
+        }
+
+        function populateCategoryDropdowns(categories) {
+            const selectIds = [
+                { id: 'part-category', defaultText: 'Select Category...' },
+                { id: 'filter-part-category', defaultText: 'All Categories' },
+                { id: 'filter-event-category', defaultText: 'All Categories' },
+                { id: 'attendance-category', defaultText: 'Select Category...' }
+            ];
+
+            selectIds.forEach(item => {
+                const selectEl = document.getElementById(item.id);
+                if (selectEl) {
+                    const currentValue = selectEl.value;
+                    let html = `<option value="">${item.defaultText}</option>`;
+                    categories.forEach(cat => {
+                        html += `<option value="${cat}">${cat}</option>`;
+                    });
+                    selectEl.innerHTML = html;
+                    
+                    // Try to restore previous selection if it still exists
+                    if (currentValue && categories.includes(currentValue)) {
+                        selectEl.value = currentValue;
+                    }
+                }
+            });
+            
+            if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
+            if (typeof applyEventFilters === 'function') applyEventFilters();
+        }
 
         function initEventsListener() {
             if (!isConfigured) {
@@ -4070,6 +4114,7 @@
 
         // Initialize All Listeners
         document.addEventListener('DOMContentLoaded', () => {
+            initGlobalConfigListener();
             initEventsListener();
             initParticipantsListener();
             initLeaderboardAdmin();
