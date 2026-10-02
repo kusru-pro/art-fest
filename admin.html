@@ -1924,68 +1924,87 @@
                 const text = e.target.result;
                 const lines = text.split(/\r?\n/);
                 let successCount = 0;
-                let skippedCount = 0;
 
                 showFeedback("Processing Events CSV...", "success");
 
                 let startIdx = 0;
                 if (lines.length > 0) {
                     const firstLineLower = lines[0].toLowerCase();
-                    if (firstLineLower.includes('event') || firstLineLower.includes('code') || firstLineLower.includes('category')) {
+                    if (firstLineLower.includes('event') || firstLineLower.includes('code') || firstLineLower.includes('category') || firstLineLower.includes('program')) {
                         startIdx = 1;
                     }
                 }
+
+                const uniqueCategories = new Set();
+                const eventsToBatch = [];
 
                 for (let i = startIdx; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
 
-                    const cols = line.split(',').map(c => c.trim());
-                    if (cols.length >= 3) {
+                    const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.trim().replace(/^"|"$/g, ''));
+                    if (cols.length >= 2) {
                         const eventName = cols[0];
                         const category = cols[1];
-                        const type = cols[2];
+                        const type = cols.length > 2 ? cols[2] : 'General';
+
+                        if (!eventName || !category) continue;
                         
-                        // Auto-generate Event Code from Event Name
-                        const eventCode = eventName.toUpperCase().replace(/[^A-Z0-9]/g, '-').replace(/-+/g, '-');
+                        uniqueCategories.add(category);
 
-                        if (!eventCode || !eventName) continue;
-
-                        // Check if event already exists to prevent overwriting
-                        let alreadyExists = false;
-                        if (eventsCache[eventCode]) {
-                            alreadyExists = true;
-                        } else if (isConfigured) {
-                            try {
-                                const docSnap = await getDoc(doc(db, 'events', eventCode));
-                                if (docSnap.exists()) {
-                                    alreadyExists = true;
-                                }
-                            } catch (err) {
-                                console.error(err);
-                            }
-                        }
-
-                        if (alreadyExists) {
-                            skippedCount++;
-                            continue;
-                        }
+                        // Use a combination of Program Name and Category for unique document ID
+                        const baseCode = (eventName + '_' + category).toUpperCase();
+                        const eventCode = baseCode.replace(/[^A-Z0-9_]/g, '-').replace(/-+/g, '-').replace(/^_|_$/g, '');
 
                         const eventData = { eventCode, eventName, category, type, updatedAt: Date.now() };
-
-                        if (isConfigured) {
-                            try {
-                                await setDoc(doc(db, 'events', eventCode), eventData);
-                                eventsCache[eventCode] = eventData;
-                                successCount++;
-                            } catch (err) {
-                                console.error("Error saving event:", err);
-                            }
-                        } else {
-                            eventsCache[eventCode] = eventData;
-                            successCount++;
-                        }
+                        eventsToBatch.push(eventData);
                     }
+                }
+
+                if (eventsToBatch.length === 0) {
+                    showFeedback("No valid events found in CSV.", "error");
+                    return;
+                }
+
+                if (isConfigured) {
+                    try {
+                        const chunks = [];
+                        for (let i = 0; i < eventsToBatch.length; i += 500) {
+                            chunks.push(eventsToBatch.slice(i, i + 500));
+                        }
+                        
+                        const categoriesArray = Array.from(uniqueCategories);
+                        let globalSettingsAdded = false;
+
+                        for (const chunk of chunks) {
+                            const batch = writeBatch(db);
+                            
+                            // Batch the Global Configuration updates
+                            if (!globalSettingsAdded && categoriesArray.length > 0) {
+                                const globalRef = doc(db, 'settings', 'global_config');
+                                batch.set(globalRef, { categories: arrayUnion(...categoriesArray) }, { merge: true });
+                                globalSettingsAdded = true;
+                            }
+
+                            // Batch the Events
+                            for (const eventData of chunk) {
+                                const ref = doc(db, 'events', eventData.eventCode);
+                                batch.set(ref, eventData, { merge: true });
+                                eventsCache[eventData.eventCode] = eventData;
+                            }
+                            await batch.commit();
+                            successCount += chunk.length;
+                        }
+                    } catch (err) {
+                        console.error("Error during batch event upload:", err);
+                        showFeedback("Failed to upload events: " + err.message, "error");
+                        return;
+                    }
+                } else {
+                    eventsToBatch.forEach(eventData => {
+                        eventsCache[eventData.eventCode] = eventData;
+                        successCount++;
+                    });
                 }
 
                 if (!isConfigured) {
@@ -1993,11 +2012,7 @@
                     onPartCategoryChanged();
                 }
 
-                let msg = `Successfully imported ${successCount} events!`;
-                if (skippedCount > 0) {
-                    msg += ` (${skippedCount} existing events skipped to prevent overwrite)`;
-                }
-                showFeedback(msg, "success");
+                showFeedback(`Successfully imported/updated ${successCount} events!`, "success");
                 const inputElem = document.getElementById('events-csv-file');
                 if (inputElem) inputElem.value = '';
             };
