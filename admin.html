@@ -1717,7 +1717,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { 
-            getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy 
+            getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, arrayUnion 
         } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         // 1. FIREBASE CONFIGURATION
@@ -1821,11 +1821,15 @@
                         const eventsString = cols.slice(4).join(','); 
                         const events = eventsString.split(/[|,]/).map(e => e.trim()).filter(e => e !== "");
 
-                        const participantData = { chestNo, name, category, team, events, updatedAt: Date.now() };
+                        const participantData = { chestNo, name, category, team, updatedAt: Date.now() };
+                        if (events.length > 0) {
+                            participantData.events = arrayUnion(...events);
+                        }
 
                         if (isConfigured) {
                             try {
-                                await setDoc(doc(db, 'participants', chestNo), participantData);
+                                // Upsert: merge will update name/category/team and append to events array without overwriting
+                                await setDoc(doc(db, 'participants', String(chestNo)), participantData, { merge: true });
                                 successCount++;
                             } catch (err) {
                                 console.error(err);
