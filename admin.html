@@ -1717,7 +1717,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { 
-            getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, arrayUnion 
+            getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, arrayUnion, writeBatch 
         } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
         // 1. FIREBASE CONFIGURATION
@@ -1806,38 +1806,109 @@
                 const lines = text.split('\n');
                 let successCount = 0;
 
-                showFeedback("Processing CSV...", "success");
+                if (lines.length < 2) {
+                    showFeedback("CSV is empty or missing headers.", "error");
+                    return;
+                }
 
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    
-                    const cols = lines[i].split(',');
-                    if (cols.length >= 4) {
-                        const chestNo = cols[0].trim();
-                        const name = cols[1].trim();
-                        const team = cols[2].trim();
-                        const category = cols[3].trim();
-                        
-                        const eventsString = cols.slice(4).join(','); 
-                        const events = eventsString.split(/[|,]/).map(e => e.trim()).filter(e => e !== "");
+                showFeedback("Processing and grouping CSV data...", "success");
 
-                        const participantData = { chestNo, name, category, team, updatedAt: Date.now() };
-                        if (events.length > 0) {
-                            participantData.events = arrayUnion(...events);
-                        }
+                // 1. Smart Header Mapping
+                const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.trim().toLowerCase().replace(/^"|"$/g, ''));
+                let idxChest = headers.findIndex(x => x.includes('chest'));
+                let idxName = headers.findIndex(x => x.includes('name'));
+                let idxTeam = headers.findIndex(x => x.includes('team'));
+                let idxCat = headers.findIndex(x => x.includes('category') || x.includes('cat'));
+                const idxType = headers.findIndex(x => x === 'type' || x.includes(' type'));
+                
+                // Fallbacks
+                if (idxChest === -1) idxChest = 0;
+                if (idxName === -1) idxName = 1;
+                if (idxTeam === -1) idxTeam = 2;
+                if (idxCat === -1) idxCat = 3;
 
-                        if (isConfigured) {
-                            try {
-                                // Upsert: merge will update name/category/team and append to events array without overwriting
-                                await setDoc(doc(db, 'participants', String(chestNo)), participantData, { merge: true });
-                                successCount++;
-                            } catch (err) {
-                                console.error(err);
-                            }
-                        }
+                const progIndices = [];
+                for (let j = 0; j < headers.length; j++) {
+                    if (j === idxChest || j === idxName || j === idxTeam || j === idxCat || j === idxType) continue;
+                    if (headers[j].includes('program') || headers[j].includes('event') || headers[j].includes('item')) {
+                        progIndices.push(j);
                     }
                 }
-                showFeedback(`Successfully imported ${successCount} participants!`);
+                if (progIndices.length === 0) {
+                    for (let j = 4; j < headers.length; j++) {
+                        if (j !== idxType) progIndices.push(j);
+                    }
+                }
+
+                // 2. Group by Chest Number
+                const groupedData = {};
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.trim().replace(/^"|"$/g, ''));
+                    
+                    const chestNo = cols[idxChest];
+                    if (!chestNo) continue;
+
+                    if (!groupedData[chestNo]) {
+                        groupedData[chestNo] = {
+                            chestNo: chestNo,
+                            name: cols[idxName] || '',
+                            team: cols[idxTeam] || '',
+                            category: cols[idxCat] || '',
+                            events: []
+                        };
+                    }
+
+                    progIndices.forEach(idx => {
+                        if (cols[idx]) {
+                            const progs = cols[idx].split(/[|,]/).map(p => p.trim()).filter(p => p !== "");
+                            progs.forEach(p => {
+                                if (!groupedData[chestNo].events.includes(p)) {
+                                    groupedData[chestNo].events.push(p);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // 3. Batch Upload
+                if (isConfigured) {
+                    try {
+                        const entries = Object.values(groupedData);
+                        const chunks = [];
+                        for (let i = 0; i < entries.length; i += 500) {
+                            chunks.push(entries.slice(i, i + 500));
+                        }
+
+                        for (const chunk of chunks) {
+                            const batch = writeBatch(db);
+                            for (const student of chunk) {
+                                const ref = doc(db, 'participants', String(student.chestNo));
+                                const participantData = {
+                                    chestNo: student.chestNo,
+                                    name: student.name,
+                                    category: student.category,
+                                    team: student.team,
+                                    updatedAt: Date.now()
+                                };
+                                if (student.events.length > 0) {
+                                    participantData.events = arrayUnion(...student.events);
+                                }
+                                batch.set(ref, participantData, { merge: true });
+                            }
+                            await batch.commit();
+                            successCount += chunk.length;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showFeedback("Batch upload failed: " + err.message, "error");
+                        return;
+                    }
+                } else {
+                    successCount = Object.keys(groupedData).length;
+                }
+
+                showFeedback(`Successfully grouped and imported ${successCount} participants!`);
                 document.getElementById('csv-file').value = '';
             };
             reader.readAsText(file);
