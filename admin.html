@@ -1734,6 +1734,7 @@
 
         let participantsCache = {};
         let eventsCache = {};
+        let currentResultsData = {};
 
         function showFeedback(message, type = 'success') {
             const fb = document.getElementById('global-feedback');
@@ -2438,11 +2439,13 @@
                         return;
                     }
 
-                    // Group results by eventCode
+                    // Group results by eventCode and store in global cache
                     const grouped = {};
+                    currentResultsData = {};
                     snapshot.forEach(docSnap => {
                         const res = docSnap.data();
                         res.id = docSnap.id;
+                        currentResultsData[res.id] = res; // Store for downloadPoster
                         if (!grouped[res.eventCode]) grouped[res.eventCode] = [];
                         grouped[res.eventCode].push(res);
                     });
