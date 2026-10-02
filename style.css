@@ -41,22 +41,9 @@ header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logo {
-    font-family: var(--font-heading);
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #ffffff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
+.logo { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #ffffff; cursor: pointer; display: flex; align-items: center; background: transparent !important; }
 
-.logo img {
-    max-height: 48px;
-    width: auto;
-    object-fit: contain;
-    display: block;
-}
+.logo img { max-width: 200px; height: auto; object-fit: contain; display: block; background: transparent !important; }
 
 .nav-links {
     display: flex;
@@ -1884,3 +1871,5 @@ h2.section-title {
     background-position: center !important;
     background-repeat: no-repeat !important;
 }
+
+

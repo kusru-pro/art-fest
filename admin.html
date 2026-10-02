@@ -825,7 +825,9 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Project Council</h2>
+                <div class="logo" id="site-logo">
+                    <h2>Project Council</h2>
+                </div>
                 <p>Admin Dashboard</p>
             </div>
             <nav class="sidebar-nav">
@@ -3290,11 +3292,23 @@
                 const themeDescEl = document.getElementById('setting-theme-description');
                 const datesEl = document.getElementById('setting-event-dates');
                 const locEl = document.getElementById('setting-event-location');
+                const siteLogo = document.getElementById('site-logo');
 
-                if (webTitleEl) webTitleEl.value = data.websiteTitle || data.eventTitle || defaults.websiteTitle;
-                if (webLogoEl) webLogoEl.value = data.websiteLogo || '';
+                const websiteTitle = data.websiteTitle || data.eventTitle || defaults.websiteTitle;
+                const websiteLogoUrl = (data.websiteLogo && data.websiteLogo.trim()) ? data.websiteLogo.trim() : '';
+
+                if (webTitleEl) webTitleEl.value = websiteTitle;
+                if (webLogoEl) webLogoEl.value = websiteLogoUrl;
                 if (titleEl) titleEl.value = data.eventTitle || data.websiteTitle || defaults.eventTitle;
                 if (themeEl) themeEl.value = data.themeTitle || data.themeName || defaults.themeTitle;
+                
+                if (siteLogo) {
+                    if (websiteLogoUrl) {
+                        siteLogo.innerHTML = `<img src="${websiteLogoUrl}" alt="${websiteTitle}" class="site-header-logo">`;
+                    } else {
+                        siteLogo.innerHTML = `<h2>Project Council</h2>`;
+                    }
+                }
                 if (themeDescEl) themeDescEl.value = data.themeDescription || defaults.themeDescription;
                 if (datesEl) datesEl.value = data.eventDates || defaults.eventDates;
                 if (locEl) locEl.value = data.eventLocation || defaults.eventLocation;
