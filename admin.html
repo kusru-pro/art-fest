@@ -1441,9 +1441,9 @@
                             </div>
 
                             <div class="form-group full-width">
-                                <label for="setting-poster-background">Poster Background Image URL (Optional)</label>
-                                <input type="url" id="setting-poster-background" placeholder="e.g. https://example.com/poster-bg.png">
-                                <small style="color: #64748b; font-size: 0.78rem;">Direct image URL for the generated Result Poster background. Overrides default blue theme.</small>
+                                <label for="setting-poster-background">Poster Background Image (Optional)</label>
+                                <input type="file" id="setting-poster-background" accept="image/*">
+                                <small style="color: #64748b; font-size: 0.78rem;">Upload an image file for the generated Result Poster background. Overrides default blue theme.</small>
                             </div>
 
                             <div class="form-group">
@@ -3216,7 +3216,6 @@
             event.preventDefault();
             const websiteTitle = document.getElementById('setting-website-title').value.trim() || 'Sahityotsav';
             const websiteLogo = document.getElementById('setting-website-logo').value.trim();
-            const posterBackground = document.getElementById('setting-poster-background') ? document.getElementById('setting-poster-background').value.trim() : '';
             const eventTitle = document.getElementById('setting-event-title').value.trim() || websiteTitle;
             const themeTitle = document.getElementById('setting-theme-name').value.trim();
             const themeDescription = document.getElementById('setting-theme-description').value.trim();
@@ -3226,7 +3225,6 @@
             const data = {
                 websiteTitle,
                 websiteLogo,
-                posterBackground,
                 eventTitle,
                 themeTitle,
                 themeName: themeTitle, // backward compatibility
@@ -3236,13 +3234,28 @@
                 updatedAt: Date.now()
             };
 
+            const fileInput = document.getElementById('setting-poster-background');
+
             if (!isConfigured) {
                 showFeedback("Settings saved in local preview mode!");
                 return;
             }
 
             try {
+                // Save standard homepage settings
                 await setDoc(doc(db, 'settings', 'homepage'), data, { merge: true });
+                
+                // Handle Poster Background File Upload
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64String = e.target.result;
+                        await setDoc(doc(db, 'settings', 'poster_settings'), { posterBackground: base64String }, { merge: true });
+                    };
+                    reader.readAsDataURL(file);
+                }
+
                 showFeedback("Home page settings saved to Firestore successfully!");
                 const statusSpan = document.getElementById('homepage-save-status');
                 if (statusSpan) {
@@ -3272,7 +3285,6 @@
             const populateForm = (data) => {
                 const webTitleEl = document.getElementById('setting-website-title');
                 const webLogoEl = document.getElementById('setting-website-logo');
-                const posterBgEl = document.getElementById('setting-poster-background');
                 const titleEl = document.getElementById('setting-event-title');
                 const themeEl = document.getElementById('setting-theme-name');
                 const themeDescEl = document.getElementById('setting-theme-description');
@@ -3281,15 +3293,11 @@
 
                 if (webTitleEl) webTitleEl.value = data.websiteTitle || data.eventTitle || defaults.websiteTitle;
                 if (webLogoEl) webLogoEl.value = data.websiteLogo || '';
-                if (posterBgEl) posterBgEl.value = data.posterBackground || '';
                 if (titleEl) titleEl.value = data.eventTitle || data.websiteTitle || defaults.eventTitle;
                 if (themeEl) themeEl.value = data.themeTitle || data.themeName || defaults.themeTitle;
                 if (themeDescEl) themeDescEl.value = data.themeDescription || defaults.themeDescription;
                 if (datesEl) datesEl.value = data.eventDates || defaults.eventDates;
                 if (locEl) locEl.value = data.eventLocation || defaults.eventLocation;
-                
-                // Store poster background globally for downloadPoster
-                window.currentPosterBackground = data.posterBackground || '';
             };
 
             if (!isConfigured) {
@@ -3306,6 +3314,17 @@
             }, (err) => {
                 console.warn("Could not listen to homepage settings:", err);
                 populateForm(defaults);
+            });
+
+            // Listen for poster background explicitly from poster_settings
+            onSnapshot(doc(db, 'settings', 'poster_settings'), (docSnap) => {
+                if (docSnap.exists()) {
+                    window.currentPosterBackground = docSnap.data().posterBackground || '';
+                } else {
+                    window.currentPosterBackground = '';
+                }
+            }, (err) => {
+                console.warn("Could not listen to poster settings:", err);
             });
         }
 

@@ -1135,6 +1135,16 @@ function initHomepageSettingsListener() {
     }, (err) => {
         console.warn("Homepage settings listener error:", err);
     });
+
+    onSnapshot(doc(db, 'settings', 'poster_settings'), (docSnap) => {
+        if (docSnap.exists()) {
+            window.currentPosterBackground = docSnap.data().posterBackground || '';
+        } else {
+            window.currentPosterBackground = '';
+        }
+    }, (err) => {
+        console.warn("Poster settings listener error:", err);
+    });
 }
 window.initHomepageSettingsListener = initHomepageSettingsListener;
 
@@ -1202,9 +1212,6 @@ window.applyVisibilitySettings = applyVisibilitySettings;
 
 function applyHomepageSettings(data) {
     if (!data) return;
-    
-    // Store poster background globally for downloadPoster
-    window.currentPosterBackground = data.posterBackground || '';
 
     // 1. Website Logo & Title in Header (.logo)
     const siteLogo = document.getElementById('site-logo') || document.querySelector('.logo');
