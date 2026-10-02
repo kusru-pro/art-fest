@@ -49,6 +49,7 @@ let participantsCache = {};
 let eventsCache = {};
 let publishedResultsCache = [];
 let resultsMap = {};
+let publishSequenceMap = {};
 
 // =========================================================================
 // 2. SPA NAVIGATION LOGIC
@@ -584,6 +585,11 @@ function renderStudentPortal(profile) {
                             <span class="result-stat-value stat-pts-badge">+${ev.points} PTS</span>
                         </div>
                     </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn btn-secondary" style="font-size: 0.85rem;" onclick="downloadPoster('${ev.eventCode}', publishSequenceMap['${ev.eventCode}'] || 1)">
+                            <i class="fa-solid fa-download"></i> Download Poster
+                        </button>
+                    </div>
                 </div>
             `;
         } else if (ev.status === 'pending') {
@@ -789,11 +795,13 @@ function renderLiveResults(resultsList) {
     // Sort ascending by publish time to assign sequence numbers (1 = earliest)
     eventsArray.sort((a, b) => a.publishedAt - b.publishedAt);
     
-    // Clear and populate global resultsMap
+    // Clear and populate global resultsMap and publishSequenceMap
     resultsMap = {};
+    publishSequenceMap = {};
     eventsArray.forEach((ev, index) => {
         ev.publishSequence = index + 1;
         resultsMap[ev.evCode] = ev.eventResults;
+        publishSequenceMap[ev.evCode] = ev.publishSequence;
     });
 
     // Sort descending by publish time so newest shows at top
