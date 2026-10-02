@@ -435,31 +435,33 @@ async function submitLogin() {
 
             // Find matching result in studentResultsMap (by matchedCode or original evCodeOrName)
             const res = studentResultsMap[matchedCode] || studentResultsMap[evCodeOrName];
+            
+            // Check if the event itself is globally published
+            const isGloballyPublished = !!publishSequenceMap[matchedCode] || !!publishSequenceMap[evCodeOrName];
 
             let status = 'scheduled';
             let rank = null;
-            let marks = null;
-            let grade = null;
+            let marks = '-';
+            let grade = '-';
             let points = 0;
 
             const attStatus = attendanceMap[matchedCode] || attendanceMap[evCodeOrName];
             if (attStatus === 'relegated') {
                 status = 'relegated';
-            }
-
-            if (res) {
-                if (res.status === 'published') {
-                    status = 'published';
-                    rank = res.position ? Number(res.position) : null;
-                    marks = res.totalMark != null ? res.totalMark : '-';
-                    grade = res.grade ? res.grade : '-';
-                    // 1st=5, 2nd=3, 3rd=1
-                    if (rank === 1) points = 5;
-                    else if (rank === 2) points = 3;
-                    else if (rank === 3) points = 1;
-                } else if (res.status === 'pending') {
-                    status = 'pending';
-                }
+            } else if (res && res.status === 'published') {
+                status = 'published';
+                rank = res.position ? Number(res.position) : null;
+                marks = res.totalMark != null ? res.totalMark : '-';
+                grade = res.grade ? res.grade : '-';
+                // 1st=5, 2nd=3, 3rd=1
+                if (rank === 1) points = 5;
+                else if (rank === 2) points = 3;
+                else if (rank === 3) points = 1;
+            } else if (res && res.status === 'pending') {
+                status = 'pending';
+            } else if (isGloballyPublished) {
+                // Event is officially published globally, but this student didn't place
+                status = 'published';
             }
 
             processedEvents.push({
@@ -566,8 +568,11 @@ function renderStudentPortal(profile) {
             else if (ev.rank === 3) rankDisplay = '🥉 3rd Place';
             else if (ev.rank) rankDisplay = `#${ev.rank}`;
 
-            drawerHtml = `
-                <div class="portal-result-drawer" id="portal-drawer-${ev.index}">
+            const isWinner = (ev.rank && ev.rank <= 3) || (ev.grade && ev.grade !== '-');
+            let innerStatsHtml = '';
+
+            if (isWinner) {
+                innerStatsHtml = `
                     <div class="portal-result-grid">
                         <div class="result-stat-item">
                             <span class="result-stat-label">Position / Rank</span>
@@ -586,9 +591,24 @@ function renderStudentPortal(profile) {
                             <span class="result-stat-value stat-pts-badge">+${ev.points} PTS</span>
                         </div>
                     </div>
+                `;
+            } else {
+                innerStatsHtml = `
+                    <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="margin: 0; color: #64748b; font-weight: 500; font-size: 1.05rem;">
+                            <i class="fa-solid fa-award" style="color: #cbd5e1; margin-right: 8px; font-size: 1.2rem;"></i> 
+                            Participated - Better luck next time!
+                        </p>
+                    </div>
+                `;
+            }
+
+            drawerHtml = `
+                <div class="portal-result-drawer" id="portal-drawer-${ev.index}">
+                    ${innerStatsHtml}
                     <div style="margin-top: 15px; text-align: center;">
                         <button class="btn btn-secondary" style="font-size: 0.85rem;" onclick="downloadPoster('${ev.eventCode}', ${publishSequenceMap[ev.eventCode] || 1})">
-                            <i class="fa-solid fa-download"></i> Download Poster
+                            <i class="fa-solid fa-download"></i> View / Download Poster
                         </button>
                     </div>
                 </div>
