@@ -1437,9 +1437,10 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="setting-website-logo">Website Logo URL (Optional)</label>
-                                <input type="url" id="setting-website-logo" placeholder="e.g. https://example.com/logo.png">
-                                <small style="color: #64748b; font-size: 0.78rem;">Direct image URL for header logo. Replaces text title if provided.</small>
+                                <label for="setting-website-logo">Website Logo (Optional)</label>
+                                <img id="preview-website-logo" src="" alt="Logo Preview" style="display: none; max-width: 150px; max-height: 100px; object-fit: contain; margin-bottom: 15px;">
+                                <input type="file" id="setting-website-logo" accept="image/*">
+                                <small style="color: #64748b; font-size: 0.78rem;">Upload an image file for the header logo. Replaces text title if provided.</small>
                             </div>
 
                             <div class="form-group full-width">
@@ -3217,7 +3218,6 @@
         async function saveHomepageSettings(event) {
             event.preventDefault();
             const websiteTitle = document.getElementById('setting-website-title').value.trim() || 'Sahityotsav';
-            const websiteLogo = document.getElementById('setting-website-logo').value.trim();
             const eventTitle = document.getElementById('setting-event-title').value.trim() || websiteTitle;
             const themeTitle = document.getElementById('setting-theme-name').value.trim();
             const themeDescription = document.getElementById('setting-theme-description').value.trim();
@@ -3226,7 +3226,6 @@
 
             const data = {
                 websiteTitle,
-                websiteLogo,
                 eventTitle,
                 themeTitle,
                 themeName: themeTitle, // backward compatibility
@@ -3235,6 +3234,26 @@
                 eventLocation,
                 updatedAt: Date.now()
             };
+
+            const logoInput = document.getElementById('setting-website-logo');
+            let hasNewLogo = false;
+            if (logoInput && logoInput.files.length > 0) {
+                const file = logoInput.files[0];
+                data.websiteLogo = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                hasNewLogo = true;
+            } else {
+                // If no new file uploaded, check if there's a preview existing.
+                const previewImg = document.getElementById('preview-website-logo');
+                if (previewImg && previewImg.getAttribute('src')) {
+                    data.websiteLogo = previewImg.getAttribute('src'); // keep existing
+                } else {
+                    data.websiteLogo = '';
+                }
+            }
 
             const fileInput = document.getElementById('setting-poster-background');
 
@@ -3298,7 +3317,18 @@
                 const websiteLogoUrl = (data.websiteLogo && data.websiteLogo.trim()) ? data.websiteLogo.trim() : '';
 
                 if (webTitleEl) webTitleEl.value = websiteTitle;
-                if (webLogoEl) webLogoEl.value = websiteLogoUrl;
+                
+                const previewLogoEl = document.getElementById('preview-website-logo');
+                if (previewLogoEl) {
+                    if (websiteLogoUrl) {
+                        previewLogoEl.src = websiteLogoUrl;
+                        previewLogoEl.style.display = 'block';
+                    } else {
+                        previewLogoEl.style.display = 'none';
+                        previewLogoEl.src = '';
+                    }
+                }
+                
                 if (titleEl) titleEl.value = data.eventTitle || data.websiteTitle || defaults.eventTitle;
                 if (themeEl) themeEl.value = data.themeTitle || data.themeName || defaults.themeTitle;
                 
