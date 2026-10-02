@@ -1556,6 +1556,21 @@
                     </form>
                 </div>
                 
+                <!-- Danger Zone: Factory Reset -->
+                <div class="card" style="margin-top: 3rem; border: 1px solid #ef4444;">
+                    <div class="card-header" style="background-color: #fef2f2; border-bottom: 1px solid #fee2e2;">
+                        <h2 class="card-title" style="color: #b91c1c;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <p style="color: #7f1d1d; font-size: 0.95rem; margin-bottom: 1.5rem;">
+                            <strong>Warning:</strong> This action will permanently delete all data from the database, including all events, results, team points, gallery photos, news, and system settings. This is completely irreversible and is only intended for completely wiping the system before handing over the project.
+                        </p>
+                        <button class="btn" style="background: #ef4444; color: #ffffff; padding: 0.8rem 2rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;" onclick="factoryResetSystem()">
+                            <i class="fa-solid fa-trash-can"></i> Reset Entire System (Clear All Data)
+                        </button>
+                    </div>
+                </div>
+
                 <style>
                 .switch input:checked + .slider { background-color: #22c55e; } /* Green for ON */
                 .switch input:focus + .slider { box-shadow: 0 0 2px #22c55e; }
@@ -3407,6 +3422,42 @@
                 console.warn("Could not listen to visibility settings:", err);
             });
         }
+
+        // =========================================================================
+        // 11. FACTORY RESET / CLEAR ALL DATA
+        // =========================================================================
+        async function factoryResetSystem() {
+            const confirmed = confirm("WARNING: This will permanently delete ALL events, results, settings, and team points. Are you absolutely sure?");
+            if (!confirmed) return;
+
+            if (!isConfigured) {
+                alert("Preview Mode: Factory Reset simulated.");
+                return;
+            }
+
+            try {
+                const collectionsToWipe = ['events', 'results', 'settings', 'teams', 'participants', 'gallery', 'news', 'cache'];
+                for (const collName of collectionsToWipe) {
+                    const collRef = collection(db, collName);
+                    const snapshot = await getDocs(collRef);
+                    const deletePromises = [];
+                    snapshot.forEach(docSnap => {
+                        deletePromises.push(deleteDoc(docSnap.ref));
+                    });
+                    await Promise.all(deletePromises);
+                }
+
+                alert("System Reset Successful");
+                localStorage.clear();
+                window.eventsCache = {};
+                window.currentResultsData = {};
+                window.location.reload();
+            } catch (err) {
+                console.error("Factory Reset Failed: ", err);
+                alert("Factory Reset Failed: " + err.message);
+            }
+        }
+        window.factoryResetSystem = factoryResetSystem;
 
         // =========================================================================
         // 10. BATCH QR CARDS VIEW
