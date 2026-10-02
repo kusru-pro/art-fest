@@ -161,43 +161,62 @@ window.toggleAccordion = toggleAccordion;
 // =========================================================================
 // 3.5. DYNAMIC CATEGORY DROPDOWNS
 // =========================================================================
-async function populateDynamicCategories() {
+function initGlobalConfigListener() {
     if (!isConfigured) return;
-    try {
-        const snapshot = await getDocs(collection(db, 'participants'));
-        const categories = new Set();
-        snapshot.forEach(docSnap => {
+    
+    onSnapshot(doc(db, 'settings', 'global_config'), (docSnap) => {
+        if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.category) {
-                categories.add(data.category.trim());
-            }
-        });
-        
-        // Target dropdowns (like the one in judge.html or admin filters if needed)
-        const categoryDropdowns = [
-            document.getElementById('judge-category-select'),
-            document.getElementById('category-filter')
-        ];
-
-        categoryDropdowns.forEach(selectEl => {
-            if (selectEl) {
-                const defaultOpt = selectEl.options[0];
-                selectEl.innerHTML = '';
-                if (defaultOpt) selectEl.appendChild(defaultOpt);
-
-                Array.from(categories).sort().forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat;
-                    opt.textContent = cat;
-                    selectEl.appendChild(opt);
+            
+            if (data.categories && Array.isArray(data.categories)) {
+                const categoryDropdowns = [
+                    { id: 'judge-category-select', defaultText: 'Select Category...' },
+                    { id: 'category-filter', defaultText: 'All Categories' }
+                ];
+                
+                categoryDropdowns.forEach(item => {
+                    const selectEl = document.getElementById(item.id);
+                    if (selectEl) {
+                        const currentVal = selectEl.value;
+                        let html = `<option value="${item.id === 'category-filter' ? 'all' : ''}">${item.defaultText}</option>`;
+                        data.categories.forEach(cat => {
+                            html += `<option value="${cat}">${cat}</option>`;
+                        });
+                        selectEl.innerHTML = html;
+                        if (currentVal && data.categories.includes(currentVal)) {
+                            selectEl.value = currentVal;
+                        }
+                    }
                 });
             }
-        });
-    } catch (err) {
-        console.error("Error populating dynamic categories:", err);
-    }
+            
+            // Populate team dropdowns if there are any in the public/judge pages
+            if (data.teams && Array.isArray(data.teams)) {
+                const teamDropdowns = [
+                    { id: 'team-filter', defaultText: 'All Teams' } // Placeholder if used later
+                ];
+                
+                teamDropdowns.forEach(item => {
+                    const selectEl = document.getElementById(item.id);
+                    if (selectEl) {
+                        const currentVal = selectEl.value;
+                        let html = `<option value="${item.id.includes('filter') ? 'all' : ''}">${item.defaultText}</option>`;
+                        data.teams.forEach(team => {
+                            html += `<option value="${team}">${team}</option>`;
+                        });
+                        selectEl.innerHTML = html;
+                        if (currentVal && data.teams.includes(currentVal)) {
+                            selectEl.value = currentVal;
+                        }
+                    }
+                });
+            }
+        }
+    }, (err) => {
+        console.error("Error listening to global config:", err);
+    });
 }
-window.populateDynamicCategories = populateDynamicCategories;
+window.initGlobalConfigListener = initGlobalConfigListener;
 
 // =========================================================================
 // 4. COUNTER ANIMATION FOR LEADERBOARD
@@ -1440,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNewsRealtimeListener();
         initHomepageSettingsListener();
         initVisibilitySettingsListener();
-        populateDynamicCategories();
+        initGlobalConfigListener();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");
     }

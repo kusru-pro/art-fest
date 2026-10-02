@@ -968,22 +968,13 @@
                             <div class="form-group">
                                 <label>Category *</label>
                                 <select id="part-category" required onchange="window.onPartCategoryChanged()">
-                                    <option value="">Select category</option>
-                                    <option value="Sub Junior">Sub Junior</option>
-                                    <option value="Junior">Junior</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="General">General</option>
+                                    <option value="">Select category...</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label>Team / Unit *</label>
                                 <select id="part-team" required>
-                                    <option value="">Select a team</option>
-                                    <option value="Team 1">Team 1</option>
-                                    <option value="Team 2">Team 2</option>
-                                    <option value="Team 3">Team 3</option>
-                                    <option value="Team 4">Team 4</option>
-                                    <option value="Team 5">Team 5</option>
+                                    <option value="">Select a team...</option>
                                 </select>
                             </div>
                             <div class="form-group full-width">
@@ -1005,21 +996,12 @@
                                 <label for="filter-part-category" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Category:</label>
                                 <select id="filter-part-category" onchange="applyParticipantFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
                                     <option value="all">All Categories</option>
-                                    <option value="Sub Junior">Sub Junior</option>
-                                    <option value="Junior">Junior</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="General">General</option>
                                 </select>
                             </div>
                             <div>
                                 <label for="filter-part-team" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Team:</label>
                                 <select id="filter-part-team" onchange="applyParticipantFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
                                     <option value="all">All Teams</option>
-                                    <option value="Team 1">Team 1</option>
-                                    <option value="Team 2">Team 2</option>
-                                    <option value="Team 3">Team 3</option>
-                                    <option value="Team 4">Team 4</option>
-                                    <option value="Team 5">Team 5</option>
                                 </select>
                             </div>
                         </div>
@@ -1071,10 +1053,6 @@
                                 <label for="filter-event-category" style="font-size: 0.75rem; font-weight: 600; color: #64748b; margin-right: 0.35rem;">Category:</label>
                                 <select id="filter-event-category" onchange="applyEventFilters()" style="padding: 0.4rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; background: #fff; color: #334155; font-weight: 500; cursor: pointer;">
                                     <option value="all">All Categories</option>
-                                    <option value="Sub Junior">Sub Junior</option>
-                                    <option value="Junior">Junior</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="General Open">General Open</option>
                                 </select>
                             </div>
                             <div>
@@ -1120,10 +1098,6 @@
                             <label>Select Category</label>
                             <select id="attendance-category" onchange="window.onAttendanceCategoryChanged()">
                                 <option value="">Select Category...</option>
-                                <option value="Sub Junior">Sub Junior</option>
-                                <option value="Junior">Junior</option>
-                                <option value="Senior">Senior</option>
-                                <option value="General Open">General Open</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1842,6 +1816,9 @@
 
                 // 2. Group by Chest Number
                 const groupedData = {};
+                const uniqueTeams = new Set();
+                const uniqueCategories = new Set();
+                
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.trim().replace(/^"|"$/g, ''));
@@ -1849,12 +1826,18 @@
                     const chestNo = cols[idxChest];
                     if (!chestNo) continue;
 
+                    const teamName = cols[idxTeam] || '';
+                    const catName = cols[idxCat] || '';
+                    
+                    if (teamName) uniqueTeams.add(teamName);
+                    if (catName) uniqueCategories.add(catName);
+
                     if (!groupedData[chestNo]) {
                         groupedData[chestNo] = {
                             chestNo: chestNo,
                             name: cols[idxName] || '',
-                            team: cols[idxTeam] || '',
-                            category: cols[idxCat] || '',
+                            team: teamName,
+                            category: catName,
                             events: []
                         };
                     }
@@ -1880,8 +1863,22 @@
                             chunks.push(entries.slice(i, i + 500));
                         }
 
+                        const teamsArray = Array.from(uniqueTeams).filter(Boolean);
+                        const categoriesArray = Array.from(uniqueCategories).filter(Boolean);
+                        let globalSettingsAdded = false;
+
                         for (const chunk of chunks) {
                             const batch = writeBatch(db);
+                            
+                            if (!globalSettingsAdded && (teamsArray.length > 0 || categoriesArray.length > 0)) {
+                                const globalRef = doc(db, 'settings', 'global_config');
+                                const updateObj = {};
+                                if (teamsArray.length > 0) updateObj.teams = arrayUnion(...teamsArray);
+                                if (categoriesArray.length > 0) updateObj.categories = arrayUnion(...categoriesArray);
+                                batch.set(globalRef, updateObj, { merge: true });
+                                globalSettingsAdded = true;
+                            }
+
                             for (const student of chunk) {
                                 const ref = doc(db, 'participants', String(student.chestNo));
                                 const participantData = {
@@ -2461,6 +2458,8 @@
 
         let globalCategories = [];
 
+        let globalTeams = [];
+
         function initGlobalConfigListener() {
             if (!isConfigured) return;
             const docRef = doc(db, 'settings', 'global_config');
@@ -2470,6 +2469,10 @@
                     if (data.categories && Array.isArray(data.categories)) {
                         globalCategories = data.categories;
                         populateCategoryDropdowns(globalCategories);
+                    }
+                    if (data.teams && Array.isArray(data.teams)) {
+                        globalTeams = data.teams;
+                        populateTeamDropdowns(globalTeams);
                     }
                 }
             });
@@ -2493,7 +2496,6 @@
                     });
                     selectEl.innerHTML = html;
                     
-                    // Try to restore previous selection if it still exists
                     if (currentValue && categories.includes(currentValue)) {
                         selectEl.value = currentValue;
                     }
@@ -2502,6 +2504,34 @@
             
             if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
             if (typeof applyEventFilters === 'function') applyEventFilters();
+        }
+
+        function populateTeamDropdowns(teams) {
+            const selectIds = [
+                { id: 'part-team', defaultText: 'Select a team...' },
+                { id: 'filter-part-team', defaultText: 'All Teams' }
+            ];
+
+            selectIds.forEach(item => {
+                const selectEl = document.getElementById(item.id);
+                if (selectEl) {
+                    const currentValue = selectEl.value;
+                    let html = `<option value="all">${item.defaultText}</option>`;
+                    if (item.id === 'part-team') {
+                        html = `<option value="">${item.defaultText}</option>`;
+                    }
+                    teams.forEach(team => {
+                        html += `<option value="${team}">${team}</option>`;
+                    });
+                    selectEl.innerHTML = html;
+                    
+                    if (currentValue && teams.includes(currentValue)) {
+                        selectEl.value = currentValue;
+                    }
+                }
+            });
+            
+            if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
         }
 
         function initEventsListener() {
