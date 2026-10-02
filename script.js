@@ -161,62 +161,67 @@ window.toggleAccordion = toggleAccordion;
 // =========================================================================
 // 3.5. DYNAMIC CATEGORY DROPDOWNS
 // =========================================================================
-function initGlobalConfigListener() {
+async function populateDynamicDropdowns() {
     if (!isConfigured) return;
-    
-    onSnapshot(doc(db, 'settings', 'global_config'), (docSnap) => {
-        if (docSnap.exists()) {
+    try {
+        const [partSnap, eventSnap] = await Promise.all([
+            getDocs(collection(db, 'participants')),
+            getDocs(collection(db, 'events'))
+        ]);
+        
+        const categoriesSet = new Set();
+        const teamsSet = new Set();
+
+        partSnap.forEach(docSnap => {
             const data = docSnap.data();
-            
-            if (data.categories && Array.isArray(data.categories)) {
-                const categoryDropdowns = [
-                    { id: 'judge-category-select', defaultText: 'Select Category...' },
-                    { id: 'category-filter', defaultText: 'All Categories' }
-                ];
-                
-                categoryDropdowns.forEach(item => {
-                    const selectEl = document.getElementById(item.id);
-                    if (selectEl) {
-                        const currentVal = selectEl.value;
-                        let html = `<option value="${item.id === 'category-filter' ? 'all' : ''}">${item.defaultText}</option>`;
-                        data.categories.forEach(cat => {
-                            html += `<option value="${cat}">${cat}</option>`;
-                        });
-                        selectEl.innerHTML = html;
-                        if (currentVal && data.categories.includes(currentVal)) {
-                            selectEl.value = currentVal;
-                        }
-                    }
-                });
+            if (data.category) categoriesSet.add(data.category.trim());
+            if (data.team) teamsSet.add(data.team.trim());
+        });
+
+        eventSnap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.category) categoriesSet.add(data.category.trim());
+        });
+
+        const categories = Array.from(categoriesSet).sort();
+        const teams = Array.from(teamsSet).sort();
+
+        const catSelectIds = [
+            { id: 'judge-category-select', defaultText: 'Select Category...' },
+            { id: 'category-filter', defaultText: 'All Categories' }
+        ];
+
+        catSelectIds.forEach(item => {
+            const selectEl = document.getElementById(item.id);
+            if (selectEl) {
+                const currentVal = selectEl.value;
+                let html = `<option value="${item.id === 'category-filter' ? 'all' : ''}">${item.defaultText}</option>`;
+                categories.forEach(cat => { html += `<option value="${cat}">${cat}</option>`; });
+                selectEl.innerHTML = html;
+                if (currentVal && categories.includes(currentVal)) selectEl.value = currentVal;
             }
-            
-            // Populate team dropdowns if there are any in the public/judge pages
-            if (data.teams && Array.isArray(data.teams)) {
-                const teamDropdowns = [
-                    { id: 'team-filter', defaultText: 'All Teams' } // Placeholder if used later
-                ];
-                
-                teamDropdowns.forEach(item => {
-                    const selectEl = document.getElementById(item.id);
-                    if (selectEl) {
-                        const currentVal = selectEl.value;
-                        let html = `<option value="${item.id.includes('filter') ? 'all' : ''}">${item.defaultText}</option>`;
-                        data.teams.forEach(team => {
-                            html += `<option value="${team}">${team}</option>`;
-                        });
-                        selectEl.innerHTML = html;
-                        if (currentVal && data.teams.includes(currentVal)) {
-                            selectEl.value = currentVal;
-                        }
-                    }
-                });
+        });
+
+        const teamSelectIds = [
+            { id: 'team-filter', defaultText: 'All Teams' }
+        ];
+
+        teamSelectIds.forEach(item => {
+            const selectEl = document.getElementById(item.id);
+            if (selectEl) {
+                const currentVal = selectEl.value;
+                let html = `<option value="${item.id.includes('filter') ? 'all' : ''}">${item.defaultText}</option>`;
+                teams.forEach(team => { html += `<option value="${team}">${team}</option>`; });
+                selectEl.innerHTML = html;
+                if (currentVal && teams.includes(currentVal)) selectEl.value = currentVal;
             }
-        }
-    }, (err) => {
-        console.error("Error listening to global config:", err);
-    });
+        });
+
+    } catch (err) {
+        console.error("Error populating dynamic dropdowns:", err);
+    }
 }
-window.initGlobalConfigListener = initGlobalConfigListener;
+window.populateDynamicDropdowns = populateDynamicDropdowns;
 
 // =========================================================================
 // 4. COUNTER ANIMATION FOR LEADERBOARD
@@ -1459,7 +1464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initNewsRealtimeListener();
         initHomepageSettingsListener();
         initVisibilitySettingsListener();
-        initGlobalConfigListener();
+        populateDynamicDropdowns();
     } else {
         console.info("Running in demo mode. Update firebaseConfig in script.js to connect to your live Firebase project.");
     }

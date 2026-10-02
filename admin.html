@@ -1907,6 +1907,7 @@
 
                 showFeedback(`Successfully grouped and imported ${successCount} participants!`);
                 document.getElementById('csv-file').value = '';
+                if (typeof populateDynamicDropdowns === 'function') populateDynamicDropdowns();
             };
             reader.readAsText(file);
         }
@@ -2011,6 +2012,7 @@
                 showFeedback(`Successfully imported/updated ${successCount} events!`, "success");
                 const inputElem = document.getElementById('events-csv-file');
                 if (inputElem) inputElem.value = '';
+                if (typeof populateDynamicDropdowns === 'function') populateDynamicDropdowns();
             };
             reader.readAsText(file);
         }
@@ -2457,81 +2459,72 @@
         window.applyEventFilters = applyEventFilters;
 
         let globalCategories = [];
-
         let globalTeams = [];
 
-        function initGlobalConfigListener() {
+        async function populateDynamicDropdowns() {
             if (!isConfigured) return;
-            const docRef = doc(db, 'settings', 'global_config');
-            onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
+            try {
+                const [partSnap, eventSnap] = await Promise.all([
+                    getDocs(collection(db, 'participants')),
+                    getDocs(collection(db, 'events'))
+                ]);
+                
+                const categoriesSet = new Set();
+                const teamsSet = new Set();
+
+                partSnap.forEach(docSnap => {
                     const data = docSnap.data();
-                    if (data.categories && Array.isArray(data.categories)) {
-                        globalCategories = data.categories;
-                        populateCategoryDropdowns(globalCategories);
-                    }
-                    if (data.teams && Array.isArray(data.teams)) {
-                        globalTeams = data.teams;
-                        populateTeamDropdowns(globalTeams);
-                    }
-                }
-            });
-        }
+                    if (data.category) categoriesSet.add(data.category.trim());
+                    if (data.team) teamsSet.add(data.team.trim());
+                });
 
-        function populateCategoryDropdowns(categories) {
-            const selectIds = [
-                { id: 'part-category', defaultText: 'Select Category...' },
-                { id: 'filter-part-category', defaultText: 'All Categories' },
-                { id: 'filter-event-category', defaultText: 'All Categories' },
-                { id: 'attendance-category', defaultText: 'Select Category...' }
-            ];
+                eventSnap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.category) categoriesSet.add(data.category.trim());
+                });
 
-            selectIds.forEach(item => {
-                const selectEl = document.getElementById(item.id);
-                if (selectEl) {
-                    const currentValue = selectEl.value;
-                    let html = `<option value="">${item.defaultText}</option>`;
-                    categories.forEach(cat => {
-                        html += `<option value="${cat}">${cat}</option>`;
-                    });
-                    selectEl.innerHTML = html;
-                    
-                    if (currentValue && categories.includes(currentValue)) {
-                        selectEl.value = currentValue;
-                    }
-                }
-            });
-            
-            if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
-            if (typeof applyEventFilters === 'function') applyEventFilters();
-        }
+                globalCategories = Array.from(categoriesSet).sort();
+                globalTeams = Array.from(teamsSet).sort();
 
-        function populateTeamDropdowns(teams) {
-            const selectIds = [
-                { id: 'part-team', defaultText: 'Select a team...' },
-                { id: 'filter-part-team', defaultText: 'All Teams' }
-            ];
+                const catSelectIds = [
+                    { id: 'part-category', defaultText: 'Select Category...' },
+                    { id: 'filter-part-category', defaultText: 'All Categories' },
+                    { id: 'filter-event-category', defaultText: 'All Categories' },
+                    { id: 'attendance-category', defaultText: 'Select Category...' }
+                ];
 
-            selectIds.forEach(item => {
-                const selectEl = document.getElementById(item.id);
-                if (selectEl) {
-                    const currentValue = selectEl.value;
-                    let html = `<option value="all">${item.defaultText}</option>`;
-                    if (item.id === 'part-team') {
-                        html = `<option value="">${item.defaultText}</option>`;
+                catSelectIds.forEach(item => {
+                    const selectEl = document.getElementById(item.id);
+                    if (selectEl) {
+                        const currentVal = selectEl.value;
+                        let html = `<option value="${item.id.includes('filter') ? 'all' : ''}">${item.defaultText}</option>`;
+                        globalCategories.forEach(cat => { html += `<option value="${cat}">${cat}</option>`; });
+                        selectEl.innerHTML = html;
+                        if (currentVal && globalCategories.includes(currentVal)) selectEl.value = currentVal;
                     }
-                    teams.forEach(team => {
-                        html += `<option value="${team}">${team}</option>`;
-                    });
-                    selectEl.innerHTML = html;
-                    
-                    if (currentValue && teams.includes(currentValue)) {
-                        selectEl.value = currentValue;
+                });
+
+                const teamSelectIds = [
+                    { id: 'part-team', defaultText: 'Select a team...' },
+                    { id: 'filter-part-team', defaultText: 'All Teams' }
+                ];
+
+                teamSelectIds.forEach(item => {
+                    const selectEl = document.getElementById(item.id);
+                    if (selectEl) {
+                        const currentVal = selectEl.value;
+                        let html = `<option value="${item.id.includes('filter') ? 'all' : ''}">${item.defaultText}</option>`;
+                        globalTeams.forEach(team => { html += `<option value="${team}">${team}</option>`; });
+                        selectEl.innerHTML = html;
+                        if (currentVal && globalTeams.includes(currentVal)) selectEl.value = currentVal;
                     }
-                }
-            });
-            
-            if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
+                });
+
+                if (typeof applyParticipantFilters === 'function') applyParticipantFilters();
+                if (typeof applyEventFilters === 'function') applyEventFilters();
+            } catch (err) {
+                console.error("Error populating dynamic dropdowns:", err);
+            }
         }
 
         function initEventsListener() {
@@ -4144,7 +4137,7 @@
 
         // Initialize All Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            initGlobalConfigListener();
+            populateDynamicDropdowns();
             initEventsListener();
             initParticipantsListener();
             initLeaderboardAdmin();
