@@ -443,18 +443,28 @@ async function submitLogin() {
             let matchedCode = evCodeOrName;
             let evInfo = eventsCache[evCodeOrName];
 
-            // If not found by key, search by eventName
+            // If not found by key, search by eventName/programName AND category matching
             if (!evInfo) {
-                const foundCode = Object.keys(eventsCache).find(k => 
-                    eventsCache[k].eventName && eventsCache[k].eventName.toLowerCase() === evCodeOrName.toLowerCase()
-                );
+                const studentCategory = participantData.category ? participantData.category.toLowerCase() : '';
+                
+                const foundCode = Object.keys(eventsCache).find(k => {
+                    const ev = eventsCache[k];
+                    const evName = ev.eventName || ev.programName || '';
+                    if (!evName || evName.toLowerCase() !== evCodeOrName.toLowerCase()) return false;
+                    
+                    const evCat = ev.category ? ev.category.toLowerCase() : '';
+                    const evType = ev.type ? ev.type.toLowerCase() : '';
+                    
+                    return evCat === studentCategory || evCat === 'general' || evType === 'general';
+                });
+
                 if (foundCode) {
                     matchedCode = foundCode;
                     evInfo = eventsCache[foundCode];
                 }
             }
 
-            const eventName = (evInfo && evInfo.eventName) ? evInfo.eventName : evCodeOrName;
+            const eventName = (evInfo && (evInfo.eventName || evInfo.programName)) ? (evInfo.eventName || evInfo.programName) : evCodeOrName;
             const category = (evInfo && evInfo.category) ? evInfo.category : (participantData.category || 'General');
 
             // Find matching result in studentResultsMap (by matchedCode or original evCodeOrName)

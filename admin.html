@@ -2223,18 +2223,26 @@
                 eventList = [...new Set(eventList)];
 
                 // Map to event names
-                const eventNamesHtml = eventList.length > 0 
-                    ? eventList.map(evCode => {
-                        let evInfo = eventsCache[evCode];
-                        if (!evInfo) {
-                            const foundCode = Object.keys(eventsCache).find(k => 
-                                eventsCache[k].eventName && eventsCache[k].eventName.toLowerCase() === evCode.toLowerCase()
-                            );
-                            if (foundCode) evInfo = eventsCache[foundCode];
-                        }
-                        return `<li><i class="fa-solid fa-check" style="color: #16a34a; margin-right: 6px;"></i> ${evInfo && evInfo.eventName ? evInfo.eventName : evCode}</li>`;
-                    }).join('')
-                    : '<li style="color:#94a3b8;">No registered programs</li>';
+                    const eventNamesHtml = eventList.length > 0 
+                        ? eventList.map(evCode => {
+                            let evInfo = eventsCache[evCode];
+                            if (!evInfo) {
+                                const studentCategory = p.category ? p.category.toLowerCase() : '';
+                                const foundCode = Object.keys(eventsCache).find(k => {
+                                    const ev = eventsCache[k];
+                                    const evName = ev.eventName || ev.programName || '';
+                                    if (!evName || evName.toLowerCase() !== evCode.toLowerCase()) return false;
+                                    
+                                    const evCat = ev.category ? ev.category.toLowerCase() : '';
+                                    const evType = ev.type ? ev.type.toLowerCase() : '';
+                                    
+                                    return evCat === studentCategory || evCat === 'general' || evType === 'general';
+                                });
+                                if (foundCode) evInfo = eventsCache[foundCode];
+                            }
+                            return `<li><i class="fa-solid fa-check" style="color: #16a34a; margin-right: 6px;"></i> ${evInfo && (evInfo.eventName || evInfo.programName) ? (evInfo.eventName || evInfo.programName) : evCode}</li>`;
+                        }).join('')
+                        : '<li style="color:#94a3b8;">No registered programs</li>';
 
                 return `
                 <tr id="part-row-${p.chestNo}">
