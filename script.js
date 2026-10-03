@@ -619,10 +619,12 @@ function renderStudentPortal(profile) {
                             <span class="result-stat-label">Total Marks</span>
                             <span class="result-stat-value" style="color: #1e3a8a;">${ev.marks}</span>
                         </div>
+                        ${window.isGradingSystemEnabled ? `
                         <div class="result-stat-item">
                             <span class="result-stat-label">Grade</span>
                             <span class="result-stat-value"><span style="background: #f1f5f9; padding: 2px 10px; border-radius: 6px;">${ev.grade}</span></span>
                         </div>
+                        ` : ''}
                         <div class="result-stat-item">
                             <span class="result-stat-label">Points Earned</span>
                             <span class="result-stat-value stat-pts-badge">+${ev.points} PTS</span>
@@ -1193,8 +1195,17 @@ function initNewsRealtimeListener() {
 // =========================================================================
 // 8.5. HOME PAGE & HERO SETTINGS (settings/homepage)
 // =========================================================================
+window.isGradingSystemEnabled = true;
+
 function initHomepageSettingsListener() {
     if (!isConfigured) return;
+
+    onSnapshot(doc(db, 'settings', 'global_config'), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            window.isGradingSystemEnabled = data.isGradingEnabled !== false;
+        }
+    });
 
     onSnapshot(doc(db, 'settings', 'homepage'), (docSnap) => {
         if (!docSnap.exists()) return;

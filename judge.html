@@ -967,6 +967,23 @@
             const btn = document.getElementById('btn-judge-submit');
             const feedback = document.getElementById('judge-feedback');
             
+            // Loading state for fetching config
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing Submission...';
+
+            let isGradingEnabled = true;
+            if (isConfigured) {
+                try {
+                    const globalSnap = await getDoc(doc(db, 'settings', 'global_config'));
+                    if (globalSnap.exists()) {
+                        const data = globalSnap.data();
+                        if (data.isGradingEnabled === false) isGradingEnabled = false;
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch global config:", err);
+                }
+            }
+
             const scores = [];
             const selectedParticipants = new Set();
 
@@ -981,6 +998,8 @@
                 
                 if (selectedParticipants.has(chestNo)) {
                     alert('Chest No: ' + chestNo + ' is selected for multiple positions. Please select unique participants.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to Council';
                     return;
                 }
                 selectedParticipants.add(chestNo);
@@ -992,16 +1011,23 @@
                     if (isNaN(num) || num < 0 || num > 100) {
                         alert('Invalid mark for Chest No: ' + chestNo + '. Must be between 0 and 100.');
                         markInput.focus();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to Council';
                         return;
                     }
-                    autoGrade = calculateGrade(num);
+                    if (isGradingEnabled) {
+                        autoGrade = calculateGrade(num);
+                    }
                 }
 
                 // Prefer auto-calculated grade if marks exist, otherwise fallback to select or 'None'
-                const gradeVal = (num !== null) ? autoGrade : (gradeSelect ? gradeSelect.value : 'None');
+                let gradeVal = 'None';
+                if (isGradingEnabled) {
+                    gradeVal = (num !== null) ? autoGrade : (gradeSelect ? gradeSelect.value : 'None');
+                }
+                
                 const pObj = currentParticipants.find(p => String(p.chestNo) === String(chestNo));
-
-                const calculatedPts = gradeSelect && gradeSelect.dataset.calculatedPoints ? Number(gradeSelect.dataset.calculatedPoints) : 0;
+                const calculatedPts = (isGradingEnabled && gradeSelect && gradeSelect.dataset.calculatedPoints) ? Number(gradeSelect.dataset.calculatedPoints) : 0;
 
                 scores.push({
                     chestNo: chestNo,
@@ -1016,14 +1042,15 @@
                     timestamp: Date.now()
                 });
             }
-            
+
             if (scores.length === 0) {
                 alert('Please fill out at least one position before submitting.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit to Council';
                 return;
             }
 
-            // Loading state
-            btn.disabled = true;
+            // Continue to submission
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting to Council...';
 
             if (!isConfigured) {

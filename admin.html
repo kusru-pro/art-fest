@@ -1336,6 +1336,11 @@
                         Define the point structure for Positions and Grades. These rules will be fetched by the Judge Panel for live score calculations.
                     </p>
                     <form id="scoring-settings-form" onsubmit="saveScoringSettings(event)">
+                        <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <input type="checkbox" id="toggle-grading-system" style="width: 20px; height: 20px; cursor: pointer;" checked>
+                            <label for="toggle-grading-system" style="font-weight: 600; color: #1e293b; cursor: pointer; margin: 0; font-size: 1rem;">Enable Grading System (A+, A, B, C)</label>
+                            <span style="font-size: 0.85rem; color: #64748b; margin-left: auto;">If disabled, results will only display Rank and Marks.</span>
+                        </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                             <!-- Individual Events Column -->
                             <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
@@ -2786,7 +2791,7 @@
                                                         <th>Participant</th>
                                                         <th>Team</th>
                                                         <th>Marks</th>
-                                                        <th>Grade</th>
+                                                        ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
                                                         <th>Point Value</th>
                                                     </tr>
                                                 </thead>
@@ -2798,8 +2803,13 @@
 
                                                         const pos = Number(res.position);
                                                         let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
-                                                        const g = String(res.grade || '').trim().toUpperCase();
-                                                        let grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
+                                                        
+                                                        let grdPts = 0;
+                                                        if (window.isGradingSystemEnabled) {
+                                                            const g = String(res.grade || '').trim().toUpperCase();
+                                                            grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
+                                                        }
+                                                        
                                                         const totalPts = posPts + grdPts;
 
                                                         return `
@@ -2809,8 +2819,8 @@
                                                                 <td>${name}</td>
                                                                 <td><strong>${team}</strong></td>
                                                                 <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
-                                                                <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
-                                                                <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}, Grd: ${grdPts})</span></td>
+                                                                ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
+                                                                <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}${window.isGradingSystemEnabled ? `, Grd: ${grdPts}` : ''})</span></td>
                                                             </tr>
                                                         `;
                                                     }).join('')}
@@ -2881,7 +2891,7 @@
                                                     <th>Participant</th>
                                                     <th>Team</th>
                                                     <th>Mark</th>
-                                                    <th>Grade</th>
+                                                    ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2902,7 +2912,7 @@
                                                             <td style="font-weight: 500;">${name}</td>
                                                             <td><strong>${team}</strong></td>
                                                             <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
-                                                            <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>
+                                                            ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
                                                         </tr>
                                                     `;
                                                 }).join('')}
@@ -3435,7 +3445,7 @@
         }
 
         // =========================================================================
-        // 9. SCORING SETTINGS (settings/scoring_rules)
+        // 9. SCORING SETTINGS (settings/scoring_rules & settings/global_config)
         // =========================================================================
         async function saveScoringSettings(event) {
             event.preventDefault();
@@ -3443,6 +3453,8 @@
                 showFeedback("Scoring rules saved in preview mode!");
                 return;
             }
+
+            const isGradingEnabled = document.getElementById('toggle-grading-system').checked;
 
             const payload = {
                 individual: {
@@ -3467,6 +3479,7 @@
 
             try {
                 await setDoc(doc(db, 'settings', 'scoring_rules'), payload);
+                await setDoc(doc(db, 'settings', 'global_config'), { isGradingEnabled }, { merge: true });
                 const statusSpan = document.getElementById('scoring-save-status');
                 statusSpan.style.display = 'inline-block';
                 setTimeout(() => { statusSpan.style.display = 'none'; }, 3000);
@@ -3476,8 +3489,22 @@
         }
         window.saveScoringSettings = saveScoringSettings;
 
+        window.isGradingSystemEnabled = true;
+
         function initScoringSettingsListener() {
             if (!isConfigured) return;
+            onSnapshot(doc(db, 'settings', 'global_config'), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.isGradingSystemEnabled = data.isGradingEnabled !== false;
+                    const toggle = document.getElementById('toggle-grading-system');
+                    if (toggle) toggle.checked = window.isGradingSystemEnabled;
+                    // Trigger a re-render of currently visible result modals if necessary
+                    if (document.getElementById('modal-results').style.display === 'flex') {
+                        // Might need to re-render, but for simplicity rely on user interaction
+                    }
+                }
+            });
             onSnapshot(doc(db, 'settings', 'scoring_rules'), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
