@@ -585,11 +585,11 @@
                                 type="number" 
                                 id="mark-pos-${posNumber}" 
                                 class="mark-input" 
+                                data-pos="${posNumber}"
                                 placeholder="0 - 100" 
                                 min="0" 
                                 max="100"
                                 inputmode="numeric"
-                                oninput="updateLiveGrade(${posNumber})"
                             >
                         </div>
 
@@ -598,7 +598,7 @@
                                 <label class="input-label" style="margin: 0;">
                                     <i class="fa-solid fa-award"></i> Grade
                                 </label>
-                                <span id="grade-points-display-${posNumber}" style="color: #15803d; font-size: 0.95rem; font-weight: 700;"></span>
+                                <span class="auto-grade-display" id="grade-points-display-${posNumber}" style="color: #15803d; font-size: 0.95rem; font-weight: 700;"></span>
                             </div>
                             <div style="height: 48px; display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 1rem; color: #64748b; font-size: 0.95rem;">
                                 <span style="font-style: italic;">Auto-calculated from marks</span>
@@ -606,6 +606,10 @@
                         </div>
                     </div>
                     
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 8px; color: #0f172a; font-weight: 600; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #212861;">
+                        <span><i class="fa-solid fa-ranking-star"></i> Total Score</span>
+                        <span class="final-points-display" style="font-size: 1.2rem; color: #212861;">0</span>
+                    </div>
                 </article>
             `;
             
@@ -891,20 +895,77 @@
             return '-';
         }
 
-        window.updateLiveGrade = function(pos) {
-            if (!window.isGradingSystemEnabled) return;
-            const input = document.getElementById(`mark-pos-${pos}`);
-            const display = document.getElementById(`grade-points-display-${pos}`);
-            if (input && display) {
-                const val = input.value;
-                if (val === '') {
-                    display.textContent = '';
-                } else {
-                    const grade = calculateGrade(val);
-                    display.textContent = `Calculated: ${grade}`;
+        document.body.addEventListener('input', function(e) {
+            if (e.target.matches('.mark-input')) {
+                const pos = e.target.getAttribute('data-pos');
+                const score = e.target.value;
+                
+                const card = e.target.closest('.participant-card');
+                if (!card) return;
+                
+                const gradeDisplay = card.querySelector('.auto-grade-display');
+                const pointsDisplay = card.querySelector('.final-points-display');
+                
+                if (score === '') {
+                    if (gradeDisplay) gradeDisplay.textContent = '';
+                    if (pointsDisplay) pointsDisplay.textContent = '0';
+                    return;
+                }
+
+                const num = Number(score);
+                const thresh = window.scoringThresholds || { aPlusMin: 90, aMin: 80, bMin: 70, cMin: 60 };
+                
+                let grade = '-';
+                if (num >= thresh.aPlusMin) grade = 'A+';
+                else if (num >= thresh.aMin) grade = 'A';
+                else if (num >= thresh.bMin) grade = 'B';
+                else if (num >= thresh.cMin) grade = 'C';
+                
+                if (gradeDisplay) {
+                    if (window.isGradingSystemEnabled) {
+                        gradeDisplay.textContent = `Calculated: ${grade}`;
+                        gradeDisplay.style.display = 'inline';
+                    } else {
+                        gradeDisplay.style.display = 'none';
+                    }
+                }
+                
+                let totalPoints = 0;
+                
+                // Fetch rules
+                const eventCodeSelect = document.getElementById('judge-event-select');
+                if (eventCodeSelect && window.scoringRules) {
+                    const eventCode = eventCodeSelect.value;
+                    const eventData = allEvents.find(ev => ev.eventCode === eventCode) || {};
+                    const isGroup = (eventData.type && eventData.type.toLowerCase() === 'group');
+                    const rules = isGroup ? window.scoringRules.group : window.scoringRules.individual;
+                    
+                    if (rules) {
+                        let posPts = 0;
+                        const posNumber = parseInt(pos) || 0;
+                        if (posNumber === 1) posPts = parseInt(rules.pos1 || 0);
+                        else if (posNumber === 2) posPts = parseInt(rules.pos2 || 0);
+                        else if (posNumber === 3) posPts = parseInt(rules.pos3 || 0);
+                        
+                        let gradePts = 0;
+                        if (window.isGradingSystemEnabled) {
+                            if (grade === 'A+') gradePts = parseInt(rules.gradeAplus || 0);
+                            else if (grade === 'A') gradePts = parseInt(rules.gradeA || 0);
+                            else if (grade === 'B') gradePts = parseInt(rules.gradeB || 0);
+                            else if (grade === 'C') gradePts = parseInt(rules.gradeC || 0);
+                        }
+                        
+                        totalPoints = posPts + gradePts;
+                    }
+                }
+                
+                console.log('Calculating score:', score, 'Grade:', grade, 'Total:', totalPoints);
+                
+                if (pointsDisplay) {
+                    pointsDisplay.textContent = totalPoints;
                 }
             }
-        };
+        });
 
         // 3. Submit Marks to Firestore with status: 'pending'
         async function submitJudgeEvaluations() {
