@@ -559,7 +559,7 @@
                         <div class="chest-badge">
                             <span class="chest-number"><i class="fa-solid fa-trophy" style="color: #fbbf24; margin-right: 0.5rem; font-size: 1rem;"></i>Position ${posNumber}</span>
                         </div>
-                        <span id="pos-points-display-${posNumber}" style="background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">+${posPts} pts</span>
+                        <span id="pos-points-display-${posNumber}" style="background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">+${posPts}</span>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
@@ -627,7 +627,7 @@
 
             if (!pSelect.value) {
                 if (livePosScore) livePosScore.textContent = '';
-                if (posBadge) posBadge.textContent = '+0 pts';
+                if (posBadge) posBadge.textContent = '+0';
                 return;
             }
 
@@ -651,10 +651,10 @@
             }
             
             if (livePosScore) {
-                livePosScore.textContent = `+${posPts} pts`;
+                livePosScore.textContent = `+${posPts}`;
             }
             if (posBadge) {
-                posBadge.textContent = `+${posPts} pts`;
+                posBadge.textContent = `+${posPts}`;
             }
         };
 

@@ -624,7 +624,7 @@ function renderStudentPortal(profile) {
                         ` : ''}
                         <div class="result-stat-item">
                             <span class="result-stat-label">Points Earned</span>
-                            <span class="result-stat-value stat-pts-badge">+${ev.points} PTS</span>
+                            <span class="result-stat-value stat-pts-badge">+${ev.points}</span>
                         </div>
                     </div>
                 `;
@@ -896,7 +896,6 @@ function renderLiveResults(resultsList) {
                                     <th>Participant</th>
                                     <th>Team</th>
                                     <th>Points</th>
-                                    <th>Score (Ref)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -909,8 +908,7 @@ function renderLiveResults(resultsList) {
                                             <td>${r.chestNo}</td>
                                             <td class="${rank === 1 ? 'winner-highlight' : ''}">${p.name}</td>
                                             <td>${p.team}</td>
-                                            <td style="font-weight:bold; color:var(--primary-color)">${r.calculatedPoints != null ? r.calculatedPoints : 0} PTS</td>
-                                            <td style="color:#64748b; font-size:0.85rem">${r.totalMark != null ? r.totalMark : '-'} / ${r.grade || '-'}</td>
+                                            <td style="font-weight:bold; color:var(--primary-color)">${r.calculatedPoints != null ? r.calculatedPoints : 0}</td>
                                         </tr>
                                     `;
                                 }).join('')}
@@ -949,19 +947,19 @@ function renderPublicLeaderboard(sortedTeams) {
             <div class="mini-podium-card rank-2">
                 <div class="podium-crown"><i class="fa-solid fa-medal"></i> 2nd Place</div>
                 <div class="mini-team-name">${miniR2.teamName}</div>
-                <div class="mini-team-points"><strong>${miniR2.totalPoints}</strong> <span>pts</span></div>
+                <div class="mini-team-points"><strong>${miniR2.totalPoints}</strong></div>
             </div>` : ''}
             ${miniR1 ? `
             <div class="mini-podium-card rank-1">
                 <div class="podium-crown gold-crown"><i class="fa-solid fa-crown"></i> 1st Place</div>
                 <div class="mini-team-name">${miniR1.teamName}</div>
-                <div class="mini-team-points"><strong>${miniR1.totalPoints}</strong> <span>pts</span></div>
+                <div class="mini-team-points"><strong>${miniR1.totalPoints}</strong></div>
             </div>` : ''}
             ${miniR3 ? `
             <div class="mini-podium-card rank-3">
                 <div class="podium-crown"><i class="fa-solid fa-award"></i> 3rd Place</div>
                 <div class="mini-team-name">${miniR3.teamName}</div>
-                <div class="mini-team-points"><strong>${miniR3.totalPoints}</strong> <span>pts</span></div>
+                <div class="mini-team-points"><strong>${miniR3.totalPoints}</strong></div>
             </div>` : ''}
         `;
     }
@@ -973,19 +971,19 @@ function renderPublicLeaderboard(sortedTeams) {
             <div class="podium-card rank-2">
                 <div class="podium-number">2</div>
                 <div class="podium-team">${miniR2.teamName}</div>
-                <div class="podium-points"><span class="counter-value" data-target="${miniR2.totalPoints}">${miniR2.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR2.totalPoints}">${miniR2.totalPoints}</span></div>
             </div>` : ''}
             ${miniR1 ? `
             <div class="podium-card rank-1">
                 <div class="podium-number">1</div>
                 <div class="podium-team">${miniR1.teamName}</div>
-                <div class="podium-points"><span class="counter-value" data-target="${miniR1.totalPoints}">${miniR1.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR1.totalPoints}">${miniR1.totalPoints}</span></div>
             </div>` : ''}
             ${miniR3 ? `
             <div class="podium-card rank-3">
                 <div class="podium-number">3</div>
                 <div class="podium-team">${miniR3.teamName}</div>
-                <div class="podium-points"><span class="counter-value" data-target="${miniR3.totalPoints}">${miniR3.totalPoints}</span> <span style="font-size: 1rem; color: var(--text-dark);">pts</span></div>
+                <div class="podium-points"><span class="counter-value" data-target="${miniR3.totalPoints}">${miniR3.totalPoints}</span></div>
             </div>` : ''}
         `;
     }
@@ -1000,7 +998,7 @@ function renderPublicLeaderboard(sortedTeams) {
                     <div class="leaderboard-row ${rankClass}">
                         <div class="lb-rank">${rank}</div>
                         <div class="lb-team">${item.teamName}</div>
-                        <div class="lb-points"><span class="counter-value" data-target="${item.totalPoints}">${item.totalPoints}</span> pts</div>
+                        <div class="lb-points"><span class="counter-value" data-target="${item.totalPoints}">${item.totalPoints}</span></div>
                     </div>
                 `;
             }).join('');

@@ -2836,8 +2836,6 @@
                                                         <th>Chest No</th>
                                                         <th>Participant</th>
                                                         <th>Team</th>
-                                                        <th>Marks</th>
-                                                        ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
                                                         <th>Total Points</th>
                                                     </tr>
                                                 </thead>
@@ -2857,9 +2855,7 @@
                                                                 <td><strong>${res.chestNo}</strong></td>
                                                                 <td>${name}</td>
                                                                 <td><strong>${team}</strong></td>
-                                                                <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
-                                                                ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
-                                                                <td><strong style="color: var(--accent-council);">${ptsData.totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${ptsData.posPts}${window.isGradingSystemEnabled ? `, Grd: ${ptsData.grdPts}` : ''})</span></td>
+                                                                <td><strong style="color: var(--accent-council);">${ptsData.totalPts}</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${ptsData.posPts}${window.isGradingSystemEnabled ? `, Grd: ${ptsData.grdPts}` : ''})</span></td>
                                                             </tr>
                                                         `;
                                                     }).join('')}
@@ -2938,8 +2934,6 @@
                                                     <th>Chest No</th>
                                                     <th>Participant</th>
                                                     <th>Team</th>
-                                                    <th>Mark</th>
-                                                    ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
                                                     <th>Total Points</th>
                                                 </tr>
                                             </thead>
@@ -2959,9 +2953,7 @@
                                                             <td><strong>${res.chestNo}</strong></td>
                                                             <td style="font-weight: 500;">${name}</td>
                                                             <td><strong>${team}</strong></td>
-                                                            <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
-                                                            ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
-                                                            <td><strong style="color: var(--accent-council);">${ptsData.totalPts} pts</strong></td>
+                                                            <td><strong style="color: var(--accent-council);">${ptsData.totalPts}</strong></td>
                                                         </tr>
                                                     `;
                                                 }).join('')}
