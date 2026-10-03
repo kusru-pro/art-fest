@@ -3254,9 +3254,7 @@
                             const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
                             const eventInfo = eventsCache[r.eventCode] || { type: 'Single' };
                             
-                            const ptsData = window.calculateTotalPoints(eventInfo.type, rank, r.grade);
-                            const totalPoints = ptsData.totalPts;
-                            const g = String(r.grade || '').trim().toUpperCase();
+                            const totalPoints = r.calculatedPoints || 0;
 
                             if (team && team !== 'Independent') {
                                 if (!teamScores[team]) {

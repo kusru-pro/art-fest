@@ -1025,7 +1025,27 @@
                 }
                 
                 const pObj = currentParticipants.find(p => String(p.chestNo) === String(chestNo));
-                const calculatedPts = 0;
+                
+                let calculatedPts = 0;
+                const eventData = allEvents.find(ev => ev.eventCode === currentEventCode) || {};
+                const isGroup = (eventData.type && eventData.type.toLowerCase() === 'group');
+                const rules = isGroup ? (window.scoringRules?.group || {}) : (window.scoringRules?.individual || {});
+                
+                if (rules) {
+                    let posPts = 0;
+                    if (i === 1) posPts = parseInt(rules.pos1 || 0);
+                    else if (i === 2) posPts = parseInt(rules.pos2 || 0);
+                    else if (i === 3) posPts = parseInt(rules.pos3 || 0);
+                    
+                    let gradePts = 0;
+                    if (isGradingEnabled) {
+                        if (gradeVal === 'A+') gradePts = parseInt(rules.gradeAplus || 0);
+                        else if (gradeVal === 'A') gradePts = parseInt(rules.gradeA || 0);
+                        else if (gradeVal === 'B') gradePts = parseInt(rules.gradeB || 0);
+                        else if (gradeVal === 'C') gradePts = parseInt(rules.gradeC || 0);
+                    }
+                    calculatedPts = posPts + gradePts;
+                }
 
                 scores.push({
                     chestNo: chestNo,
