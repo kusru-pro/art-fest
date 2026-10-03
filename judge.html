@@ -589,6 +589,7 @@
                                 min="0" 
                                 max="100"
                                 inputmode="numeric"
+                                oninput="updateLiveGrade(${posNumber})"
                             >
                         </div>
 
@@ -955,12 +956,29 @@
         function calculateGrade(score) {
             if (score === null || score === undefined || score === '') return 'None';
             const num = Number(score);
-            if (num >= 90 && num <= 100) return 'A+';
-            if (num >= 80 && num < 90) return 'A';
-            if (num >= 70 && num < 80) return 'B';
-            if (num >= 60 && num < 70) return 'C';
+            const thresh = window.scoringThresholds || { aPlusMin: 90, aMin: 80, bMin: 70, cMin: 60 };
+            
+            if (num >= thresh.aPlusMin) return 'A+';
+            if (num >= thresh.aMin) return 'A';
+            if (num >= thresh.bMin) return 'B';
+            if (num >= thresh.cMin) return 'C';
             return '-';
         }
+
+        window.updateLiveGrade = function(pos) {
+            if (!window.isGradingSystemEnabled) return;
+            const input = document.getElementById(`mark-pos-${pos}`);
+            const display = document.getElementById(`grade-points-display-${pos}`);
+            if (input && display) {
+                const val = input.value;
+                if (val === '') {
+                    display.textContent = '';
+                } else {
+                    const grade = calculateGrade(val);
+                    display.textContent = `Calculated: ${grade}`;
+                }
+            }
+        };
 
         // 3. Submit Marks to Firestore with status: 'pending'
         async function submitJudgeEvaluations() {
@@ -1089,17 +1107,24 @@
         window.submitJudgeEvaluations = submitJudgeEvaluations;
 
         window.scoringRules = null;
+        window.scoringThresholds = { aPlusMin: 90, aMin: 80, bMin: 70, cMin: 60 };
+        window.isGradingSystemEnabled = true;
+
         async function loadScoringRules() {
             if (!isConfigured) return;
             try {
                 const docSnap = await getDoc(doc(db, 'settings', 'scoring_rules'));
                 if (docSnap.exists()) {
                     window.scoringRules = docSnap.data();
-                } else {
-                    console.log("No scoring rules found, using defaults.");
+                }
+                const globalSnap = await getDoc(doc(db, 'settings', 'global_config'));
+                if (globalSnap.exists()) {
+                    const gData = globalSnap.data();
+                    if (gData.isGradingEnabled === false) window.isGradingSystemEnabled = false;
+                    if (gData.thresholds) window.scoringThresholds = gData.thresholds;
                 }
             } catch (err) {
-                console.error("Error loading scoring rules:", err);
+                console.error("Error loading scoring rules or config:", err);
             }
         }
 

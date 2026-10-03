@@ -490,10 +490,7 @@ async function submitLogin() {
                 rank = res.position ? Number(res.position) : null;
                 marks = res.totalMark != null ? res.totalMark : '-';
                 grade = res.grade ? res.grade : '-';
-                // 1st=5, 2nd=3, 3rd=1
-                if (rank === 1) points = 5;
-                else if (rank === 2) points = 3;
-                else if (rank === 3) points = 1;
+                points = res.calculatedPoints || 0;
             } else if (res && res.status === 'pending') {
                 status = 'pending';
             } else if (isGloballyPublished) {

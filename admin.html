@@ -1341,6 +1341,18 @@
                             <label for="toggle-grading-system" style="font-weight: 600; color: #1e293b; cursor: pointer; margin: 0; font-size: 1rem;">Enable Grading System (A+, A, B, C)</label>
                             <span style="font-size: 0.85rem; color: #64748b; margin-left: auto;">If disabled, results will only display Rank and Marks.</span>
                         </div>
+
+                        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 2rem;">
+                            <h3 style="margin-bottom: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;"><i class="fa-solid fa-chart-line"></i> Grade Score Thresholds</h3>
+                            <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 1rem;">Set the minimum numerical score required to achieve each grade.</p>
+                            <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                                <div class="form-group"><label>A+ Minimum Score</label><input type="number" id="thresh-aplus" value="90" required></div>
+                                <div class="form-group"><label>A Minimum Score</label><input type="number" id="thresh-a" value="80" required></div>
+                                <div class="form-group"><label>B Minimum Score</label><input type="number" id="thresh-b" value="70" required></div>
+                                <div class="form-group"><label>C Minimum Score</label><input type="number" id="thresh-c" value="60" required></div>
+                            </div>
+                        </div>
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                             <!-- Individual Events Column -->
                             <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
@@ -2709,6 +2721,31 @@
         // =========================================================================
         // 5. RESULT VERIFICATION & PUBLISHED RESULTS VIEWS
         // =========================================================================
+        
+        function calculateTotalPoints(eventType, rank, grade) {
+            if (!window.scoringRules) return { posPts: 0, grdPts: 0, totalPts: 0 };
+            
+            const mode = (eventType || 'Single').toLowerCase() === 'group' ? 'group' : 'individual';
+            const rules = window.scoringRules[mode];
+            if (!rules) return { posPts: 0, grdPts: 0, totalPts: 0 };
+
+            let posPts = 0;
+            if (rank === 1) posPts = rules.pos1 || 0;
+            else if (rank === 2) posPts = rules.pos2 || 0;
+            else if (rank === 3) posPts = rules.pos3 || 0;
+
+            let grdPts = 0;
+            if (window.isGradingSystemEnabled) {
+                const g = String(grade || '').trim().toUpperCase();
+                if (g === 'A+') grdPts = rules.gradeAplus || 0;
+                else if (g === 'A') grdPts = rules.gradeA || 0;
+                else if (g === 'B') grdPts = rules.gradeB || 0;
+                else if (g === 'C') grdPts = rules.gradeC || 0;
+            }
+
+            return { posPts, grdPts, totalPts: posPts + grdPts };
+        }
+        window.calculateTotalPoints = calculateTotalPoints;
         function initResultsListener() {
             if (!isConfigured) {
                 fetchPendingResultsFallback();
@@ -2756,13 +2793,22 @@
 
                     // Process Pending Verification Events
                     Object.entries(grouped).forEach(([eventCode, results]) => {
-                        // Sort scores by rank/position, then mark descending
-                        results.sort((a, b) => {
-                            if (a.position && b.position) return a.position - b.position;
-                            return (b.totalMark || 0) - (a.totalMark || 0);
+                        const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General', type: 'Single' };
+                        
+                        // Sort scores strictly by mark descending for auto-ranking
+                        results.sort((a, b) => (b.totalMark || 0) - (a.totalMark || 0));
+                        
+                        // Auto-assign calculated ranks based on raw score
+                        let currentRank = 1;
+                        let lastScore = null;
+                        results.forEach((res, idx) => {
+                            if (lastScore !== null && res.totalMark < lastScore) {
+                                currentRank = idx + 1;
+                            }
+                            res.calculatedRank = currentRank;
+                            lastScore = res.totalMark;
                         });
 
-                        const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
                         const hasPending = results.some(r => r.status === 'pending');
 
                         if (hasPending) {
@@ -2786,13 +2832,13 @@
                                             <table class="data-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Position</th>
+                                                        <th>Rank</th>
                                                         <th>Chest No</th>
                                                         <th>Participant</th>
                                                         <th>Team</th>
                                                         <th>Marks</th>
                                                         ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
-                                                        <th>Point Value</th>
+                                                        <th>Total Points</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -2801,26 +2847,19 @@
                                                         const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
                                                         const team = participant.team || res.team || 'Independent';
 
-                                                        const pos = Number(res.position);
-                                                        let posPts = (pos === 1) ? 5 : (pos === 2) ? 3 : (pos === 3) ? 1 : 0;
-                                                        
-                                                        let grdPts = 0;
-                                                        if (window.isGradingSystemEnabled) {
-                                                            const g = String(res.grade || '').trim().toUpperCase();
-                                                            grdPts = (g === 'A') ? 5 : (g === 'B') ? 3 : (g === 'C') ? 1 : 0;
-                                                        }
-                                                        
-                                                        const totalPts = posPts + grdPts;
+                                                        const rank = res.calculatedRank;
+                                                        const ptsData = window.calculateTotalPoints(eventInfo.type, rank, res.grade);
+                                                        res.calculatedPoints = ptsData.totalPts; // Save for publish routine if needed
 
                                                         return `
                                                             <tr>
-                                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">#${res.position || '-'}</span></td>
+                                                                <td><span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">${rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : rank + 'th'}</span></td>
                                                                 <td><strong>${res.chestNo}</strong></td>
                                                                 <td>${name}</td>
                                                                 <td><strong>${team}</strong></td>
                                                                 <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
                                                                 ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
-                                                                <td><strong style="color: var(--accent-council);">${totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${posPts}${window.isGradingSystemEnabled ? `, Grd: ${grdPts}` : ''})</span></td>
+                                                                <td><strong style="color: var(--accent-council);">${ptsData.totalPts} pts</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${ptsData.posPts}${window.isGradingSystemEnabled ? `, Grd: ${ptsData.grdPts}` : ''})</span></td>
                                                             </tr>
                                                         `;
                                                     }).join('')}
@@ -2846,10 +2885,19 @@
                     const publishedGroups = Object.entries(grouped)
                         .filter(([evCode, results]) => results.every(r => r.status === 'published'))
                         .map(([evCode, results]) => {
-                            results.sort((a, b) => {
-                                if (a.position && b.position) return a.position - b.position;
-                                return (b.totalMark || 0) - (a.totalMark || 0);
+                            // Sort ascending by totalMark to auto-assign ranks
+                            results.sort((a, b) => (b.totalMark || 0) - (a.totalMark || 0));
+                            
+                            let currentRank = 1;
+                            let lastScore = null;
+                            results.forEach((res, idx) => {
+                                if (lastScore !== null && res.totalMark < lastScore) {
+                                    currentRank = idx + 1;
+                                }
+                                res.calculatedRank = currentRank;
+                                lastScore = res.totalMark;
                             });
+
                             const publishedAt = results.find(r => r.publishedAt)?.publishedAt || 0;
                             return { eventCode: evCode, results, publishedAt };
                         });
@@ -2892,6 +2940,7 @@
                                                     <th>Team</th>
                                                     <th>Mark</th>
                                                     ${window.isGradingSystemEnabled ? '<th>Grade</th>' : ''}
+                                                    <th>Total Points</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2900,10 +2949,9 @@
                                                     const name = participant.name || res.participantName || ('Contestant ' + res.chestNo);
                                                     const team = participant.team || res.team || 'Independent';
 
-                                                    const pos = Number(res.position);
-                                                    const g = (res.grade || '').trim().toUpperCase();
-
-                                                    const medal = pos === 1 ? '🥇 1st Place' : pos === 2 ? '🥈 2nd Place' : pos === 3 ? '🥉 3rd Place' : `#${pos}`;
+                                                    const rank = res.calculatedRank;
+                                                    const ptsData = window.calculateTotalPoints(eventInfo.type, rank, res.grade);
+                                                    const medal = rank === 1 ? '🥇 1st Place' : rank === 2 ? '🥈 2nd Place' : rank === 3 ? '🥉 3rd Place' : `#${rank}`;
 
                                                     return `
                                                         <tr>
@@ -2913,6 +2961,7 @@
                                                             <td><strong>${team}</strong></td>
                                                             <td><strong style="color: #212861; font-size: 1.1rem;">${res.totalMark != null ? res.totalMark : '-'}</strong></td>
                                                             ${window.isGradingSystemEnabled ? `<td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700;">${res.grade || '-'}</span></td>` : ''}
+                                                            <td><strong style="color: var(--accent-council);">${ptsData.totalPts} pts</strong></td>
                                                         </tr>
                                                     `;
                                                 }).join('')}
@@ -3001,14 +3050,38 @@
             try {
                 const q = query(collection(db, 'results'), where('eventCode', '==', eventCode), where('status', '==', 'pending'));
                 const snapshot = await getDocs(q);
-                
-                const updatePromises = [];
+                const docsData = [];
                 snapshot.forEach(docSnap => {
-                    const docRef = doc(db, 'results', docSnap.id);
-                    updatePromises.push(updateDoc(docRef, { status: 'published', publishedAt: Date.now() }));
+                    const data = docSnap.data();
+                    data.id = docSnap.id;
+                    docsData.push(data);
                 });
 
-                await Promise.all(updatePromises);
+                // Calculate rank based on totalMark
+                docsData.sort((a, b) => (b.totalMark || 0) - (a.totalMark || 0));
+                let currentRank = 1;
+                let lastScore = null;
+                const eventInfo = eventsCache[eventCode] || { type: 'Single' };
+
+                const updatePromises = [];
+                docsData.forEach((data, idx) => {
+                    if (lastScore !== null && data.totalMark < lastScore) {
+                        currentRank = idx + 1;
+                    }
+                    const rank = currentRank;
+                    lastScore = data.totalMark;
+
+                    const ptsData = window.calculateTotalPoints(eventInfo.type, rank, data.grade);
+
+                    const docRef = doc(db, 'results', data.id);
+                    updatePromises.push(updateDoc(docRef, { 
+                        status: 'published', 
+                        publishedAt: Date.now(),
+                        position: rank,           // Override with dynamic rank
+                        calculatedRank: rank,     // Extra explicitly
+                        calculatedPoints: ptsData.totalPts
+                    }));
+                });                await Promise.all(updatePromises);
                 showFeedback(`Results for ${eventCode} published successfully! View them in Published Results.`);
             } catch (err) {
                 showFeedback("Failed to publish event results: " + err.message, "error");
@@ -3157,44 +3230,51 @@
 
 
                 try {
+                    const grouped = {};
                     snapshot.forEach(docSnap => {
                         const r = docSnap.data();
                         if (r.status !== 'published') return;
+                        if (!grouped[r.eventCode]) grouped[r.eventCode] = [];
+                        grouped[r.eventCode].push(r);
+                    });
 
-                        const participant = participantsCache[r.chestNo];
-                        const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
-                        const eventInfo = eventsCache[r.eventCode] || {};
-
-                        // Rely strictly on final 'MARK' for total score accumulation
-                        let markPts = Number(r.totalMark) || 0;
-                        const pos = Number(r.position);
-                        const g = String(r.grade || '').trim().toUpperCase();
-
-                        // 1. Update Team Leaderboard
-                        if (team) {
-                            if (!teamScores[team]) {
-                                teamScores[team] = {
-                                    teamName: team,
-                                    totalPoints: 0,
-                                    firstCount: 0,
-                                    secondCount: 0,
-                                    thirdCount: 0,
-                                    gradeACount: 0,
-                                    gradeBCount: 0,
-                                    gradeCCount: 0
-                                };
+                    Object.entries(grouped).forEach(([eventCode, results]) => {
+                        results.sort((a, b) => (b.totalMark || 0) - (a.totalMark || 0));
+                        let currentRank = 1;
+                        let lastScore = null;
+                        
+                        results.forEach((r, idx) => {
+                            if (lastScore !== null && r.totalMark < lastScore) {
+                                currentRank = idx + 1;
                             }
-                            
-                            teamScores[team].totalPoints += markPts;
-                            if (pos === 1) teamScores[team].firstCount++;
-                            else if (pos === 2) teamScores[team].secondCount++;
-                            else if (pos === 3) teamScores[team].thirdCount++;
-                            
-                            if (g === 'A') teamScores[team].gradeACount++;
-                            else if (g === 'B') teamScores[team].gradeBCount++;
-                            else if (g === 'C') teamScores[team].gradeCCount++;
-                        }
+                            const rank = currentRank;
+                            lastScore = r.totalMark;
 
+                            const participant = participantsCache[r.chestNo];
+                            const team = (participant && participant.team) ? participant.team.trim() : ((r.team && r.team.trim()) ? r.team.trim() : 'Independent');
+                            const eventInfo = eventsCache[r.eventCode] || { type: 'Single' };
+                            
+                            const ptsData = window.calculateTotalPoints(eventInfo.type, rank, r.grade);
+                            const totalPoints = ptsData.totalPts;
+                            const g = String(r.grade || '').trim().toUpperCase();
+
+                            if (team && team !== 'Independent') {
+                                if (!teamScores[team]) {
+                                    teamScores[team] = {
+                                        teamName: team,
+                                        totalPoints: 0,
+                                        firstCount: 0,
+                                        secondCount: 0,
+                                        thirdCount: 0
+                                    };
+                                }
+                                
+                                teamScores[team].totalPoints += totalPoints;
+                                if (rank === 1) teamScores[team].firstCount++;
+                                else if (rank === 2) teamScores[team].secondCount++;
+                                else if (rank === 3) teamScores[team].thirdCount++;
+                            }
+                        });
                     });
                 } catch (e) {
                     console.error("Error processing leaderboard snapshot:", e);
@@ -3478,8 +3558,15 @@
             };
 
             try {
+                const thresholds = {
+                    aPlusMin: Number(document.getElementById('thresh-aplus').value) || 90,
+                    aMin: Number(document.getElementById('thresh-a').value) || 80,
+                    bMin: Number(document.getElementById('thresh-b').value) || 70,
+                    cMin: Number(document.getElementById('thresh-c').value) || 60
+                };
+
                 await setDoc(doc(db, 'settings', 'scoring_rules'), payload);
-                await setDoc(doc(db, 'settings', 'global_config'), { isGradingEnabled }, { merge: true });
+                await setDoc(doc(db, 'settings', 'global_config'), { isGradingEnabled, thresholds }, { merge: true });
                 const statusSpan = document.getElementById('scoring-save-status');
                 statusSpan.style.display = 'inline-block';
                 setTimeout(() => { statusSpan.style.display = 'none'; }, 3000);
@@ -3491,6 +3578,8 @@
 
         window.isGradingSystemEnabled = true;
 
+        window.scoringThresholds = { aPlusMin: 90, aMin: 80, bMin: 70, cMin: 60 };
+
         function initScoringSettingsListener() {
             if (!isConfigured) return;
             onSnapshot(doc(db, 'settings', 'global_config'), (docSnap) => {
@@ -3499,6 +3588,15 @@
                     window.isGradingSystemEnabled = data.isGradingEnabled !== false;
                     const toggle = document.getElementById('toggle-grading-system');
                     if (toggle) toggle.checked = window.isGradingSystemEnabled;
+
+                    if (data.thresholds) {
+                        window.scoringThresholds = data.thresholds;
+                        document.getElementById('thresh-aplus').value = data.thresholds.aPlusMin ?? 90;
+                        document.getElementById('thresh-a').value = data.thresholds.aMin ?? 80;
+                        document.getElementById('thresh-b').value = data.thresholds.bMin ?? 70;
+                        document.getElementById('thresh-c').value = data.thresholds.cMin ?? 60;
+                    }
+                    
                     // Trigger a re-render of currently visible result modals if necessary
                     if (document.getElementById('modal-results').style.display === 'flex') {
                         // Might need to re-render, but for simplicity rely on user interaction
@@ -3508,6 +3606,7 @@
             onSnapshot(doc(db, 'settings', 'scoring_rules'), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    window.scoringRules = data;
                     if (data.individual) {
                         document.getElementById('score-ind-pos1').value = data.individual.pos1 ?? 5;
                         document.getElementById('score-ind-pos2').value = data.individual.pos2 ?? 3;
