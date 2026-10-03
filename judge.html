@@ -952,6 +952,16 @@
             }
         }
 
+        function calculateGrade(score) {
+            if (score === null || score === undefined || score === '') return 'None';
+            const num = Number(score);
+            if (num >= 90 && num <= 100) return 'A+';
+            if (num >= 80 && num < 90) return 'A';
+            if (num >= 70 && num < 80) return 'B';
+            if (num >= 60 && num < 70) return 'C';
+            return '-';
+        }
+
         // 3. Submit Marks to Firestore with status: 'pending'
         async function submitJudgeEvaluations() {
             const btn = document.getElementById('btn-judge-submit');
@@ -976,6 +986,7 @@
                 selectedParticipants.add(chestNo);
 
                 let num = null;
+                let autoGrade = 'None';
                 if (markInput && markInput.value.trim() !== '') {
                     num = Number(markInput.value.trim());
                     if (isNaN(num) || num < 0 || num > 100) {
@@ -983,9 +994,11 @@
                         markInput.focus();
                         return;
                     }
+                    autoGrade = calculateGrade(num);
                 }
 
-                const gradeVal = gradeSelect ? gradeSelect.value : 'None';
+                // Prefer auto-calculated grade if marks exist, otherwise fallback to select or 'None'
+                const gradeVal = (num !== null) ? autoGrade : (gradeSelect ? gradeSelect.value : 'None');
                 const pObj = currentParticipants.find(p => String(p.chestNo) === String(chestNo));
 
                 const calculatedPts = gradeSelect && gradeSelect.dataset.calculatedPoints ? Number(gradeSelect.dataset.calculatedPoints) : 0;
@@ -996,7 +1009,7 @@
                     team: pObj ? (pObj.team || '') : '',
                     eventCode: currentEventCode,
                     totalMark: num,
-                    grade: gradeVal || 'None',
+                    grade: gradeVal,
                     position: i,
                     calculatedPoints: calculatedPts,
                     status: 'pending',
