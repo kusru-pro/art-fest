@@ -537,7 +537,7 @@
             if (!container) return;
             
             const options = currentParticipants.map(p => 
-                `<option value="${p.chestNo}">Code ${p.codeLetter || '-'} - ${p.name || p.team}</option>`
+                `<option value="${p.chestNo}">Participant ${p.codeLetter || '-'} (Chest No: ${p.chestNo})</option>`
             ).join('');
 
             let posPts = 0;
@@ -909,7 +909,7 @@
                     // ONLY add if they have attended / completed spot registration
                     if (!seenChestNos.has(cNo) && attendanceMap[cNo]) {
                         seenChestNos.add(cNo);
-                        data.codeLetter = attendanceMap[cNo];
+                        // We will dynamically assign the code letter after sorting to ensure consistency
                         currentParticipants.push(data);
                     }
                 });
@@ -928,11 +928,16 @@
                     return;
                 }
 
-                // Sort participants numerically by chestNo (or alphabetically by code letter)
+                // Sort participants numerically by chestNo
                 currentParticipants.sort((a, b) => {
-                    const codeA = a.codeLetter || '';
-                    const codeB = b.codeLetter || '';
-                    return codeA.localeCompare(codeB);
+                    return Number(a.chestNo) - Number(b.chestNo);
+                });
+
+                // Assign Code Letters dynamically (A, B, C, D...)
+                currentParticipants.forEach((p, index) => {
+                    // 65 is 'A' in ASCII
+                    const codeLetter = String.fromCharCode(65 + (index % 26)) + (index >= 26 ? Math.floor(index/26) : '');
+                    p.codeLetter = codeLetter;
                 });
 
                 // Populate initial cards up to number of participants (default max 3)
