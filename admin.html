@@ -2491,6 +2491,9 @@
                     if (data.category) categoriesSet.add(data.category.trim());
                 });
 
+                // Force 'General' category if it doesn't exist
+                categoriesSet.add('General');
+
                 globalCategories = Array.from(categoriesSet).sort();
                 globalTeams = Array.from(teamsSet).sort();
 

@@ -183,6 +183,9 @@ async function populateDynamicDropdowns() {
             if (data.category) categoriesSet.add(data.category.trim());
         });
 
+        // Force 'General' category if it doesn't exist
+        categoriesSet.add('General');
+
         const categories = Array.from(categoriesSet).sort();
         const teams = Array.from(teamsSet).sort();
 
