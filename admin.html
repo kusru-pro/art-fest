@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Council Panel | Sahityotsav 2026</title>
 
+    <!-- Dynamic Favicon -->
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="https://cdn-icons-png.flaticon.com/512/3176/3176396.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3586,6 +3589,13 @@
                         document.getElementById('thresh-b').value = data.thresholds.bMin ?? 70;
                         document.getElementById('thresh-c').value = data.thresholds.cMin ?? 60;
                     }
+
+                    // Dynamic Favicon Update
+                    const logoUrl = (data.websiteLogo && data.websiteLogo.trim()) ? data.websiteLogo.trim() : (data.logoUrl || data.logo || '');
+                    if (logoUrl) {
+                        const dynamicFavicon = document.getElementById('dynamic-favicon');
+                        if (dynamicFavicon) dynamicFavicon.href = logoUrl;
+                    }
                     
                     // Trigger a re-render of currently visible result modals if necessary
                     if (document.getElementById('modal-results').style.display === 'flex') {
@@ -3662,6 +3672,14 @@
                 }
             }
 
+            // Instantly update dynamic favicon in admin browser tab
+            if (data.websiteLogo) {
+                const dynamicFavicon = document.getElementById('dynamic-favicon');
+                if (dynamicFavicon) {
+                    dynamicFavicon.href = data.websiteLogo;
+                }
+            }
+
             const fileInput = document.getElementById('setting-poster-background');
 
             if (!isConfigured) {
@@ -3672,6 +3690,9 @@
             try {
                 // Save standard homepage settings
                 await setDoc(doc(db, 'settings', 'homepage'), data, { merge: true });
+                if (data.websiteLogo) {
+                    await setDoc(doc(db, 'settings', 'global_config'), { websiteLogo: data.websiteLogo }, { merge: true });
+                }
                 
                 // Handle Poster Background File Upload
                 if (fileInput && fileInput.files.length > 0) {
@@ -3732,6 +3753,14 @@
                     } else {
                         previewLogoEl.style.display = 'none';
                         previewLogoEl.src = '';
+                    }
+                }
+
+                // Dynamic Favicon Update
+                if (websiteLogoUrl) {
+                    const dynamicFavicon = document.getElementById('dynamic-favicon');
+                    if (dynamicFavicon) {
+                        dynamicFavicon.href = websiteLogoUrl;
                     }
                 }
                 
@@ -4362,6 +4391,24 @@
             initVisibilitySettingsListener();
             initScoringSettingsListener();
             initAdminNewsListener();
+
+            // Instant logo file preview & favicon update
+            const logoInput = document.getElementById('setting-website-logo');
+            if (logoInput) {
+                logoInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const previewImg = document.getElementById('preview-website-logo');
+                            if (previewImg) {
+                                previewImg.src = evt.target.result;
+                                previewImg.style.display = 'block';
+                            }
+                        };
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
         });
     </script>
 </body>

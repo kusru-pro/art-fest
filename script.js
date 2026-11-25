@@ -1199,6 +1199,15 @@ function initHomepageSettingsListener() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             window.isGradingSystemEnabled = data.isGradingEnabled !== false;
+
+            // Dynamic Favicon Update
+            const logoUrl = (data.websiteLogo && data.websiteLogo.trim()) ? data.websiteLogo.trim() : (data.logoUrl || data.logo || '');
+            if (logoUrl) {
+                const dynamicFavicon = document.getElementById('dynamic-favicon');
+                if (dynamicFavicon) {
+                    dynamicFavicon.href = logoUrl;
+                }
+            }
         }
     });
 
@@ -1296,6 +1305,14 @@ function applyHomepageSettings(data) {
             siteLogo.innerHTML = `<img src="${websiteLogoUrl}" alt="${websiteTitle}" class="site-header-logo">`;
         } else {
             siteLogo.textContent = websiteTitle;
+        }
+    }
+
+    // Dynamic Favicon Update
+    if (websiteLogoUrl) {
+        const dynamicFavicon = document.getElementById('dynamic-favicon');
+        if (dynamicFavicon) {
+            dynamicFavicon.href = websiteLogoUrl;
         }
     }
 

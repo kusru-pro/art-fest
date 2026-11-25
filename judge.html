@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Judge Evaluation Panel | Sahityotsav 2026</title>
 
+    <!-- Dynamic Favicon -->
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="https://cdn-icons-png.flaticon.com/512/3176/3176396.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1122,6 +1125,20 @@
                     const gData = globalSnap.data();
                     if (gData.isGradingEnabled === false) window.isGradingSystemEnabled = false;
                     if (gData.thresholds) window.scoringThresholds = gData.thresholds;
+                    const logoUrl = (gData.websiteLogo && gData.websiteLogo.trim()) ? gData.websiteLogo.trim() : (gData.logoUrl || gData.logo || '');
+                    if (logoUrl) {
+                        const dynamicFavicon = document.getElementById('dynamic-favicon');
+                        if (dynamicFavicon) dynamicFavicon.href = logoUrl;
+                    }
+                }
+                const homeSnap = await getDoc(doc(db, 'settings', 'homepage'));
+                if (homeSnap.exists()) {
+                    const hData = homeSnap.data();
+                    const logoUrl = (hData.websiteLogo && hData.websiteLogo.trim()) ? hData.websiteLogo.trim() : (hData.logoUrl || hData.logo || '');
+                    if (logoUrl) {
+                        const dynamicFavicon = document.getElementById('dynamic-favicon');
+                        if (dynamicFavicon) dynamicFavicon.href = logoUrl;
+                    }
                 }
             } catch (err) {
                 console.error("Error loading scoring rules or config:", err);
