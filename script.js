@@ -1489,7 +1489,28 @@ function renderPosterCanvasHelper(canvas, layout, options = {}) {
         ctx.fillRect(0, 0, w, h);
     }
 
-    // 2. Draw Logo
+    // 2. Draw Custom PNG Overlays (Behind foreground typography/winners)
+    const overlays = layout.customOverlays || [];
+    overlays.forEach(ov => {
+        const img = options.overlayImgs?.[ov.id];
+        const drawW = ov.width || 120;
+        const drawH = ov.height || Math.round(drawW / (ov.aspectRatio || 1));
+        const drawX = (ov.x ?? 540) - drawW / 2;
+        const drawY = (ov.y ?? 540) - drawH / 2;
+
+        if (img && img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        } else if (ov.url) {
+            const directImg = new Image();
+            directImg.crossOrigin = "anonymous";
+            directImg.src = ov.url;
+            if (directImg.complete && directImg.naturalWidth > 0) {
+                ctx.drawImage(directImg, drawX, drawY, drawW, drawH);
+            }
+        }
+    });
+
+    // 3. Draw Logo
     if (layout.logo?.visible) {
         const lx = layout.logo.x ?? 540;
         const ly = layout.logo.y ?? 110;
@@ -1518,7 +1539,7 @@ function renderPosterCanvasHelper(canvas, layout, options = {}) {
         }
     }
 
-    // 3. Draw Result Number & Cursive "Result"
+    // 4. Draw Result Number & Cursive "Result"
     const numX = layout.resultNumber?.x ?? 540;
     const numY = layout.resultNumber?.y ?? 260;
     const numSize = layout.resultNumber?.fontSize ?? 160;
@@ -1552,7 +1573,7 @@ function renderPosterCanvasHelper(canvas, layout, options = {}) {
     ctx.restore();
     ctx.restore();
 
-    // 4. Category & Event Name Banner
+    // 5. Category & Event Name Banner
     const catY = layout.eventDetails?.categoryY ?? 375;
     const catSize = layout.eventDetails?.categoryFontSize ?? 26;
     const catColor = layout.eventDetails?.categoryColor ?? '#e2e8f0';
@@ -1594,7 +1615,7 @@ function renderPosterCanvasHelper(canvas, layout, options = {}) {
     ctx.fillText(evText, 540, evY + 2);
     ctx.restore();
 
-    // 5. Winners List
+    // 6. Winners List
     const winX = layout.winnersList?.x ?? 230;
     const startY = layout.winnersList?.y ?? 560;
     const spacing = layout.winnersList?.lineSpacing ?? 105;
@@ -1638,7 +1659,7 @@ function renderPosterCanvasHelper(canvas, layout, options = {}) {
         ctx.restore();
     });
 
-    // 6. Footer Tagline
+    // 7. Footer Tagline
     if (layout.footer?.visible) {
         const footY = layout.footer.y ?? 1000;
         const footSize = layout.footer.fontSize ?? 18;
@@ -1709,17 +1730,29 @@ async function downloadPoster(resultId, resultNumber = 1) {
     const logoSrc = (logoEl && logoEl.src && !logoEl.src.includes('undefined')) ? logoEl.src : '';
 
     try {
-        const [bgImg, logoImg] = await Promise.all([
+        const layout = window.currentPosterLayout || defaultPublicPosterLayout;
+        const overlayPromises = (layout.customOverlays || []).map(async ov => {
+            const loaded = await loadImagePromise(ov.url);
+            return { id: ov.id, img: loaded };
+        });
+
+        const [bgImg, logoImg, loadedOverlays] = await Promise.all([
             loadImagePromise(bgSrc),
-            loadImagePromise(logoSrc)
+            loadImagePromise(logoSrc),
+            Promise.all(overlayPromises)
         ]);
 
-        const layout = window.currentPosterLayout || defaultPublicPosterLayout;
+        const overlayImgsMap = {};
+        loadedOverlays.forEach(item => {
+            if (item.img) overlayImgsMap[item.id] = item.img;
+        });
+
         const formattedNumber = String(resultNumber).padStart(2, '0');
 
         renderPosterCanvasHelper(offscreenCanvas, layout, {
             bgImage: bgImg,
             logoImage: logoImg,
+            overlayImgs: overlayImgsMap,
             resultNumberText: formattedNumber,
             category: eventInfo.category || 'GENERAL',
             eventName: eventInfo.eventName || resultId,

@@ -2116,5 +2116,36 @@ h2.section-title {
     background: #fff;
 }
 
+/* Overlay List Item Card */
+.overlay-item-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.overlay-item-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.overlay-item-card.selected {
+    border-color: #38bdf8;
+    background: #f0f9ff;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+}
+
+.overlay-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    background: repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%) 50% / 12px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    flex-shrink: 0;
+}
+
+
 
 
