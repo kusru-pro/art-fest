@@ -293,9 +293,14 @@
 
     <!-- Gallery Image Modal -->
     <div id="gallery-modal" class="modal-overlay">
-        <div class="modal-box gallery-modal-box">
+        <div class="modal-box gallery-modal-box" style="text-align: center;">
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal('gallery-modal')"></i>
             <img id="gallery-modal-img" src="" alt="Full Screen Preview">
+            <div style="margin-top: 10px;">
+                <button id="modal-gallery-download-btn" class="modal-download-btn" onclick="downloadModalGalleryImage(this)">
+                    <i class="fa-solid fa-download"></i> Download Image
+                </button>
+            </div>
         </div>
     </div>
     

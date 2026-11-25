@@ -1872,4 +1872,92 @@ h2.section-title {
     background-repeat: no-repeat !important;
 }
 
+/* === Gallery Card & Download Button === */
+.gallery-item {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s, filter 0.3s;
+    filter: grayscale(40%);
+    border: 2px solid transparent;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+    filter: grayscale(0%);
+    border-color: var(--text-light);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-download-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(33, 40, 97, 0.9);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s ease;
+    opacity: 0.9;
+    z-index: 10;
+}
+
+.gallery-download-btn:hover {
+    background: #212861;
+    color: #ffffff;
+    transform: scale(1.12);
+    opacity: 1;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.gallery-download-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.modal-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 24px;
+    background: #212861;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s ease;
+}
+
+.modal-download-btn:hover {
+    background: #1a204d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.modal-download-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 

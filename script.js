@@ -287,6 +287,60 @@ function closeGalleryModal() {
 }
 window.closeGalleryModal = closeGalleryModal;
 
+async function downloadGalleryImage(imageUrl, imageName = 'Sahityotsav_Gallery.jpg', btn = null) {
+    if (!imageUrl) return;
+
+    let originalHtml = '';
+    if (btn) {
+        originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    }
+
+    try {
+        const response = await fetch(imageUrl, { mode: 'cors' });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = imageName || 'Sahityotsav_Gallery.jpg';
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+        }, 150);
+    } catch (err) {
+        console.warn("Direct blob download failed, falling back to direct link download:", err);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = imageUrl;
+        a.download = imageName || 'Sahityotsav_Gallery.jpg';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => document.body.removeChild(a), 150);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+}
+window.downloadGalleryImage = downloadGalleryImage;
+
+function downloadModalGalleryImage(btn) {
+    const modalImg = document.getElementById('gallery-modal-img');
+    if (modalImg && modalImg.src) {
+        downloadGalleryImage(modalImg.src, 'Sahityotsav_Gallery_Image.jpg', btn);
+    }
+}
+window.downloadModalGalleryImage = downloadModalGalleryImage;
+
 // =========================================================================
 // 6. NEWS DATA & MODAL LOGIC
 // =========================================================================
@@ -1064,9 +1118,12 @@ function renderMiniGallery(snapshot) {
     miniGalleryGrid.innerHTML = photos.slice(0, 5).map((src, index) => {
         const sizeClass = index < 2 ? 'item-large' : 'item-small';
         return `
-            <div class="mini-gallery-item ${sizeClass}" onclick="openGalleryModal('${src}')">
-                <img src="${src}" alt="Festival Moment ${index + 1}">
-                <div class="gallery-overlay"><i class="fa-solid fa-expand"></i></div>
+            <div class="mini-gallery-item ${sizeClass}">
+                <img src="${src}" alt="Festival Moment ${index + 1}" onclick="openGalleryModal('${src}')">
+                <div class="gallery-overlay" onclick="openGalleryModal('${src}')"><i class="fa-solid fa-expand"></i></div>
+                <button class="gallery-download-btn" onclick="event.stopPropagation(); downloadGalleryImage('${src}', 'Sahityotsav_Moment_${index + 1}.jpg', this)" title="Download Image">
+                    <i class="fa-solid fa-download"></i>
+                </button>
             </div>
         `;
     }).join('');
@@ -1095,7 +1152,12 @@ function initGalleryRealtimeListener() {
                 mainGalleryGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 2rem;">No gallery images available yet.</div>';
             } else {
                 mainGalleryGrid.innerHTML = photos.map((url, i) => `
-                    <img src="${url}" alt="Gallery ${i + 1}" class="gallery-item" onclick="openGalleryModal('${url}')">
+                    <div class="gallery-item">
+                        <img src="${url}" alt="Gallery ${i + 1}" onclick="openGalleryModal('${url}')">
+                        <button class="gallery-download-btn" onclick="event.stopPropagation(); downloadGalleryImage('${url}', 'Sahityotsav_Gallery_${i + 1}.jpg', this)" title="Download Image">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                    </div>
                 `).join('');
             }
         }
