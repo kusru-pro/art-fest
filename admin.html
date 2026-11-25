@@ -2839,7 +2839,7 @@
                                                         <th>Chest No</th>
                                                         <th>Participant</th>
                                                         <th>Team</th>
-                                                        <th>Total Points</th>
+                                                        <th>Grade</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -2851,6 +2851,7 @@
                                                         const rank = res.calculatedRank;
                                                         const ptsData = window.calculateTotalPoints(eventInfo.type, rank, res.grade);
                                                         res.calculatedPoints = ptsData.totalPts; // Save for publish routine if needed
+                                                        const grade = (res.grade && String(res.grade).trim() !== '' && String(res.grade).trim() !== 'None') ? String(res.grade).trim() : '-';
 
                                                         return `
                                                             <tr>
@@ -2858,7 +2859,7 @@
                                                                 <td><strong>${res.chestNo}</strong></td>
                                                                 <td>${name}</td>
                                                                 <td><strong>${team}</strong></td>
-                                                                <td><strong style="color: var(--accent-council);">${ptsData.totalPts}</strong> <span style="font-size: 0.75rem; color: #64748b;">(Pos: ${ptsData.posPts}${window.isGradingSystemEnabled ? `, Grd: ${ptsData.grdPts}` : ''})</span></td>
+                                                                <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700; font-size:0.9rem;">${grade || '-'}</span></td>
                                                             </tr>
                                                         `;
                                                     }).join('')}
@@ -2937,7 +2938,7 @@
                                                     <th>Chest No</th>
                                                     <th>Participant</th>
                                                     <th>Team</th>
-                                                    <th>Total Points</th>
+                                                    <th>Grade</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -2949,6 +2950,7 @@
                                                     const rank = res.calculatedRank;
                                                     const ptsData = window.calculateTotalPoints(eventInfo.type, rank, res.grade);
                                                     const medal = rank === 1 ? '🥇 1st Place' : rank === 2 ? '🥈 2nd Place' : rank === 3 ? '🥉 3rd Place' : `#${rank}`;
+                                                    const grade = (res.grade && String(res.grade).trim() !== '' && String(res.grade).trim() !== 'None') ? String(res.grade).trim() : '-';
 
                                                     return `
                                                         <tr>
@@ -2956,7 +2958,7 @@
                                                             <td><strong>${res.chestNo}</strong></td>
                                                             <td style="font-weight: 500;">${name}</td>
                                                             <td><strong>${team}</strong></td>
-                                                            <td><strong style="color: var(--accent-council);">${ptsData.totalPts}</strong></td>
+                                                            <td><span class="badge" style="background:#f1f5f9; color:#1e293b; font-weight:700; font-size:0.9rem;">${grade || '-'}</span></td>
                                                         </tr>
                                                     `;
                                                 }).join('')}
