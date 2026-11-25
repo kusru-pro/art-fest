@@ -1283,7 +1283,11 @@ function initHomepageSettingsListener() {
 
     onSnapshot(doc(db, 'settings', 'poster_settings'), (docSnap) => {
         if (docSnap.exists()) {
-            window.currentPosterBackground = docSnap.data().posterBackground || '';
+            const data = docSnap.data();
+            window.currentPosterBackground = data.posterBackground || '';
+            if (data.posterLayout) {
+                window.currentPosterLayout = data.posterLayout;
+            }
         } else {
             window.currentPosterBackground = '';
         }
@@ -1454,27 +1458,214 @@ document.addEventListener('mousemove', function(e) {
 });
 
 // =========================================================================
-// 9.5. POSTER DOWNLOAD (HTML2CANVAS)
+// 9.5. POSTER DOWNLOAD (HTML5 CANVAS ENGINE)
 // =========================================================================
-async function downloadPoster(resultId, resultNumber = 1) {
-    const template = document.getElementById('poster-template');
-    if (!template) {
-        alert("Poster template not found.");
-        return;
-    }
+const defaultPublicPosterLayout = {
+    canvasWidth: 1080,
+    canvasHeight: 1080,
+    logo: { visible: true, x: 540, y: 110, size: 130 },
+    resultNumber: { x: 540, y: 260, fontSize: 160, color: "#ffffff", subText: "Result", subFontSize: 110, subColor: "#FFD700" },
+    eventDetails: { categoryX: 540, categoryY: 375, categoryFontSize: 26, categoryColor: "#e2e8f0", eventNameX: 540, eventNameY: 440, eventNameFontSize: 42, eventNameColor: "#000000", eventNameBgColor: "#FFCC00" },
+    winnersList: { x: 230, y: 560, fontSize: 32, lineSpacing: 105, nameColor: "#ffffff", teamColor: "#FFCC00", showGrade: true, gradeColor: "#60a5fa" },
+    footer: { visible: true, x: 540, y: 1000, fontSize: 18, color: "#cbd5e1", text: "OFFICIAL RESULTS • SAHITYOTSAV" }
+};
 
-    // Dynamic Number Injection
-    const formattedNumber = String(resultNumber).padStart(2, '0');
-    const numberEl = document.getElementById('poster-result-number');
-    if (numberEl) numberEl.textContent = formattedNumber;
+function renderPosterCanvasHelper(canvas, layout, options = {}) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
 
-    // Dynamic Background Injection
-    if (window.currentPosterBackground) {
-        template.style.backgroundImage = `url('${window.currentPosterBackground}')`;
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Draw Background
+    if (options.bgImage && options.bgImage.complete && options.bgImage.naturalWidth > 0) {
+        ctx.drawImage(options.bgImage, 0, 0, w, h);
     } else {
-        template.style.backgroundImage = 'none'; // Fallback to CSS gradient if empty
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, '#0f172a');
+        grad.addColorStop(0.5, '#1e293b');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
     }
 
+    // 2. Draw Logo
+    if (layout.logo?.visible) {
+        const lx = layout.logo.x ?? 540;
+        const ly = layout.logo.y ?? 110;
+        const lSize = layout.logo.size ?? 130;
+
+        if (options.logoImage && options.logoImage.complete && options.logoImage.naturalWidth > 0) {
+            const aspect = options.logoImage.naturalWidth / options.logoImage.naturalHeight;
+            const drawW = aspect >= 1 ? lSize : lSize * aspect;
+            const drawH = aspect >= 1 ? lSize / aspect : lSize;
+            ctx.drawImage(options.logoImage, lx - drawW / 2, ly - drawH / 2, drawW, drawH);
+        } else {
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+            ctx.beginPath();
+            ctx.arc(lx, ly, lSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 24px Montserrat, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('LOGO', lx, ly);
+            ctx.restore();
+        }
+    }
+
+    // 3. Draw Result Number & Cursive "Result"
+    const numX = layout.resultNumber?.x ?? 540;
+    const numY = layout.resultNumber?.y ?? 260;
+    const numSize = layout.resultNumber?.fontSize ?? 160;
+    const numColor = layout.resultNumber?.color ?? '#ffffff';
+    const subSize = layout.resultNumber?.subFontSize ?? 110;
+    const subColor = layout.resultNumber?.subColor ?? '#FFD700';
+    const numText = options.resultNumberText || '01';
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.font = `900 ${numSize}px Montserrat, sans-serif`;
+    ctx.fillStyle = numColor;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 6;
+    ctx.fillText(numText, numX, numY);
+
+    ctx.save();
+    ctx.translate(numX, numY - (numSize * 0.15));
+    ctx.rotate(-8 * Math.PI / 180);
+    ctx.font = `italic ${subSize}px 'Great Vibes', cursive, serif`;
+    ctx.fillStyle = subColor;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 4;
+    ctx.fillText(layout.resultNumber?.subText || 'Result', 0, 0);
+    ctx.restore();
+    ctx.restore();
+
+    // 4. Category & Event Name Banner
+    const catY = layout.eventDetails?.categoryY ?? 375;
+    const catSize = layout.eventDetails?.categoryFontSize ?? 26;
+    const catColor = layout.eventDetails?.categoryColor ?? '#e2e8f0';
+    const catText = (options.category || 'CATEGORY').toUpperCase();
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `500 ${catSize}px Montserrat, sans-serif`;
+    ctx.fillStyle = catColor;
+    ctx.letterSpacing = '4px';
+    ctx.fillText(catText, 540, catY);
+    ctx.restore();
+
+    const evY = layout.eventDetails?.eventNameY ?? 440;
+    const evSize = layout.eventDetails?.eventNameFontSize ?? 42;
+    const evColor = layout.eventDetails?.eventNameColor ?? '#000000';
+    const evBg = layout.eventDetails?.eventNameBgColor ?? '#FFCC00';
+    const evText = (options.eventName || 'EVENT NAME').toUpperCase();
+
+    ctx.save();
+    ctx.font = `900 ${evSize}px Montserrat, sans-serif`;
+    const textMetrics = ctx.measureText(evText);
+    const padX = 40;
+    const padY = 16;
+    const badgeW = textMetrics.width + (padX * 2);
+    const badgeH = evSize + (padY * 2);
+
+    ctx.fillStyle = evBg;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+    ctx.fillRect(540 - badgeW / 2, evY - badgeH / 2, badgeW, badgeH);
+
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = evColor;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(evText, 540, evY + 2);
+    ctx.restore();
+
+    // 5. Winners List
+    const winX = layout.winnersList?.x ?? 230;
+    const startY = layout.winnersList?.y ?? 560;
+    const spacing = layout.winnersList?.lineSpacing ?? 105;
+    const pFontSize = layout.winnersList?.fontSize ?? 32;
+    const nameColor = layout.winnersList?.nameColor ?? '#ffffff';
+    const teamColor = layout.winnersList?.teamColor ?? '#FFCC00';
+    const showGrade = layout.winnersList?.showGrade ?? true;
+    const gradeColor = layout.winnersList?.gradeColor ?? '#60a5fa';
+
+    const winnersData = options.winners || [];
+    winnersData.slice(0, 3).forEach((winner, idx) => {
+        const rowY = startY + (idx * spacing);
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `800 ${pFontSize}px Montserrat, sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(`${winner.rank}.`, winX, rowY);
+
+        const nameOffset = 50;
+        ctx.font = `800 ${pFontSize}px Montserrat, sans-serif`;
+        ctx.fillStyle = nameColor;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        ctx.fillText((winner.name || '').toUpperCase(), winX + nameOffset, rowY);
+
+        ctx.font = `600 ${Math.max(16, pFontSize * 0.65)}px Montserrat, sans-serif`;
+        ctx.fillStyle = teamColor;
+        ctx.shadowBlur = 0;
+        let subLine = (winner.team || '').toUpperCase();
+        ctx.fillText(subLine, winX + nameOffset, rowY + (pFontSize * 0.75));
+
+        if (showGrade && winner.grade && winner.grade !== '-') {
+            const teamMetrics = ctx.measureText(subLine);
+            const gradeText = `• GRADE ${winner.grade}`;
+            ctx.fillStyle = gradeColor;
+            ctx.fillText(gradeText, winX + nameOffset + teamMetrics.width + 15, rowY + (pFontSize * 0.75));
+        }
+        ctx.restore();
+    });
+
+    // 6. Footer Tagline
+    if (layout.footer?.visible) {
+        const footY = layout.footer.y ?? 1000;
+        const footSize = layout.footer.fontSize ?? 18;
+        const footColor = layout.footer.color ?? '#cbd5e1';
+        const footText = layout.footer.text || 'OFFICIAL RESULTS • SAHITYOTSAV';
+
+        ctx.save();
+        ctx.font = `600 ${footSize}px Montserrat, sans-serif`;
+        ctx.fillStyle = footColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const textWidth = ctx.measureText(footText).width;
+        const pillPadX = 24;
+        const pillPadY = 9;
+        ctx.strokeStyle = footColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(540 - (textWidth/2) - pillPadX, footY - (footSize/2) - pillPadY, textWidth + (pillPadX*2), footSize + (pillPadY*2), 20);
+        ctx.stroke();
+
+        ctx.fillText(footText, 540, footY);
+        ctx.restore();
+    }
+}
+
+async function downloadPoster(resultId, resultNumber = 1) {
     // 1. Get Event Data
     const eventInfo = eventsCache[resultId] || { eventName: resultId, category: 'General' };
     const resultData = resultsMap[resultId];
@@ -1485,42 +1676,66 @@ async function downloadPoster(resultId, resultNumber = 1) {
     }
     const sortedResults = evResults.sort((a,b) => (Number(a.position) || 99) - (Number(b.position) || 99));
 
-    // 2. Populate Template
-    document.getElementById('poster-event-name').textContent = eventInfo.eventName;
-    document.getElementById('poster-category').textContent = eventInfo.category;
-
-    ['1st', '2nd', '3rd'].forEach((posStr, idx) => {
-        const el = document.getElementById(`poster-${posStr}`);
-        const result = sortedResults[idx];
-        if (result && Number(result.position) === (idx + 1)) {
-            const p = participantsCache[result.chestNo] || { name: 'Contestant ' + result.chestNo, team: 'Independent' };
-            document.getElementById(`poster-${posStr}-name`).textContent = p.name;
-            document.getElementById(`poster-${posStr}-team`).textContent = p.team || 'Independent';
-            el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
+    const winners = [1, 2, 3].map(pos => {
+        const res = sortedResults.find(r => Number(r.position) === pos);
+        if (res) {
+            const p = participantsCache[res.chestNo] || { name: 'Contestant ' + res.chestNo, team: 'Independent' };
+            return {
+                rank: String(pos),
+                name: p.name || 'Contestant ' + res.chestNo,
+                team: p.team || 'Independent',
+                grade: res.grade || '-'
+            };
         }
+        return null;
+    }).filter(Boolean);
+
+    // 2. Offscreen Canvas (1080x1080)
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = 1080;
+    offscreenCanvas.height = 1080;
+
+    const loadImagePromise = (src) => new Promise(resolve => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
     });
 
-    // 3. Render and Download
+    const bgSrc = window.currentPosterBackground || '';
+    const logoEl = document.getElementById('navbar-logo') || document.querySelector('.nav-brand img') || document.getElementById('dynamic-favicon');
+    const logoSrc = (logoEl && logoEl.src && !logoEl.src.includes('undefined')) ? logoEl.src : '';
+
     try {
-        const canvas = await html2canvas(template, {
-            scale: 2, // High resolution
-            useCORS: true,
-            backgroundColor: null
+        const [bgImg, logoImg] = await Promise.all([
+            loadImagePromise(bgSrc),
+            loadImagePromise(logoSrc)
+        ]);
+
+        const layout = window.currentPosterLayout || defaultPublicPosterLayout;
+        const formattedNumber = String(resultNumber).padStart(2, '0');
+
+        renderPosterCanvasHelper(offscreenCanvas, layout, {
+            bgImage: bgImg,
+            logoImage: logoImg,
+            resultNumberText: formattedNumber,
+            category: eventInfo.category || 'GENERAL',
+            eventName: eventInfo.eventName || resultId,
+            winners: winners
         });
-        
-        const dataUrl = canvas.toDataURL('image/png');
-        
+
+        const dataUrl = offscreenCanvas.toDataURL('image/png');
+
         // Show Modal Preview
         const previewImg = document.getElementById('preview-image-element');
         const modal = document.getElementById('poster-preview-modal');
-        
+
         if (previewImg && modal) {
             previewImg.src = dataUrl;
             modal.style.display = 'flex';
-            
-            // Set up Confirm button
+
             const confirmBtn = document.getElementById('btn-confirm-download');
             confirmBtn.onclick = () => {
                 const link = document.createElement('a');
@@ -1529,14 +1744,12 @@ async function downloadPoster(resultId, resultNumber = 1) {
                 link.click();
                 modal.style.display = 'none';
             };
-            
-            // Set up Close button
+
             const closeBtn = document.getElementById('btn-close-preview');
             closeBtn.onclick = () => {
                 modal.style.display = 'none';
             };
         } else {
-            // Fallback if modal not present
             const link = document.createElement('a');
             link.download = `Result_Poster_${resultId.replace(/\s+/g, '_')}.png`;
             link.href = dataUrl;
@@ -1544,7 +1757,7 @@ async function downloadPoster(resultId, resultNumber = 1) {
         }
     } catch (err) {
         console.error("Poster generation failed:", err);
-        alert("Failed to generate poster.");
+        alert("Failed to generate poster: " + err.message);
     }
 }
 window.downloadPoster = downloadPoster;

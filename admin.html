@@ -864,6 +864,9 @@
                 <div class="nav-item" data-tab="tab-homepage">
                     <i class="fa-solid fa-sliders"></i> Home Page Settings
                 </div>
+                <div class="nav-item" data-tab="tab-poster-designer">
+                    <i class="fa-solid fa-palette"></i> Poster Designer
+                </div>
             </nav>
         </aside>
 
@@ -1577,6 +1580,295 @@
                 </style>
             </section>
 
+            <!-- Poster Designer Section -->
+            <section id="tab-poster-designer" class="tab-section">
+                <div class="content-card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h2 style="font-size: 1.4rem; font-weight: 700; color: #1e293b; margin: 0 0 4px 0;">
+                                <i class="fa-solid fa-palette" style="color: #212861;"></i> Result Poster Layout Designer
+                            </h2>
+                            <p style="color: #64748b; font-size: 0.9rem; margin: 0;">
+                                Customize the layout, positions, font sizes, and colors for generated result posters. Drag items directly on the preview canvas or use the controls.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="resetPosterLayout()" style="display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+                            </button>
+                            <button class="btn btn-primary" id="btn-save-poster-layout" onclick="savePosterLayout(this)" style="display: inline-flex; align-items: center; gap: 6px; background: #212861;">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Layout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="poster-designer-layout">
+                    <!-- Left: Interactive Canvas Preview -->
+                    <div class="designer-canvas-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 0.75rem;">
+                            <span style="font-weight: 700; font-size: 0.95rem; color: #334155;">
+                                <i class="fa-regular fa-eye"></i> Live Interactive Preview
+                            </span>
+                            <span style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 4px;">
+                                1080 × 1080 px
+                            </span>
+                        </div>
+                        
+                        <div class="designer-canvas-wrapper" id="canvas-container">
+                            <canvas id="designer-canvas" width="1080" height="1080"></canvas>
+                        </div>
+
+                        <div style="margin-top: 1rem; width: 100%; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: #64748b;">
+                                <span><i class="fa-solid fa-hand-pointer"></i> Drag elements directly on canvas to reposition</span>
+                                <span id="designer-selected-indicator" style="font-weight: 600; color: #212861;">Selected: None</span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label class="btn btn-outline" style="flex: 1; text-align: center; cursor: pointer; font-size: 0.85rem; padding: 0.5rem;">
+                                    <i class="fa-solid fa-image"></i> Change Background
+                                    <input type="file" id="designer-bg-file" accept="image/*" style="display: none;" onchange="handleDesignerBgUpload(this)">
+                                </label>
+                                <button class="btn btn-outline" style="font-size: 0.85rem; padding: 0.5rem;" onclick="testDownloadCurrentLayout()" title="Test Render & Download">
+                                    <i class="fa-solid fa-download"></i> Test Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Element Tabs & Property Controls -->
+                    <div class="designer-controls-card">
+                        <div class="elem-tabs-bar">
+                            <button class="elem-tab-btn active" onclick="switchDesignerTab('logo', this)">
+                                <i class="fa-solid fa-shield-halved"></i> Logo
+                            </button>
+                            <button class="elem-tab-btn" onclick="switchDesignerTab('resultNumber', this)">
+                                <i class="fa-solid fa-hashtag"></i> Result No
+                            </button>
+                            <button class="elem-tab-btn" onclick="switchDesignerTab('eventDetails', this)">
+                                <i class="fa-solid fa-trophy"></i> Event & Category
+                            </button>
+                            <button class="elem-tab-btn" onclick="switchDesignerTab('winnersList', this)">
+                                <i class="fa-solid fa-award"></i> Winners List
+                            </button>
+                            <button class="elem-tab-btn" onclick="switchDesignerTab('footer', this)">
+                                <i class="fa-solid fa-shoe-prints"></i> Footer
+                            </button>
+                        </div>
+
+                        <!-- TAB: Logo -->
+                        <div id="panel-logo" class="elem-control-panel active">
+                            <h4 style="font-size: 1rem; color: #1e293b; margin: 0 0 1rem 0;">Festival / Institution Logo</h4>
+                            <div class="designer-prop-grid">
+                                <div class="designer-property-row" style="grid-column: 1 / -1;">
+                                    <label>
+                                        <input type="checkbox" id="layout-logo-visible" onchange="updateLayoutProp('logo', 'visible', this.checked)"> Show Logo on Poster
+                                    </label>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Position X (Center)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-logo-x" min="50" max="1030" oninput="updateLayoutProp('logo', 'x', Number(this.value))">
+                                        <span class="designer-range-val" id="val-logo-x">540</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Position Y (Center)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-logo-y" min="50" max="1030" oninput="updateLayoutProp('logo', 'y', Number(this.value))">
+                                        <span class="designer-range-val" id="val-logo-y">110</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Logo Size / Width (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-logo-size" min="50" max="350" oninput="updateLayoutProp('logo', 'size', Number(this.value))">
+                                        <span class="designer-range-val" id="val-logo-size">130</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Result Number -->
+                        <div id="panel-resultNumber" class="elem-control-panel">
+                            <h4 style="font-size: 1rem; color: #1e293b; margin: 0 0 1rem 0;">Result Sequence Number</h4>
+                            <div class="designer-prop-grid">
+                                <div class="designer-property-row">
+                                    <label>Position X (Center)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-resultNumber-x" min="50" max="1030" oninput="updateLayoutProp('resultNumber', 'x', Number(this.value))">
+                                        <span class="designer-range-val" id="val-resultNumber-x">540</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Position Y (Baseline)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-resultNumber-y" min="50" max="1030" oninput="updateLayoutProp('resultNumber', 'y', Number(this.value))">
+                                        <span class="designer-range-val" id="val-resultNumber-y">260</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Number Font Size (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-resultNumber-fontSize" min="60" max="280" oninput="updateLayoutProp('resultNumber', 'fontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-resultNumber-fontSize">160</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Number Color</label>
+                                    <input type="color" id="layout-resultNumber-color" class="designer-color-input" onchange="updateLayoutProp('resultNumber', 'color', this.value)">
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Script Sub-text ("Result") Font Size</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-resultNumber-subFontSize" min="40" max="200" oninput="updateLayoutProp('resultNumber', 'subFontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-resultNumber-subFontSize">110</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Script Sub-text Color</label>
+                                    <input type="color" id="layout-resultNumber-subColor" class="designer-color-input" onchange="updateLayoutProp('resultNumber', 'subColor', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Event & Category -->
+                        <div id="panel-eventDetails" class="elem-control-panel">
+                            <h4 style="font-size: 1rem; color: #1e293b; margin: 0 0 1rem 0;">Category & Event Name</h4>
+                            <div class="designer-prop-grid">
+                                <div class="designer-property-row">
+                                    <label>Category Y</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-eventDetails-categoryY" min="100" max="900" oninput="updateLayoutProp('eventDetails', 'categoryY', Number(this.value))">
+                                        <span class="designer-range-val" id="val-eventDetails-categoryY">375</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Category Font Size (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-eventDetails-categoryFontSize" min="16" max="60" oninput="updateLayoutProp('eventDetails', 'categoryFontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-eventDetails-categoryFontSize">26</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Category Text Color</label>
+                                    <input type="color" id="layout-eventDetails-categoryColor" class="designer-color-input" onchange="updateLayoutProp('eventDetails', 'categoryColor', this.value)">
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Event Name Y (Center)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-eventDetails-eventNameY" min="150" max="900" oninput="updateLayoutProp('eventDetails', 'eventNameY', Number(this.value))">
+                                        <span class="designer-range-val" id="val-eventDetails-eventNameY">440</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Event Name Font Size (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-eventDetails-eventNameFontSize" min="20" max="70" oninput="updateLayoutProp('eventDetails', 'eventNameFontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-eventDetails-eventNameFontSize">42</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Event Name Text Color</label>
+                                    <input type="color" id="layout-eventDetails-eventNameColor" class="designer-color-input" onchange="updateLayoutProp('eventDetails', 'eventNameColor', this.value)">
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Banner Badge Background Color</label>
+                                    <input type="color" id="layout-eventDetails-eventNameBgColor" class="designer-color-input" onchange="updateLayoutProp('eventDetails', 'eventNameBgColor', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Winners List -->
+                        <div id="panel-winnersList" class="elem-control-panel">
+                            <h4 style="font-size: 1rem; color: #1e293b; margin: 0 0 1rem 0;">Winners (1st, 2nd, 3rd) Positioning & Typography</h4>
+                            <div class="designer-prop-grid">
+                                <div class="designer-property-row">
+                                    <label>Starting X (Left margin)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-winnersList-x" min="80" max="500" oninput="updateLayoutProp('winnersList', 'x', Number(this.value))">
+                                        <span class="designer-range-val" id="val-winnersList-x">230</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>1st Place Starting Y</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-winnersList-y" min="400" max="800" oninput="updateLayoutProp('winnersList', 'y', Number(this.value))">
+                                        <span class="designer-range-val" id="val-winnersList-y">560</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Line Spacing / Row Height (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-winnersList-lineSpacing" min="70" max="180" oninput="updateLayoutProp('winnersList', 'lineSpacing', Number(this.value))">
+                                        <span class="designer-range-val" id="val-winnersList-lineSpacing">105</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Participant Name Font Size (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-winnersList-fontSize" min="20" max="52" oninput="updateLayoutProp('winnersList', 'fontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-winnersList-fontSize">32</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Participant Name Color</label>
+                                    <input type="color" id="layout-winnersList-nameColor" class="designer-color-input" onchange="updateLayoutProp('winnersList', 'nameColor', this.value)">
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Team Name Color</label>
+                                    <input type="color" id="layout-winnersList-teamColor" class="designer-color-input" onchange="updateLayoutProp('winnersList', 'teamColor', this.value)">
+                                </div>
+                                <div class="designer-property-row" style="grid-column: 1 / -1;">
+                                    <label>
+                                        <input type="checkbox" id="layout-winnersList-showGrade" onchange="updateLayoutProp('winnersList', 'showGrade', this.checked)"> Show Grade Badge (e.g. "Grade A")
+                                    </label>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Grade Badge Text Color</label>
+                                    <input type="color" id="layout-winnersList-gradeColor" class="designer-color-input" onchange="updateLayoutProp('winnersList', 'gradeColor', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: Footer -->
+                        <div id="panel-footer" class="elem-control-panel">
+                            <h4 style="font-size: 1rem; color: #1e293b; margin: 0 0 1rem 0;">Footer Tagline / Branding</h4>
+                            <div class="designer-prop-grid">
+                                <div class="designer-property-row" style="grid-column: 1 / -1;">
+                                    <label>
+                                        <input type="checkbox" id="layout-footer-visible" onchange="updateLayoutProp('footer', 'visible', this.checked)"> Show Footer on Poster
+                                    </label>
+                                </div>
+                                <div class="designer-property-row" style="grid-column: 1 / -1;">
+                                    <label>Footer Text</label>
+                                    <input type="text" id="layout-footer-text" class="form-control" oninput="updateLayoutProp('footer', 'text', this.value)">
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Position Y</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-footer-y" min="850" max="1060" oninput="updateLayoutProp('footer', 'y', Number(this.value))">
+                                        <span class="designer-range-val" id="val-footer-y">1000</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Font Size (px)</label>
+                                    <div class="designer-range-wrapper">
+                                        <input type="range" id="layout-footer-fontSize" min="12" max="36" oninput="updateLayoutProp('footer', 'fontSize', Number(this.value))">
+                                        <span class="designer-range-val" id="val-footer-fontSize">18</span>
+                                    </div>
+                                </div>
+                                <div class="designer-property-row">
+                                    <label>Footer Text Color</label>
+                                    <input type="color" id="layout-footer-color" class="designer-color-input" onchange="updateLayoutProp('footer', 'color', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -1814,6 +2106,10 @@
 
                 if((targetId === 'tab-verify' || targetId === 'tab-published') && typeof window.fetchPendingResults === 'function') {
                     window.fetchPendingResults();
+                }
+
+                if(targetId === 'tab-poster-designer' && typeof window.drawDesignerCanvas === 'function') {
+                    setTimeout(() => window.drawDesignerCanvas(), 50);
                 }
             });
         });
@@ -4301,25 +4597,629 @@
         }
         window.toggleSidebar = toggleSidebar;
 
-        async function downloadPoster(eventCode, resultNumber = 1) {
-            const template = document.getElementById('poster-template');
-            if (!template) {
-                alert("Poster template not found.");
-                return;
-            }
+        // =========================================================================
+        // 13. POSTER DESIGNER STUDIO & CANVAS POSTER ENGINE
+        // =========================================================================
+        const defaultPosterLayout = {
+            canvasWidth: 1080,
+            canvasHeight: 1080,
+            logo: { visible: true, x: 540, y: 110, size: 130 },
+            resultNumber: { x: 540, y: 260, fontSize: 160, color: "#ffffff", subText: "Result", subFontSize: 110, subColor: "#FFD700" },
+            eventDetails: { categoryX: 540, categoryY: 375, categoryFontSize: 26, categoryColor: "#e2e8f0", eventNameX: 540, eventNameY: 440, eventNameFontSize: 42, eventNameColor: "#000000", eventNameBgColor: "#FFCC00" },
+            winnersList: { x: 230, y: 560, fontSize: 32, lineSpacing: 105, nameColor: "#ffffff", teamColor: "#FFCC00", showGrade: true, gradeColor: "#60a5fa" },
+            footer: { visible: true, x: 540, y: 1000, fontSize: 18, color: "#cbd5e1", text: "OFFICIAL RESULTS • SAHITYOTSAV" }
+        };
 
-            // Dynamic Number Injection
-            const formattedNumber = String(resultNumber).padStart(2, '0');
-            const numberEl = document.getElementById('poster-result-number');
-            if (numberEl) numberEl.textContent = formattedNumber;
-            
-            // Dynamic Background Injection
-            if (window.currentPosterBackground) {
-                template.style.backgroundImage = `url('${window.currentPosterBackground}')`;
+        window.currentPosterLayout = JSON.parse(JSON.stringify(defaultPosterLayout));
+        let designerBgImg = null;
+        let designerLogoImg = null;
+        let selectedElemKey = null;
+        let isDraggingElem = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        function initPosterDesigner() {
+            const canvas = document.getElementById('designer-canvas');
+            if (!canvas) return;
+
+            // Load existing saved layout from Firestore if available
+            if (isConfigured && db) {
+                onSnapshot(doc(db, 'settings', 'poster_settings'), (snap) => {
+                    if (snap.exists() && snap.data().posterLayout) {
+                        window.currentPosterLayout = { ...defaultPosterLayout, ...snap.data().posterLayout };
+                    }
+                    if (snap.exists() && snap.data().posterBackground) {
+                        window.currentPosterBackground = snap.data().posterBackground;
+                    }
+                    syncInputsFromLayout();
+                    loadImagesAndDraw();
+                }, (err) => {
+                    console.warn("Could not listen to poster layout settings:", err);
+                    syncInputsFromLayout();
+                    loadImagesAndDraw();
+                });
             } else {
-                template.style.backgroundImage = 'none'; // Fallback to CSS gradient if empty
+                syncInputsFromLayout();
+                loadImagesAndDraw();
             }
 
+            // Mouse and touch interaction for dragging
+            setupCanvasInteraction(canvas);
+        }
+
+        function loadImagesAndDraw() {
+            const bgUrl = window.currentPosterBackground || '';
+            const logoEl = document.getElementById('preview-website-logo');
+            const logoUrl = (logoEl && logoEl.src && !logoEl.src.includes('undefined')) ? logoEl.src : '';
+
+            let bgLoaded = false;
+            let logoLoaded = false;
+
+            const checkAndDraw = () => {
+                drawDesignerCanvas();
+            };
+
+            if (bgUrl) {
+                designerBgImg = new Image();
+                designerBgImg.crossOrigin = "anonymous";
+                designerBgImg.onload = () => { bgLoaded = true; checkAndDraw(); };
+                designerBgImg.onerror = () => { designerBgImg = null; bgLoaded = true; checkAndDraw(); };
+                designerBgImg.src = bgUrl;
+            } else {
+                designerBgImg = null;
+                bgLoaded = true;
+            }
+
+            if (logoUrl) {
+                designerLogoImg = new Image();
+                designerLogoImg.crossOrigin = "anonymous";
+                designerLogoImg.onload = () => { logoLoaded = true; checkAndDraw(); };
+                designerLogoImg.onerror = () => { designerLogoImg = null; logoLoaded = true; checkAndDraw(); };
+                designerLogoImg.src = logoUrl;
+            } else {
+                designerLogoImg = null;
+                logoLoaded = true;
+            }
+
+            checkAndDraw();
+        }
+
+        function syncInputsFromLayout() {
+            const l = window.currentPosterLayout || defaultPosterLayout;
+            
+            // Logo
+            setInputValue('layout-logo-visible', l.logo?.visible ?? true, true);
+            setInputValue('layout-logo-x', l.logo?.x ?? 540);
+            setInputValue('layout-logo-y', l.logo?.y ?? 110);
+            setInputValue('layout-logo-size', l.logo?.size ?? 130);
+
+            // Result Number
+            setInputValue('layout-resultNumber-x', l.resultNumber?.x ?? 540);
+            setInputValue('layout-resultNumber-y', l.resultNumber?.y ?? 260);
+            setInputValue('layout-resultNumber-fontSize', l.resultNumber?.fontSize ?? 160);
+            setInputValue('layout-resultNumber-color', l.resultNumber?.color ?? '#ffffff');
+            setInputValue('layout-resultNumber-subFontSize', l.resultNumber?.subFontSize ?? 110);
+            setInputValue('layout-resultNumber-subColor', l.resultNumber?.subColor ?? '#FFD700');
+
+            // Event Details
+            setInputValue('layout-eventDetails-categoryY', l.eventDetails?.categoryY ?? 375);
+            setInputValue('layout-eventDetails-categoryFontSize', l.eventDetails?.categoryFontSize ?? 26);
+            setInputValue('layout-eventDetails-categoryColor', l.eventDetails?.categoryColor ?? '#e2e8f0');
+            setInputValue('layout-eventDetails-eventNameY', l.eventDetails?.eventNameY ?? 440);
+            setInputValue('layout-eventDetails-eventNameFontSize', l.eventDetails?.eventNameFontSize ?? 42);
+            setInputValue('layout-eventDetails-eventNameColor', l.eventDetails?.eventNameColor ?? '#000000');
+            setInputValue('layout-eventDetails-eventNameBgColor', l.eventDetails?.eventNameBgColor ?? '#FFCC00');
+
+            // Winners
+            setInputValue('layout-winnersList-x', l.winnersList?.x ?? 230);
+            setInputValue('layout-winnersList-y', l.winnersList?.y ?? 560);
+            setInputValue('layout-winnersList-lineSpacing', l.winnersList?.lineSpacing ?? 105);
+            setInputValue('layout-winnersList-fontSize', l.winnersList?.fontSize ?? 32);
+            setInputValue('layout-winnersList-nameColor', l.winnersList?.nameColor ?? '#ffffff');
+            setInputValue('layout-winnersList-teamColor', l.winnersList?.teamColor ?? '#FFCC00');
+            setInputValue('layout-winnersList-showGrade', l.winnersList?.showGrade ?? true, true);
+            setInputValue('layout-winnersList-gradeColor', l.winnersList?.gradeColor ?? '#60a5fa');
+
+            // Footer
+            setInputValue('layout-footer-visible', l.footer?.visible ?? true, true);
+            setInputValue('layout-footer-text', l.footer?.text ?? 'OFFICIAL RESULTS • SAHITYOTSAV');
+            setInputValue('layout-footer-y', l.footer?.y ?? 1000);
+            setInputValue('layout-footer-fontSize', l.footer?.fontSize ?? 18);
+            setInputValue('layout-footer-color', l.footer?.color ?? '#cbd5e1');
+        }
+
+        function setInputValue(id, val, isCheckbox = false) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isCheckbox) {
+                el.checked = Boolean(val);
+            } else {
+                el.value = val;
+                const labelVal = document.getElementById('val-' + id.replace('layout-', ''));
+                if (labelVal) labelVal.textContent = val;
+            }
+        }
+
+        function updateLayoutProp(section, prop, value) {
+            if (!window.currentPosterLayout) window.currentPosterLayout = JSON.parse(JSON.stringify(defaultPosterLayout));
+            if (!window.currentPosterLayout[section]) window.currentPosterLayout[section] = {};
+            window.currentPosterLayout[section][prop] = value;
+            
+            const labelVal = document.getElementById(`val-${section}-${prop}`);
+            if (labelVal) labelVal.textContent = value;
+
+            drawDesignerCanvas();
+        }
+        window.updateLayoutProp = updateLayoutProp;
+
+        function switchDesignerTab(tabKey, btn) {
+            document.querySelectorAll('.elem-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.elem-control-panel').forEach(p => p.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const panel = document.getElementById('panel-' + tabKey);
+            if (panel) panel.classList.add('active');
+            selectedElemKey = tabKey;
+            const ind = document.getElementById('designer-selected-indicator');
+            if (ind) ind.textContent = 'Selected: ' + (tabKey.charAt(0).toUpperCase() + tabKey.slice(1));
+            drawDesignerCanvas();
+        }
+        window.switchDesignerTab = switchDesignerTab;
+
+        function resetPosterLayout() {
+            if (confirm("Reset poster layout to default values?")) {
+                window.currentPosterLayout = JSON.parse(JSON.stringify(defaultPosterLayout));
+                syncInputsFromLayout();
+                drawDesignerCanvas();
+                showFeedback("Poster layout reset to defaults. Click 'Save Layout' to apply permanently.", "success");
+            }
+        }
+        window.resetPosterLayout = resetPosterLayout;
+
+        async function savePosterLayout(btn) {
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                if (isConfigured && db) {
+                    await setDoc(doc(db, 'settings', 'poster_settings'), {
+                        posterLayout: window.currentPosterLayout,
+                        posterBackground: window.currentPosterBackground || '',
+                        updatedAt: Date.now()
+                    }, { merge: true });
+
+                    // Also mirror into global_config if present
+                    try {
+                        await setDoc(doc(db, 'settings', 'global_config'), {
+                            posterLayout: window.currentPosterLayout,
+                            updatedAt: Date.now()
+                        }, { merge: true });
+                    } catch (e) { /* ignore secondary */ }
+                }
+
+                showFeedback("Poster layout saved successfully!", "success");
+            } catch (err) {
+                console.error("Save layout failed:", err);
+                showFeedback("Error saving layout: " + err.message, "error");
+            } finally {
+                if (btn) btn.innerHTML = origText;
+            }
+        }
+        window.savePosterLayout = savePosterLayout;
+
+        function handleDesignerBgUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                window.currentPosterBackground = e.target.result;
+                designerBgImg = new Image();
+                designerBgImg.onload = () => drawDesignerCanvas();
+                designerBgImg.src = e.target.result;
+                showFeedback("New background preview loaded. Remember to click 'Save Layout'!", "success");
+            };
+            reader.readAsDataURL(file);
+        }
+        window.handleDesignerBgUpload = handleDesignerBgUpload;
+
+        // Render Canvas routine (used by both Designer preview & high-res export)
+        function renderPosterToCanvas(canvas, layout, options = {}) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Draw Background
+            if (options.bgImage && options.bgImage.complete && options.bgImage.naturalWidth > 0) {
+                ctx.drawImage(options.bgImage, 0, 0, w, h);
+            } else {
+                // Festive fallback gradient
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, '#0f172a');
+                grad.addColorStop(0.5, '#1e293b');
+                grad.addColorStop(1, '#0f172a');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                // Subtle grid/stars
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                for (let i = 0; i < 40; i++) {
+                    ctx.beginPath();
+                    ctx.arc((i * 97) % w, (i * 131) % h, (i % 3) + 1, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // 2. Draw Logo
+            if (layout.logo?.visible) {
+                const lx = layout.logo.x ?? 540;
+                const ly = layout.logo.y ?? 110;
+                const lSize = layout.logo.size ?? 130;
+
+                if (options.logoImage && options.logoImage.complete && options.logoImage.naturalWidth > 0) {
+                    const aspect = options.logoImage.naturalWidth / options.logoImage.naturalHeight;
+                    const drawW = aspect >= 1 ? lSize : lSize * aspect;
+                    const drawH = aspect >= 1 ? lSize / aspect : lSize;
+                    ctx.drawImage(options.logoImage, lx - drawW / 2, ly - drawH / 2, drawW, drawH);
+                } else {
+                    // Fallback logo icon
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, lSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#FFD700';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = 'bold 24px Montserrat, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('LOGO', lx, ly);
+                    ctx.restore();
+                }
+
+                if (options.highlightElem === 'logo') {
+                    drawSelectionBox(ctx, lx - lSize/2 - 10, ly - lSize/2 - 10, lSize + 20, lSize + 20, "Logo");
+                }
+            }
+
+            // 3. Draw Result Number & cursive "Result"
+            const numX = layout.resultNumber?.x ?? 540;
+            const numY = layout.resultNumber?.y ?? 260;
+            const numSize = layout.resultNumber?.fontSize ?? 160;
+            const numColor = layout.resultNumber?.color ?? '#ffffff';
+            const subSize = layout.resultNumber?.subFontSize ?? 110;
+            const subColor = layout.resultNumber?.subColor ?? '#FFD700';
+            const numText = options.resultNumberText || '01';
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+
+            // Big Bold Number
+            ctx.font = `900 ${numSize}px Montserrat, sans-serif`;
+            ctx.fillStyle = numColor;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+            ctx.shadowBlur = 18;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 6;
+            ctx.fillText(numText, numX, numY);
+
+            // Script cursive overlay "Result"
+            ctx.save();
+            ctx.translate(numX, numY - (numSize * 0.15));
+            ctx.rotate(-8 * Math.PI / 180);
+            ctx.font = `italic ${subSize}px 'Great Vibes', cursive, serif`;
+            ctx.fillStyle = subColor;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 4;
+            ctx.fillText(layout.resultNumber?.subText || 'Result', 0, 0);
+            ctx.restore();
+            ctx.restore();
+
+            if (options.highlightElem === 'resultNumber') {
+                drawSelectionBox(ctx, numX - 250, numY - numSize - 20, 500, numSize + 40, "Result Number");
+            }
+
+            // 4. Category & Event Name Banner
+            const catY = layout.eventDetails?.categoryY ?? 375;
+            const catSize = layout.eventDetails?.categoryFontSize ?? 26;
+            const catColor = layout.eventDetails?.categoryColor ?? '#e2e8f0';
+            const catText = (options.category || 'CATEGORY').toUpperCase();
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `500 ${catSize}px Montserrat, sans-serif`;
+            ctx.fillStyle = catColor;
+            ctx.letterSpacing = '4px';
+            ctx.fillText(catText, 540, catY);
+            ctx.restore();
+
+            // Event Name Badge
+            const evY = layout.eventDetails?.eventNameY ?? 440;
+            const evSize = layout.eventDetails?.eventNameFontSize ?? 42;
+            const evColor = layout.eventDetails?.eventNameColor ?? '#000000';
+            const evBg = layout.eventDetails?.eventNameBgColor ?? '#FFCC00';
+            const evText = (options.eventName || 'EVENT NAME').toUpperCase();
+
+            ctx.save();
+            ctx.font = `900 ${evSize}px Montserrat, sans-serif`;
+            const textMetrics = ctx.measureText(evText);
+            const padX = 40;
+            const padY = 16;
+            const badgeW = textMetrics.width + (padX * 2);
+            const badgeH = evSize + (padY * 2);
+
+            ctx.fillStyle = evBg;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetY = 4;
+            ctx.fillRect(540 - badgeW / 2, evY - badgeH / 2, badgeW, badgeH);
+
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = evColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(evText, 540, evY + 2);
+            ctx.restore();
+
+            if (options.highlightElem === 'eventDetails') {
+                drawSelectionBox(ctx, 540 - badgeW/2 - 15, catY - catSize, badgeW + 30, (evY + badgeH/2) - (catY - catSize) + 15, "Event Details");
+            }
+
+            // 5. Winners List
+            const winX = layout.winnersList?.x ?? 230;
+            const startY = layout.winnersList?.y ?? 560;
+            const spacing = layout.winnersList?.lineSpacing ?? 105;
+            const pFontSize = layout.winnersList?.fontSize ?? 32;
+            const nameColor = layout.winnersList?.nameColor ?? '#ffffff';
+            const teamColor = layout.winnersList?.teamColor ?? '#FFCC00';
+            const showGrade = layout.winnersList?.showGrade ?? true;
+            const gradeColor = layout.winnersList?.gradeColor ?? '#60a5fa';
+
+            const winnersData = options.winners || [
+                { rank: '1', name: 'FIRST PLACE WINNER', team: 'GOLDEN WINGS', grade: 'A+' },
+                { rank: '2', name: 'SECOND PLACE WINNER', team: 'BLUE STARS', grade: 'A' },
+                { rank: '3', name: 'THIRD PLACE WINNER', team: 'RED PHOENIX', grade: 'B' }
+            ];
+
+            winnersData.slice(0, 3).forEach((winner, idx) => {
+                const rowY = startY + (idx * spacing);
+
+                ctx.save();
+                // Rank Circle/Number
+                ctx.fillStyle = '#ffffff';
+                ctx.font = `800 ${pFontSize}px Montserrat, sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(`${winner.rank}.`, winX, rowY);
+
+                // Name
+                const nameOffset = 50;
+                ctx.font = `800 ${pFontSize}px Montserrat, sans-serif`;
+                ctx.fillStyle = nameColor;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 2;
+                ctx.fillText((winner.name || '').toUpperCase(), winX + nameOffset, rowY);
+
+                // Team & Grade Row
+                ctx.font = `600 ${Math.max(16, pFontSize * 0.65)}px Montserrat, sans-serif`;
+                ctx.fillStyle = teamColor;
+                ctx.shadowBlur = 0;
+                let subLine = (winner.team || '').toUpperCase();
+                ctx.fillText(subLine, winX + nameOffset, rowY + (pFontSize * 0.75));
+
+                if (showGrade && winner.grade && winner.grade !== '-') {
+                    const teamMetrics = ctx.measureText(subLine);
+                    const gradeText = `• GRADE ${winner.grade}`;
+                    ctx.fillStyle = gradeColor;
+                    ctx.fillText(gradeText, winX + nameOffset + teamMetrics.width + 15, rowY + (pFontSize * 0.75));
+                }
+                ctx.restore();
+            });
+
+            if (options.highlightElem === 'winnersList') {
+                drawSelectionBox(ctx, winX - 20, startY - pFontSize - 10, 680, (spacing * 2) + pFontSize + 45, "Winners List");
+            }
+
+            // 6. Footer Tagline
+            if (layout.footer?.visible) {
+                const footY = layout.footer.y ?? 1000;
+                const footSize = layout.footer.fontSize ?? 18;
+                const footColor = layout.footer.color ?? '#cbd5e1';
+                const footText = layout.footer.text || 'OFFICIAL RESULTS • SAHITYOTSAV';
+
+                ctx.save();
+                ctx.font = `600 ${footSize}px Montserrat, sans-serif`;
+                ctx.fillStyle = footColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Pill border
+                const textWidth = ctx.measureText(footText).width;
+                const pillPadX = 24;
+                const pillPadY = 9;
+                ctx.strokeStyle = footColor;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(540 - (textWidth/2) - pillPadX, footY - (footSize/2) - pillPadY, textWidth + (pillPadX*2), footSize + (pillPadY*2), 20);
+                ctx.stroke();
+
+                ctx.fillText(footText, 540, footY);
+                ctx.restore();
+
+                if (options.highlightElem === 'footer') {
+                    drawSelectionBox(ctx, 540 - 250, footY - 25, 500, 50, "Footer");
+                }
+            }
+        }
+
+        function drawSelectionBox(ctx, x, y, width, height, label) {
+            ctx.save();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([8, 4]);
+            ctx.strokeRect(x, y, width, height);
+
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 14px Montserrat, sans-serif';
+            ctx.fillRect(x, y - 24, ctx.measureText(label).width + 16, 24);
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x + 8, y - 12);
+            ctx.restore();
+        }
+
+        function drawDesignerCanvas() {
+            const canvas = document.getElementById('designer-canvas');
+            if (!canvas) return;
+            renderPosterToCanvas(canvas, window.currentPosterLayout, {
+                bgImage: designerBgImg,
+                logoImage: designerLogoImg,
+                highlightElem: selectedElemKey
+            });
+        }
+        window.drawDesignerCanvas = drawDesignerCanvas;
+
+        function setupCanvasInteraction(canvas) {
+            const getCanvasCoords = (evt) => {
+                const rect = canvas.getBoundingClientRect();
+                const scale = 1080 / rect.width;
+                const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+                const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+                return {
+                    x: (clientX - rect.left) * scale,
+                    y: (clientY - rect.top) * scale
+                };
+            };
+
+            const findElementAt = (pos) => {
+                const l = window.currentPosterLayout;
+                // Logo
+                if (l.logo?.visible) {
+                    const dist = Math.hypot(pos.x - (l.logo.x || 540), pos.y - (l.logo.y || 110));
+                    if (dist <= (l.logo.size || 130) / 1.5) return 'logo';
+                }
+                // Result Number
+                if (Math.abs(pos.x - (l.resultNumber.x || 540)) < 200 && pos.y >= (l.resultNumber.y - 160) && pos.y <= (l.resultNumber.y + 40)) {
+                    return 'resultNumber';
+                }
+                // Event Details
+                if (Math.abs(pos.x - 540) < 350 && pos.y >= (l.eventDetails.categoryY - 40) && pos.y <= (l.eventDetails.eventNameY + 60)) {
+                    return 'eventDetails';
+                }
+                // Winners List
+                if (pos.x >= (l.winnersList.x - 40) && pos.x <= (l.winnersList.x + 600) && pos.y >= (l.winnersList.y - 60) && pos.y <= (l.winnersList.y + 260)) {
+                    return 'winnersList';
+                }
+                // Footer
+                if (l.footer?.visible && Math.abs(pos.x - 540) < 300 && Math.abs(pos.y - (l.footer.y || 1000)) < 40) {
+                    return 'footer';
+                }
+                return null;
+            };
+
+            const onPointerDown = (evt) => {
+                const coords = getCanvasCoords(evt);
+                const elem = findElementAt(coords);
+                if (elem) {
+                    selectedElemKey = elem;
+                    isDraggingElem = true;
+                    switchDesignerTab(elem, document.querySelector(`.elem-tab-btn[onclick*="${elem}"]`));
+                    
+                    const l = window.currentPosterLayout;
+                    if (elem === 'logo') dragOffset = { x: coords.x - l.logo.x, y: coords.y - l.logo.y };
+                    else if (elem === 'resultNumber') dragOffset = { x: coords.x - l.resultNumber.x, y: coords.y - l.resultNumber.y };
+                    else if (elem === 'eventDetails') dragOffset = { x: 0, y: coords.y - l.eventDetails.eventNameY };
+                    else if (elem === 'winnersList') dragOffset = { x: coords.x - l.winnersList.x, y: coords.y - l.winnersList.y };
+                    else if (elem === 'footer') dragOffset = { x: 0, y: coords.y - l.footer.y };
+
+                    drawDesignerCanvas();
+                } else {
+                    selectedElemKey = null;
+                    const ind = document.getElementById('designer-selected-indicator');
+                    if (ind) ind.textContent = 'Selected: None';
+                    drawDesignerCanvas();
+                }
+            };
+
+            const onPointerMove = (evt) => {
+                if (!isDraggingElem || !selectedElemKey) return;
+                evt.preventDefault();
+                const coords = getCanvasCoords(evt);
+                const l = window.currentPosterLayout;
+
+                if (selectedElemKey === 'logo') {
+                    l.logo.x = Math.round(Math.max(50, Math.min(1030, coords.x - dragOffset.x)));
+                    l.logo.y = Math.round(Math.max(50, Math.min(1030, coords.y - dragOffset.y)));
+                    setInputValue('layout-logo-x', l.logo.x);
+                    setInputValue('layout-logo-y', l.logo.y);
+                } else if (selectedElemKey === 'resultNumber') {
+                    l.resultNumber.x = Math.round(Math.max(50, Math.min(1030, coords.x - dragOffset.x)));
+                    l.resultNumber.y = Math.round(Math.max(100, Math.min(1000, coords.y - dragOffset.y)));
+                    setInputValue('layout-resultNumber-x', l.resultNumber.x);
+                    setInputValue('layout-resultNumber-y', l.resultNumber.y);
+                } else if (selectedElemKey === 'eventDetails') {
+                    const diffY = coords.y - dragOffset.y - l.eventDetails.eventNameY;
+                    l.eventDetails.eventNameY = Math.round(Math.max(100, Math.min(950, l.eventDetails.eventNameY + diffY)));
+                    l.eventDetails.categoryY = Math.round(Math.max(50, l.eventDetails.categoryY + diffY));
+                    setInputValue('layout-eventDetails-eventNameY', l.eventDetails.eventNameY);
+                    setInputValue('layout-eventDetails-categoryY', l.eventDetails.categoryY);
+                } else if (selectedElemKey === 'winnersList') {
+                    l.winnersList.x = Math.round(Math.max(50, Math.min(500, coords.x - dragOffset.x)));
+                    l.winnersList.y = Math.round(Math.max(300, Math.min(850, coords.y - dragOffset.y)));
+                    setInputValue('layout-winnersList-x', l.winnersList.x);
+                    setInputValue('layout-winnersList-y', l.winnersList.y);
+                } else if (selectedElemKey === 'footer') {
+                    l.footer.y = Math.round(Math.max(800, Math.min(1060, coords.y - dragOffset.y)));
+                    setInputValue('layout-footer-y', l.footer.y);
+                }
+
+                drawDesignerCanvas();
+            };
+
+            const onPointerUp = () => {
+                isDraggingElem = false;
+            };
+
+            canvas.addEventListener('mousedown', onPointerDown);
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('mouseup', onPointerUp);
+
+            canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+            window.addEventListener('touchmove', onPointerMove, { passive: false });
+            window.addEventListener('touchend', onPointerUp);
+        }
+
+        function testDownloadCurrentLayout() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1080;
+            renderPosterToCanvas(canvas, window.currentPosterLayout, {
+                bgImage: designerBgImg,
+                logoImage: designerLogoImg,
+                resultNumberText: '01',
+                category: 'GENERAL',
+                eventName: 'SAMPLE FESTIVAL EVENT'
+            });
+
+            const link = document.createElement('a');
+            link.download = `Sample_Poster_Layout_Test.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showFeedback("Sample poster downloaded!", "success");
+        }
+        window.testDownloadCurrentLayout = testDownloadCurrentLayout;
+
+        // Dynamic Poster Generator using HTML5 Canvas & Custom Layout
+        async function downloadPoster(eventCode, resultNumber = 1) {
             // 1. Get Event Data
             const eventInfo = eventsCache[eventCode] || { eventName: eventCode, category: 'General' };
             const evResults = Object.values(currentResultsData).filter(r => r.eventCode === eventCode && r.status === 'published');
@@ -4329,42 +5229,65 @@
             }
             const sortedResults = evResults.sort((a,b) => (Number(a.position) || 99) - (Number(b.position) || 99));
 
-            // 2. Populate Template
-            document.getElementById('poster-event-name').textContent = eventInfo.eventName;
-            document.getElementById('poster-category').textContent = eventInfo.category;
-
-            ['1st', '2nd', '3rd'].forEach((posStr, idx) => {
-                const el = document.getElementById(`poster-${posStr}`);
-                const result = sortedResults[idx];
-                if (result && Number(result.position) === (idx + 1)) {
-                    const p = participantsCache[result.chestNo] || { name: 'Contestant ' + result.chestNo, team: 'Independent' };
-                    document.getElementById(`poster-${posStr}-name`).textContent = p.name;
-                    document.getElementById(`poster-${posStr}-team`).textContent = p.team || 'Independent';
-                    el.style.display = 'block';
-                } else {
-                    el.style.display = 'none';
+            const winners = [1, 2, 3].map(pos => {
+                const res = sortedResults.find(r => Number(r.position) === pos);
+                if (res) {
+                    const p = participantsCache[res.chestNo] || { name: 'Contestant ' + res.chestNo, team: 'Independent' };
+                    return {
+                        rank: String(pos),
+                        name: p.name || 'Contestant ' + res.chestNo,
+                        team: p.team || 'Independent',
+                        grade: res.grade || '-'
+                    };
                 }
+                return null;
+            }).filter(Boolean);
+
+            // 2. Offscreen Canvas (1080x1080)
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = 1080;
+            offscreenCanvas.height = 1080;
+
+            // Load images synchronously via Promise
+            const loadImagePromise = (src) => new Promise(resolve => {
+                if (!src) return resolve(null);
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
             });
 
-            // 3. Render and Download
+            const bgSrc = window.currentPosterBackground || '';
+            const logoEl = document.getElementById('preview-website-logo');
+            const logoSrc = (logoEl && logoEl.src && !logoEl.src.includes('undefined')) ? logoEl.src : '';
+
             try {
-                const canvas = await html2canvas(template, {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: null
+                const [bgImg, logoImg] = await Promise.all([
+                    loadImagePromise(bgSrc),
+                    loadImagePromise(logoSrc)
+                ]);
+
+                const formattedNumber = String(resultNumber).padStart(2, '0');
+                renderPosterToCanvas(offscreenCanvas, window.currentPosterLayout || defaultPosterLayout, {
+                    bgImage: bgImg,
+                    logoImage: logoImg,
+                    resultNumberText: formattedNumber,
+                    category: eventInfo.category || 'GENERAL',
+                    eventName: eventInfo.eventName || eventCode,
+                    winners: winners
                 });
-                
-                const dataUrl = canvas.toDataURL('image/png');
-                
+
+                const dataUrl = offscreenCanvas.toDataURL('image/png');
+
                 // Show Modal Preview
                 const previewImg = document.getElementById('preview-image-element');
                 const modal = document.getElementById('poster-preview-modal');
-                
+
                 if (previewImg && modal) {
                     previewImg.src = dataUrl;
                     modal.style.display = 'flex';
-                    
-                    // Set up Confirm button
+
                     const confirmBtn = document.getElementById('btn-confirm-download');
                     confirmBtn.onclick = () => {
                         const link = document.createElement('a');
@@ -4373,14 +5296,12 @@
                         link.click();
                         modal.style.display = 'none';
                     };
-                    
-                    // Set up Close button
+
                     const closeBtn = document.getElementById('btn-close-preview');
                     closeBtn.onclick = () => {
                         modal.style.display = 'none';
                     };
                 } else {
-                    // Fallback
                     const link = document.createElement('a');
                     link.download = `Result_Poster_${eventCode.replace(/\s+/g, '_')}.png`;
                     link.href = dataUrl;
@@ -4388,7 +5309,7 @@
                 }
             } catch (err) {
                 console.error("Poster generation failed:", err);
-                alert("Failed to generate poster.");
+                alert("Failed to generate poster: " + err.message);
             }
         }
         window.downloadPoster = downloadPoster;
@@ -4405,6 +5326,7 @@
             initVisibilitySettingsListener();
             initScoringSettingsListener();
             initAdminNewsListener();
+            initPosterDesigner();
 
             // Instant logo file preview & favicon update
             const logoInput = document.getElementById('setting-website-logo');
