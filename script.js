@@ -895,20 +895,21 @@ function renderLiveResults(resultsList) {
                                     <th>Chest No</th>
                                     <th>Participant</th>
                                     <th>Team</th>
-                                    <th>Points</th>
+                                    <th>Grade</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${eventResults.map((r, idx) => {
                                     const p = participantsCache[r.chestNo] || { name: 'Contestant ' + r.chestNo, team: 'Festival Unit' };
                                     const rank = r.calculatedRank || r.position || (idx + 1);
+                                    const grade = (r.grade && String(r.grade).trim() !== '' && String(r.grade).trim() !== 'None') ? String(r.grade).trim() : '-';
                                     return `
                                         <tr>
                                             <td>${rank === 1 ? '<i class="fa-solid fa-trophy trophy-gold"></i> 1' : rank}</td>
                                             <td>${r.chestNo}</td>
                                             <td class="${rank === 1 ? 'winner-highlight' : ''}">${p.name}</td>
                                             <td>${p.team}</td>
-                                            <td style="font-weight:bold; color:var(--primary-color)">${r.calculatedPoints != null ? r.calculatedPoints : 0}</td>
+                                            <td>${grade !== '-' ? `<span class="grade-box">${grade}</span>` : '-'}</td>
                                         </tr>
                                     `;
                                 }).join('')}
